@@ -14,6 +14,7 @@ final public class ArraySetSection<E>: ReactiveSetSection {
 
 	private let eventObserver: Observer<ReactiveSetEvent, NoError>
 	public let eventProducer: SignalProducer<ReactiveSetEvent, NoError>
+	private var bufferingChanges: [ReactiveSetChanges]?
 
 	internal var disposable: Disposable?
 
@@ -30,8 +31,31 @@ final public class ArraySetSection<E>: ReactiveSetSection {
 	public func fetch() throws {
 	}
 
+	public func modify(@noescape action: () throws -> Void) rethrows {
+		bufferingChanges = []
+		try action()
+
+		if !bufferingChanges!.isEmpty {
+			let changes = ReactiveSetChanges(indexPathsOfDeletedRows: bufferingChanges!.flatMap { $0.indexPathsOfDeletedRows ?? [] },
+				indexPathsOfInsertedRows: bufferingChanges!.flatMap { $0.indexPathsOfInsertedRows ?? [] },
+				indexPathsOfMovedRows: bufferingChanges!.flatMap { $0.indexPathsOfMovedRows ?? [] },
+				indexPathsOfUpdatedRows: bufferingChanges!.flatMap { $0.indexPathsOfUpdatedRows ?? [] })
+
+			eventObserver.sendNext(.Updated(changes))
+		}
+
+		bufferingChanges = nil
+	}
+
+	public func pushChanges(changes: ReactiveSetChanges) {
+		if bufferingChanges != nil {
+			bufferingChanges!.append(changes)
+		} else {
+			eventObserver.sendNext(.Updated(changes))
+		}
+	}
+
 	deinit {
-		print("dealloc 1")
 		eventObserver.sendCompleted()
 	}
 }
@@ -58,7 +82,7 @@ extension ArraySetSection: MutableCollectionType {
 		}
 		set(newValue) {
 			storage[position] = newValue
-			eventObserver.sendNext(.Updated(ReactiveSetChanges(indexPathsOfUpdatedRows: [NSIndexPath(index: position)])))
+			pushChanges(ReactiveSetChanges(indexPathsOfUpdatedRows: [NSIndexPath(index: position)]))
 		}
 	}
 
@@ -133,7 +157,7 @@ extension ArraySetSection: RangeReplaceableCollectionType {
 				NSIndexPath(index: $0)
 			}
 			let changes = ReactiveSetChanges(indexPathsOfInsertedRows: indexPaths)
-			eventObserver.sendNext(.Updated(changes))
+			pushChanges(changes)
 		} else {
 			let replacingEndIndex = min(newEndIndex, subRange.endIndex)
 			let updatedRows = (subRange.startIndex ..< replacingEndIndex).map {
@@ -158,7 +182,8 @@ extension ArraySetSection: RangeReplaceableCollectionType {
 			let changes = ReactiveSetChanges(indexPathsOfDeletedRows: deletedRows ?? [],
 				indexPathsOfInsertedRows: insertedRows ?? [],
 				indexPathsOfUpdatedRows: updatedRows)
-			eventObserver.sendNext(.Updated(changes))
+
+			pushChanges(changes)
 
 		}
 	}

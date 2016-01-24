@@ -9,6 +9,6 @@
 import Foundation
 import CoreData
 
-public protocol ViewModel: class {
+public protocol ViewModel {
   typealias MappingObject
 }

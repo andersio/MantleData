@@ -11,28 +11,28 @@ import UIKit
 import ReactiveCocoa
 
 public struct TableViewAdapterConfiguration<V: ViewModel> {
-	private var factories: [Int: (UITableView, V) -> UITableViewCell]
+	private var factories: [Int: (UITableView, V, NSIndexPath) -> UITableViewCell]
 	public var isUniform: Bool = false
 
 	public init() {
 		self.factories = [:]
 	}
 
-	public mutating func registerForAllSection(factory: (UITableView, V) -> UITableViewCell) {
+	public mutating func registerForAllSection(factory: (UITableView, V, NSIndexPath) -> UITableViewCell) {
 		isUniform = true
 		factories[-1] = factory
 	}
 
-	public mutating func registerSection(index: Int, factory: (UITableView, V) -> UITableViewCell) {
+	public mutating func registerSection(index: Int, factory: (UITableView, V, NSIndexPath) -> UITableViewCell) {
 		precondition(index >= 0, "section index must be greater than or equal to zero.")
 		factories[index] = factory
 	}
 
-	public func apply(index: Int, tableView: UITableView, viewModel: V) -> UITableViewCell {
+	public func apply(indexPath: NSIndexPath, tableView: UITableView, viewModel: V) -> UITableViewCell {
 		if isUniform {
-			return factories[-1]!(tableView, viewModel)
+			return factories[-1]!(tableView, viewModel, indexPath)
 		}
-		return factories[index]!(tableView, viewModel)
+		return factories[indexPath.section]!(tableView, viewModel, indexPath)
 	}
 }
 
@@ -95,7 +95,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	}
 
 	public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-		return configuration.apply(indexPath.section, tableView: tableView, viewModel: set[indexPath])
+		return configuration.apply(indexPath, tableView: tableView, viewModel: set[indexPath])
 	}
 
 	public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

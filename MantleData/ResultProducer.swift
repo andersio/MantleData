@@ -9,14 +9,12 @@
 import CoreData
 
 final public class ResultProducer<Entity: Object> {
-  private weak var preferredContext: ObjectContext?
+  private let context: ObjectContext
   private let entityName: String
   private var fetchRequest: NSFetchRequest
   private var sectionNameKeyPath: String?
 
   private func prepareRequest() -> ObjectContext {
-    let context = preferredContext ?? inferObjectContext()
-    
     guard let entityDescription = NSEntityDescription.entityForName(entityName, inManagedObjectContext: context) else {
       preconditionFailure("Failed to create entity description of entity `\(entityName)`.")
     }
@@ -35,13 +33,10 @@ final public class ResultProducer<Entity: Object> {
 		return try context.executeFetchRequest(fetchRequest) as! [[String: AnyObject]]
 	}
 
-  internal init(entityName: String, fetchRequest: NSFetchRequest) {
+	internal init(entityName: String, fetchRequest: NSFetchRequest, context: ObjectContext) {
     self.entityName = entityName
     self.fetchRequest = fetchRequest
-  }
-  
-  public func setContext(context: ObjectContext) {
-    self.preferredContext = context
+		self.context = context
   }
 
 	public func modifyFetchRequest(@noescape action: NSFetchRequest -> Void) {
@@ -110,12 +105,6 @@ final public class ResultProducer<Entity: Object> {
 		fetchRequest.includesPropertyValues = false
 		fetchRequest.includesSubentities = false
 		return context.countForFetchRequest(fetchRequest, error: nil)
-	}
-
-	/// Finalizers
-
-	public func viewModelSet<U: ViewModel where U.MappingObject == Entity>(factory: Entity -> U) -> ViewModelSet<U> {
-		return ViewModelSet(self, factory: factory)
 	}
 
 	/// Collection Operators

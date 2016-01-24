@@ -10,7 +10,7 @@ import Foundation
 import ReactiveCocoa
 
 public final class ViewModelSet<U: ViewModel>: Base {
-	public let sectionNameTransform: ((Int, ReactiveSetSectionName) -> String?)?
+	public var sectionNameTransform: ((Int, ReactiveSetSectionName) -> String?)?
   private let set: _AnyReactiveSetBox<U.MappingObject>
 	private let factory: U.MappingObject -> U
   
@@ -18,10 +18,9 @@ public final class ViewModelSet<U: ViewModel>: Base {
 		return set.eventProducer
   }
 
-	public init<R: ReactiveSet where R.Generator.Element.Generator.Element == U.MappingObject>(_ set: R, factory: U.MappingObject -> U, sectionNameTransform: ((Int, ReactiveSetSectionName) -> String?)? = nil) {
+	public init<R: ReactiveSet where R.Generator.Element.Generator.Element == U.MappingObject>(_ set: R, factory: U.MappingObject -> U) {
     self.set = _AnyReactiveSetBoxBase(set)
 		self.factory = factory
-		self.sectionNameTransform = sectionNameTransform
 
     super.init()
 	}
@@ -56,10 +55,4 @@ public final class ViewModelSet<U: ViewModel>: Base {
     let viewModel = factory(model)
     return viewModel
   }
-}
-
-extension ViewModelSet where U.MappingObject: Object {
-	public convenience init(_ resultProducer: ResultProducer<U.MappingObject>, factory: U.MappingObject -> U) {
-		self.init(resultProducer.objectSet, factory: factory)
-	}
 }

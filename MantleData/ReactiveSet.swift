@@ -46,6 +46,10 @@ extension ReactiveSet {
 		}
 		return extractedSignal
 	}
+
+	public subscript(index: AnyReactiveSetIndex) -> Generator.Element {
+		return self[Index(reactiveSetIndex: index)]
+	}
 }
 
 extension ReactiveSet where Index: ReactiveSetIndex {
@@ -56,7 +60,8 @@ extension ReactiveSet where Index: ReactiveSetIndex {
 
 extension ReactiveSet where Index: ReactiveSetIndex, Generator.Element.Index: ReactiveSetIndex {
 	public subscript(indexPath: NSIndexPath) -> Generator.Element.Generator.Element {
-		return self[Index(reactiveSetIndex: indexPath.section)][Generator.Element.Index(reactiveSetIndex: indexPath.row)]
+		let section = self[Index(reactiveSetIndex: indexPath.section)]
+		return section[Generator.Element.Index(reactiveSetIndex: indexPath.row)]
 	}
 }
 
@@ -120,15 +125,34 @@ public struct ReactiveSetChanges {
 extension ReactiveSetChanges: CustomStringConvertible {
 	public var description: String {
 		// NOTE: explicitly state type to mitigate slow compile time type inference
-		return (["ReactiveSetChanges" as String,
-			indexPathsOfInsertedRows.map { "> \($0.count) row(s) inserted\n\($0._toString)" } ?? "" as String,
-			indexPathsOfDeletedRows.map { "> \($0.count) row(s) deleted\n\($0._toString)" } ?? "" as String,
-			indexPathsOfMovedRows.map { "> \($0.count) row(s) moved\n\($0._toString)" } ?? "" as String,
-			indexPathsOfUpdatedRows.map { "> \($0.count) row(s) updated\n\($0._toString)" } ?? "" as String,
-			indiceOfInsertedSections.map { "> \($0.count) section(s) inserted\n\($0._toString)" } ?? "" as String,
-			indiceOfDeletedSections.map { "> \($0.count) section(s) deleted\n\($0._toString)" } ?? "" as String] as [String])
-			.filter { !$0.isEmpty }
-			.joinWithSeparator("\n")
+		var strings = [String]()
+		strings.append("ReactiveSetChanges")
+
+		if let indexPaths = indexPathsOfInsertedRows {
+			strings.append("> \(indexPaths.count) row(s) inserted\n\(indexPaths._toString)")
+		}
+
+		if let indexPaths = indexPathsOfDeletedRows {
+			strings.append( "> \(indexPaths.count) row(s) deleted\n\(indexPaths._toString)")
+		}
+
+		if let indexPaths = indexPathsOfMovedRows {
+			strings.append( "> \(indexPaths.count) row(s) moved\n\(indexPaths._toString)")
+		}
+
+		if let indexPaths = indexPathsOfUpdatedRows {
+			strings.append( "> \(indexPaths.count) row(s) updated\n\(indexPaths._toString)")
+		}
+
+		if let indexPaths = indiceOfInsertedSections {
+			strings.append( "> \(indexPaths.count) section(s) inserted\n\(indexPaths._toString)")
+		}
+
+		if let indexPaths = indiceOfDeletedSections {
+			strings.append( "> \(indexPaths.count) section(s) deleted\n\(indexPaths._toString)")
+		}
+
+		return strings.joinWithSeparator("\n")
 	}
 }
 
@@ -148,6 +172,10 @@ public func == <S: ReactiveSetSection>(left: S, right: S) -> Bool {
 
 extension ReactiveSetSection where Index: ReactiveSetIndex {
 	public subscript(index: Int) -> Generator.Element {
+		return self[Index(reactiveSetIndex: index)]
+	}
+
+	public subscript(index: AnyReactiveSetIndex) -> Generator.Element {
 		return self[Index(reactiveSetIndex: index)]
 	}
 }

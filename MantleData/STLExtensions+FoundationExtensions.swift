@@ -75,8 +75,8 @@ extension MutableCollectionType where Index: RandomAccessIndexType, Generator.El
 		}
 
 		sortInPlace { object1, object2 in
-			return sortDescriptors.contains {
-				return $0.compareObject(object1, toObject: object2) == .OrderedAscending
+			return sortDescriptors.contains { descriptor in
+				return descriptor.compareObject(object1, toObject: object2) == .OrderedAscending
 			}
 		}
 	}
@@ -109,7 +109,10 @@ extension CollectionType where Generator.Element == NSIndexPath {
 
 extension CollectionType where Generator.Element == (NSIndexPath, NSIndexPath) {
 	var _toString: String {
-		return map { "[s#\($0.0.section) c#\($0.0.row) to s#\($0.1.section) c#\($0.1.row)]" }
+		return map { tuple in
+				let (to, from) = tuple
+				return "[s#\(from.section) c#\(from.row) to s#\(to.section) c#\(to.row)]"
+			}
 			.joinWithSeparator(", ")
 	}
 

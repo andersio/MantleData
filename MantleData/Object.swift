@@ -146,8 +146,7 @@ extension ObjectType where Self: Object {
     preconditionFailure("The object is not from a MantleData object context.")
   }
 
-	final public var adapted: Self {
-		let context = inferObjectContext()
+	final public func with(context: ObjectContext) -> Self {
 		if context === managedObjectContext {
 			return self
 		} else {
@@ -170,48 +169,53 @@ extension ObjectType where Self: Object {
   /// Insert a new object.
   /// - Parameter context: The context the object to be inserted into. If unspecified, it uses the context inferer.
   /// - Returns: The resulting object.
-  final public static func new() -> Self {
-    let context = inferObjectContext()
-    guard let entityDescription = NSEntityDescription.entityForName(entityName, inManagedObjectContext: context) else {
-      preconditionFailure("Failed to create entity description of entity `\(entityName)`.")
+	final public static func with(context: ObjectContext) -> FetchRequestProducer<Self> {
+		return FetchRequestProducer(context: context)
+	}
+}
+
+public struct FetchRequestProducer<T: Object where T: ObjectType> {
+	let context: ObjectContext
+
+  public func new() -> T {
+    guard let entityDescription = NSEntityDescription.entityForName(T.entityName, inManagedObjectContext: context) else {
+      preconditionFailure("Failed to create entity description of entity `\(T.entityName)`.")
     }
-    return Self(entity: entityDescription, insertIntoManagedObjectContext: context)
+    return T(entity: entityDescription, insertIntoManagedObjectContext: context)
   }
   
-  final public static func find(ID: NSManagedObjectID) -> Self {
-    let context = inferObjectContext()
-    assert(ID.entity.name == entityName, "Entity does not match with the ID.")
-    return try! context.existingObjectWithID(ID) as! Self
+  public func find(ID: NSManagedObjectID) -> T {
+    assert(ID.entity.name == T.entityName, "Entity does not match with the ID.")
+    return try! context.existingObjectWithID(ID) as! T
   }
 
-  final public static func find(IDs: [NSManagedObjectID]) -> [Self] {
-    let context = inferObjectContext()
-    var objects = [Self]()
+  public func find(IDs: [NSManagedObjectID]) -> [T] {
+    var objects = [T]()
     for ID in IDs {
-      assert(ID.entity.name == entityName, "Entity does not match with the ID.")
-      objects.append(try! context.existingObjectWithID(ID) as! Self)
+      assert(ID.entity.name == T.entityName, "Entity does not match with the ID.")
+      objects.append(try! context.existingObjectWithID(ID) as! T)
     }
     return objects
   }
   
-	final public static var all: ResultProducer<Self> {
+	public var all: ResultProducer<T> {
     return filter(nil)
   }
 
-  final public static func filter(predicate: NSPredicate?) -> ResultProducer<Self> {
+  public func filter(predicate: NSPredicate?) -> ResultProducer<T> {
     let request = NSFetchRequest()
     request.predicate = predicate
-    return ResultProducer(entityName: entityName, fetchRequest: request)
+		return ResultProducer(entityName: T.entityName, fetchRequest: request, context: context)
   }
   
-  final public static func filter(formatString: String, _ args: AnyObject...) -> ResultProducer<Self> {
+  public func filter(formatString: String, _ args: AnyObject...) -> ResultProducer<T> {
     return filter(formatString, args: args)
   }
   
-  final public static func filter(formatString: String, args: [AnyObject]) -> ResultProducer<Self> {
+  public func filter(formatString: String, args: [AnyObject]) -> ResultProducer<T> {
     let request = NSFetchRequest()
     request.predicate = NSPredicate(format: formatString, argumentArray: args)
     
-    return ResultProducer(entityName: entityName, fetchRequest: request)
+    return ResultProducer(entityName: T.entityName, fetchRequest: request, context: context)
   }
 }

@@ -25,6 +25,7 @@ final public class ObjectSet<E: Object>: Base {
   public let sectionNameOrdering: NSComparisonResult
   public let objectSortDescriptors: [NSSortDescriptor]
 
+	// An ObjectSet retains the managed object context.
 	private(set) public weak var context: ObjectContext!
 
 	private var eventObserver: Observer<ReactiveSetEvent, NoError>?
@@ -50,20 +51,18 @@ final public class ObjectSet<E: Object>: Base {
 
     precondition(fetchRequest.sortDescriptors != nil, "ObjectSet requires sort descriptors to work.")
 
-    switch sectionNameKeyPath {
-    case .Some(let keyPath):
+    if let keyPath = sectionNameKeyPath {
       precondition(fetchRequest.sortDescriptors!.count >= 2, "Unsufficient number of sort descriptors.")
       self.fetchRequest.relationshipKeyPathsForPrefetching = [keyPath]
       self.sectionNameOrdering = fetchRequest.sortDescriptors!.first!.ascending ? .OrderedAscending : .OrderedDescending
       self.objectSortDescriptors = Array(fetchRequest.sortDescriptors!.dropFirst())
-      break
-    case .None:
+		} else {
       self.sectionNameOrdering = .OrderedSame
       self.objectSortDescriptors = fetchRequest.sortDescriptors ?? []
-      break
     }
     
     super.init()
+
     precondition(self._sectionNameKeyPath?.count ?? 0 <= 2, "ObjectSet supports only direct relationship on the key path for section name.")
     self.fetchRequest.resultType = .ManagedObjectResultType
   }
@@ -175,6 +174,7 @@ final public class ObjectSet<E: Object>: Base {
         if let object = shouldInclude(object) {
           let sectionName = sectionNameFor(object)
           notification.insertedObjects.insert(object, inSetForKey: sectionName)
+					notification.insertedObjectsCount = notification.insertedObjectsCount + 1
         }
       }
     }
@@ -183,7 +183,8 @@ final public class ObjectSet<E: Object>: Base {
       for object in deletedObjects {
         if let object = shouldInclude(object) {
           let sectionName = sectionNameFor(object)
-          notification.deletedObjects.insert(object, inSetForKey: sectionName)
+					notification.deletedObjects.insert(object, inSetForKey: sectionName)
+					notification.deletedObjectsCount = notification.deletedObjectsCount + 1
         }
       }
     }
@@ -191,25 +192,31 @@ final public class ObjectSet<E: Object>: Base {
     if let updatedObjects = userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject> {
       for object in updatedObjects {
         if let object = shouldInclude(object) {
+					let sectionName: ReactiveSetSectionName
+
           if sectionNameKeyPath != nil {
-            let __object = _sectionNameKeyPath!.count > 1
+						let __object: E = _sectionNameKeyPath!.count > 1
               ? object.valueForKeyPath(_sectionNameKeyPath!.first!) as! E
               : object
 
-            let sectionName = sectionNameFor(object)
+            sectionName = sectionNameFor(object)
 
 						let changedDict = __object.changedValuesForCurrentEvent()
 						if changedDict.keys.contains(_sectionNameKeyPath!.last!) {
 							let oldSectionName = ReactiveSetSectionName(changedDict[_sectionNameKeyPath!.last!] as? String)
 							if oldSectionName != sectionName {
 								notification.movedObjects.insert(object, inSetForKey: oldSectionName)
+								notification.movedObjectsCount = notification.movedObjectsCount + 1
+
+								continue
 							}
-            } else {
-              notification.updatedObjects.insert(object, inSetForKey: sectionName)
             }
           } else {
-            notification.updatedObjects.insert(object, inSetForKey: ReactiveSetSectionName(nil))
-          }
+						sectionName = ReactiveSetSectionName(nil)
+					}
+
+					notification.updatedObjects.insert(object, inSetForKey: sectionName)
+					notification.updatedObjectsCount = notification.updatedObjectsCount + 1
         }
       }
     }
@@ -223,7 +230,7 @@ final public class ObjectSet<E: Object>: Base {
 
     var inboundObjects = [ReactiveSetSectionName: ContiguousArray<E>](minimumCapacity: externalChanges.movedObjects.count)
     var originsOfMoved = ContiguousArray<NSIndexPath>()
-    originsOfMoved.reserveCapacity(externalChanges.movedObjects.values.reduce(0, combine: { $0 + $1.count }))
+    originsOfMoved.reserveCapacity(externalChanges.movedObjectsCount)
 
 		var indexPathsOfInsertedRows = [NSIndexPath]()
 		var indexPathsOfDeletedRows = [NSIndexPath]()
@@ -233,14 +240,10 @@ final public class ObjectSet<E: Object>: Base {
 		let indiceOfDeletedSections = NSMutableIndexSet()
 		let indiceOfInsertedSections = NSMutableIndexSet()
 
-    indexPathsOfInsertedRows
-			.reserveCapacity(externalChanges.insertedObjects.values.reduce(0, combine: { $0 + $1.count }))
-    indexPathsOfDeletedRows
-			.reserveCapacity(externalChanges.deletedObjects.values.reduce(0, combine: { $0 + $1.count }))
-    indexPathsOfUpdatedRows
-			.reserveCapacity(externalChanges.updatedObjects.values.reduce(0, combine: { $0 + $1.count }))
-    indexPathsOfMovedRows
-			.reserveCapacity(originsOfMoved.capacity)
+    indexPathsOfInsertedRows.reserveCapacity(externalChanges.insertedObjectsCount)
+    indexPathsOfDeletedRows.reserveCapacity(externalChanges.deletedObjectsCount)
+    indexPathsOfUpdatedRows.reserveCapacity(externalChanges.updatedObjectsCount)
+    indexPathsOfMovedRows.reserveCapacity(originsOfMoved.capacity)
 
     for (sectionName, objects) in externalChanges.deletedObjects {
 			guard let sectionIndex = oldSections.indexFor(sectionName) else {
@@ -282,8 +285,11 @@ final public class ObjectSet<E: Object>: Base {
       inboundObjects.insert(object, inSetForKey: sectionName)
     }
 
-    var pendingDelete = originsOfMoved + indexPathsOfDeletedRows
+    var pendingDelete = ContiguousArray<NSIndexPath>()
+		pendingDelete.appendContentsOf(originsOfMoved)
+		pendingDelete.appendContentsOf(indexPathsOfDeletedRows)
     pendingDelete.sortInPlace { $0.row > $1.row }
+
     for indexPath in pendingDelete {
       updatedSections[indexPath.section].removeAtIndex(indexPath.row)
     }
@@ -302,7 +308,11 @@ final public class ObjectSet<E: Object>: Base {
       if let sectionIndex = updatedSections.indexFor(sectionName) {
         updatedSections[sectionIndex].appendContentsOf(objects)
       } else {
-				let index = updatedSections.insertSection(sectionName, ordering: sectionNameOrdering, section: ObjectSetSection(name: sectionName, array: Array(objects)))
+				let index = updatedSections.insertSection(sectionName,
+					ordering: sectionNameOrdering,
+					section: ObjectSetSection(name: sectionName,
+						array: Array(objects)))
+
         indiceOfInsertedSections.addIndex(index)
       }
     }
@@ -311,7 +321,11 @@ final public class ObjectSet<E: Object>: Base {
       if let sectionIndex = updatedSections.indexFor(sectionName) {
         updatedSections[sectionIndex].appendContentsOf(objects)
       } else {
-        let index = updatedSections.insertSection(sectionName, ordering: sectionNameOrdering, section: ObjectSetSection(name: sectionName, array: Array(objects)))
+        let index = updatedSections.insertSection(sectionName,
+					ordering: sectionNameOrdering,
+					section: ObjectSetSection(name: sectionName,
+						array: Array(objects)))
+
         indiceOfInsertedSections.addIndex(index)
       }
     }
@@ -371,6 +385,7 @@ final public class ObjectSet<E: Object>: Base {
 			indexPathsOfUpdatedRows: indexPathsOfUpdatedRows,
 			indiceOfInsertedSections: indiceOfInsertedSections,
 			indiceOfDeletedSections: indiceOfDeletedSections)
+
     eventObserver?.sendNext(.Updated(resultSetChanges))
   }
   
@@ -424,6 +439,11 @@ private struct ExternalChanges<E: Object> {
   var deletedObjects: [ReactiveSetSectionName: Set<E>] = [:]
   var movedObjects: [ReactiveSetSectionName: Set<E>] = [:]
   var updatedObjects: [ReactiveSetSectionName: Set<E>] = [:]
+
+	var insertedObjectsCount: Int = 0
+	var deletedObjectsCount: Int = 0
+	var movedObjectsCount: Int = 0
+	var updatedObjectsCount: Int = 0
 }
 
 public struct ObjectSetSection<E: Object> {

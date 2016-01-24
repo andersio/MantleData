@@ -18,14 +18,6 @@ final public class Container: Base {
 
 	internal let persistentStoreCoordinator: NSPersistentStoreCoordinator
 
-	private(set) public lazy var mainContext: ObjectContext = { [unowned self] in
-		return self.mainQueueContext(.PreferStoreWhenMerging)
-	}()
-
-	private(set) public lazy var writeContext: ObjectContext = { [unowned self] in
-		return self.privateQueueContext(.PreferMemoryWhenMerging)
-	}()
-
 	private(set) public lazy var isSaving: AnyProperty<Bool> = { [unowned self] in
 		return AnyProperty<Bool>(initialValue: false,
 			producer: self._isSaving.producer
@@ -120,6 +112,7 @@ final public class Container: Base {
 }
 
 public enum MergePolicy {
+	case Custom(NSMergePolicy)
   case PreferMemoryWhenMerging
   case PreferStoreWhenMerging
   case OverwriteStore
@@ -133,6 +126,7 @@ public enum MergePolicy {
     case .RaiseError:         return NSErrorMergePolicy
     case .OverwriteStore:     return NSOverwriteMergePolicy
     case .RollbackToStore:    return NSRollbackMergePolicy
+		case let .Custom(mergePolicy): return mergePolicy
     }
   }
 }

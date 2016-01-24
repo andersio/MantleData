@@ -64,21 +64,19 @@ final public class ObjectContext: NSManagedObjectContext {
 
   public func schedule(block: () -> Void) {
     if concurrencyType == .MainQueueConcurrencyType && NSThread.isMainThread() {
-      runInContextScope(self, block: block)
+      block()
     } else {
-      super.performBlock {
-        runInContextScope(self, block: block)
-      }
-    }
+      super.performBlock(block)
+		}
 	}
 
 	public func prepare<Result>(@noescape block: () -> Result) -> Result {
 		if concurrencyType == .MainQueueConcurrencyType && NSThread.isMainThread() {
-			return runInContextScope(self, block: block)
+			return block()
 		} else {
 			var returnResult: Result!
 			super.performBlockAndWaitNoEscape {
-				returnResult = runInContextScope(self, block: block)
+				returnResult = block()
 			}
 			return returnResult
 		}
@@ -86,11 +84,9 @@ final public class ObjectContext: NSManagedObjectContext {
 
   public func perform(@noescape block: () -> Void) {
     if concurrencyType == .MainQueueConcurrencyType && NSThread.isMainThread() {
-			runInContextScope(self, block: block)
+			block()
     } else {
-      super.performBlockAndWaitNoEscape {
-				runInContextScope(self, block: block)
-      }
+      super.performBlockAndWaitNoEscape(block)
     }
 	}
 
@@ -197,25 +193,4 @@ final public class ObjectContext: NSManagedObjectContext {
 
 		stalenessInterval = previousInterval
 	}
-}
-
-@inline(__always) private func runInContextScope<Result>(context: ObjectContext, @noescape block: () throws -> Result) rethrows -> Result {
-  let thread = NSThread.currentThread()
-  thread.threadDictionary[ObjectContext.ThreadContextKey] = context
-  let returnValue = try block()
-  thread.threadDictionary[ObjectContext.ThreadContextKey] = nil
-	return returnValue
-}
-
-@inline(__always) internal func inferObjectContext() -> ObjectContext {
-  if let context = NSThread.currentThread().threadDictionary[ObjectContext.ThreadContextKey] as? ObjectContext {
-    return context
-  }
-  
-  preconditionFailure("inferObjectContext: Cannot infer the current context.")
-}
-
-@inline(__always) public func saveContext() throws {
-	let context = inferObjectContext()
-	try context.save()
 }
