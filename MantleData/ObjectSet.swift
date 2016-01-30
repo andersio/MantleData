@@ -68,6 +68,10 @@ final public class ObjectSet<E: Object>: Base {
   }
 
   public func fetch() throws {
+		if isFetched {
+			return
+		}
+
     func completionBlock(result: NSAsynchronousFetchResult) {
       self.sectionize(result.finalResult as? [E] ?? [])
 			eventObserver?.sendNext(.Reloaded)
@@ -106,36 +110,29 @@ final public class ObjectSet<E: Object>: Base {
 
       return
     }
-    
-    if fetchedObjects.count > 0 {
-      var currentSectionName: ReactiveSetSectionName?
-			var objects: [E] = []
+
+		if !fetchedObjects.isEmpty {
+			var ranges: [(range: Range<Int>, name: ReactiveSetSectionName)] = []
 
 			// Objects are sorted wrt to sections already.
-      for (i, object) in fetchedObjects.enumerate() {
-        let sectionName = ReactiveSetSectionName(object.valueForKeyPath(keyPath) as? String)
+      for position in fetchedObjects.startIndex ..< fetchedObjects.endIndex {
+        let sectionName = ReactiveSetSectionName(fetchedObjects[position].valueForKeyPath(keyPath) as? String)
 
-        if sectionName == currentSectionName {
-          objects.append(object)
-
-					if i < fetchedObjects.endIndex - 1 {
-						// Last element must fall through so that the last section can be appended.
-						continue
-					}
-        }
-
-				if let currentSectionName = currentSectionName {
-					let section = ObjectSetSection<E>(name: currentSectionName,
-						array: objects)
-
-					sections.append(section)
-					objects = []
+				if ranges.isEmpty || ranges.last?.name != sectionName {
+					ranges.append((range: position ..< position + 1, name: sectionName))
+				} else {
+					ranges[ranges.endIndex - 1].range.endIndex += 1
 				}
-
-				currentSectionName = sectionName
       }
-    }
-    
+
+			sections.reserveCapacity(ranges.count)
+
+			for (range, name) in ranges {
+				let section = ObjectSetSection(name: name, array: Array(fetchedObjects[range]))
+				sections.append(section)
+			}
+		}
+
     isFetched = true
   }
   
@@ -220,7 +217,7 @@ final public class ObjectSet<E: Object>: Base {
         }
       }
     }
-    
+
     return notification
   }
   
