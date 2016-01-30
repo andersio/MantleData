@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9A1258FC1C52000C002FE901 /* NSObject+AssociatedProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1258FB1C52000C002FE901 /* NSObject+AssociatedProperty.swift */; };
+		9A104C3D1C5D26A100746235 /* NSObject+AssociatedProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */; };
 		9A141A3E1C495E500049BEC9 /* ViewModelSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */; };
 		9A2997E61C510BAD00801A30 /* AnyReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */; };
 		9A2997E71C510BAD00801A30 /* AnyReactiveSetBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */; };
@@ -38,7 +38,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		9A1258FB1C52000C002FE901 /* NSObject+AssociatedProperty.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSObject+AssociatedProperty.swift"; sourceTree = "<group>"; };
+		9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSObject+AssociatedProperty.swift"; path = "MantleData/NSObject+AssociatedProperty.swift"; sourceTree = "<group>"; };
 		9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AnyReactiveSet.swift; path = MantleData/AnyReactiveSet.swift; sourceTree = "<group>"; };
 		9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AnyReactiveSetBox.swift; path = MantleData/AnyReactiveSetBox.swift; sourceTree = "<group>"; };
 		9A2997E31C510BAD00801A30 /* ArraySet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ArraySet.swift; path = MantleData/ArraySet.swift; sourceTree = "<group>"; };
@@ -135,7 +135,7 @@
 				9A2997F51C510BDB00801A30 /* ReactiveBindings.swift */,
 				9A39A6641BC958E100FC86E1 /* ReactiveView.swift */,
 				9A39A65A1BC958E100FC86E1 /* TableViewAdapter.swift */,
-				9A1258FB1C52000C002FE901 /* NSObject+AssociatedProperty.swift */,
+				9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */,
 			);
 			name = "UIKit Additions";
 			sourceTree = "<group>";
@@ -284,7 +284,7 @@
 				9A2997EA1C510BAD00801A30 /* ReactiveSet.swift in Sources */,
 				9A2997FC1C510BE900801A30 /* Dispatch.swift in Sources */,
 				9A2997E91C510BAD00801A30 /* ArraySetSection.swift in Sources */,
-				9A1258FC1C52000C002FE901 /* NSObject+AssociatedProperty.swift in Sources */,
+				9A104C3D1C5D26A100746235 /* NSObject+AssociatedProperty.swift in Sources */,
 				9A2997F41C510BD100801A30 /* ResultProducer.swift in Sources */,
 				9A2997E61C510BAD00801A30 /* AnyReactiveSet.swift in Sources */,
 			);
