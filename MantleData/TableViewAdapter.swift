@@ -12,7 +12,9 @@ import ReactiveCocoa
 
 public struct TableViewAdapterConfiguration<V: ViewModel> {
 	private var factories: [Int: (UITableView, V, NSIndexPath) -> UITableViewCell]
-	public var isUniform: Bool = false
+	public var isUniform = false
+	public var shouldReloadRowsForUpdatedObjects = false
+	public var rowAnimation: UITableViewRowAnimation = .Automatic
 
 	public init() {
 		self.factories = [:]
@@ -50,7 +52,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		set.eventProducer
 			.takeUntil(willDeinitProducer)
 			.observeOn(UIScheduler())
-			.startWithNext { [weak tableView] in
+			.startWithNext { [unowned self, weak tableView] in
 				switch($0) {
 				case .Reloaded:
 					tableView?.reloadData()
@@ -59,15 +61,23 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					tableView?.beginUpdates()
 
 					if let indexSet = changes.indiceOfDeletedSections {
-						tableView?.deleteSections(indexSet, withRowAnimation: .Automatic)
+						tableView?.deleteSections(indexSet, withRowAnimation: self.configuration.rowAnimation)
+					}
+
+					if let indexSet = changes.indiceOfReloadedSections {
+						tableView?.reloadSections(indexSet, withRowAnimation: self.configuration.rowAnimation)
 					}
 
 					if let indexPaths = changes.indexPathsOfDeletedRows {
-						tableView?.deleteRowsAtIndexPaths(indexPaths, withRowAnimation: .Automatic)
+						tableView?.deleteRowsAtIndexPaths(indexPaths, withRowAnimation: self.configuration.rowAnimation)
+					}
+
+					if self.configuration.shouldReloadRowsForUpdatedObjects, let indexPaths = changes.indexPathsOfUpdatedRows {
+						tableView?.reloadRowsAtIndexPaths(indexPaths, withRowAnimation: self.configuration.rowAnimation)
 					}
 
 					if let indexSet = changes.indiceOfInsertedSections {
-						tableView?.insertSections(indexSet, withRowAnimation: .Automatic)
+						tableView?.insertSections(indexSet, withRowAnimation: self.configuration.rowAnimation)
 					}
 
 					if let indexPathPairs = changes.indexPathsOfMovedRows {
@@ -77,7 +87,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					}
 
 					if let indexPaths = changes.indexPathsOfInsertedRows {
-						tableView?.insertRowsAtIndexPaths(indexPaths, withRowAnimation: .Automatic)
+						tableView?.insertRowsAtIndexPaths(indexPaths, withRowAnimation: self.configuration.rowAnimation)
 					}
 
 					tableView?.endUpdates()
