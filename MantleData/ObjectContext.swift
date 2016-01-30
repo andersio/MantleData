@@ -142,20 +142,20 @@ final public class ObjectContext: NSManagedObjectContext {
 
 	@objc public func handleExternalChanges(notification: NSNotification) {
 		if isSiblingContextOf(notification.object) {
-			performBlockAndWait {
-				self.mergeChangesFromContextDidSaveNotification(notification)
+			performBlockAndWaitNoEscape {
+				mergeChangesFromContextDidSaveNotification(notification)
 			}
 		}
 	}
 
 	@objc public func handleExternalBatchDelete(notification: NSNotification) {
 		if isSiblingContextOf(notification.object) {
-			performBlockAndWait {
+			performBlockAndWaitNoEscape {
 				guard let resultIDs = notification.userInfo?[ObjectContext.BatchRequestResultIDs] as? [NSManagedObjectID] else {
 					return
 				}
 
-				self.deleteObjectsWith(resultIDs)
+				deleteObjectsWith(resultIDs)
 			}
 		}
 	}
@@ -170,12 +170,12 @@ final public class ObjectContext: NSManagedObjectContext {
 
 	@objc public func handleExternalBatchUpdate(notification: NSNotification) {
 		if isSiblingContextOf(notification.object) {
-			performBlockAndWait {
+			performBlockAndWaitNoEscape {
 				guard let resultIDs = notification.userInfo?[ObjectContext.BatchRequestResultIDs] as? [NSManagedObjectID] else {
 					return
 				}
 
-				self.updateObjectsWith(resultIDs)
+				updateObjectsWith(resultIDs)
 			}
 		}
 	}

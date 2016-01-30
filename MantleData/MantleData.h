@@ -6,7 +6,7 @@
 //  Copyright © 2015 Anders. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import <CoreData/CoreData.h>
 #import <MantleData/Dispatch.h>
 
 //! Project version number for CoreData.swift.

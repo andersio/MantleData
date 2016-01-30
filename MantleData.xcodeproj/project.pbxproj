@@ -15,7 +15,6 @@
 		9A2997E91C510BAD00801A30 /* ArraySetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E41C510BAD00801A30 /* ArraySetSection.swift */; };
 		9A2997EA1C510BAD00801A30 /* ReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E51C510BAD00801A30 /* ReactiveSet.swift */; };
 		9A2997ED1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EB1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift */; };
-		9A2997EE1C510BB700801A30 /* TypeAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EC1C510BB700801A30 /* TypeAliases.swift */; };
 		9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */; };
 		9A2997F31C510BD100801A30 /* ObjectContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ObjectContext.swift */; };
 		9A2997F41C510BD100801A30 /* ResultProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F11C510BD100801A30 /* ResultProducer.swift */; };
@@ -46,7 +45,6 @@
 		9A2997E41C510BAD00801A30 /* ArraySetSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ArraySetSection.swift; path = MantleData/ArraySetSection.swift; sourceTree = "<group>"; };
 		9A2997E51C510BAD00801A30 /* ReactiveSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveSet.swift; path = MantleData/ReactiveSet.swift; sourceTree = "<group>"; };
 		9A2997EB1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "STLExtensions+FoundationExtensions.swift"; path = "MantleData/STLExtensions+FoundationExtensions.swift"; sourceTree = "<group>"; };
-		9A2997EC1C510BB700801A30 /* TypeAliases.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TypeAliases.swift; path = MantleData/TypeAliases.swift; sourceTree = "<group>"; };
 		9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CocoaBridgeable.swift; path = MantleData/CocoaBridgeable.swift; sourceTree = "<group>"; };
 		9A2997F01C510BD100801A30 /* ObjectContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectContext.swift; path = MantleData/ObjectContext.swift; sourceTree = "<group>"; };
 		9A2997F11C510BD100801A30 /* ResultProducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResultProducer.swift; path = MantleData/ResultProducer.swift; sourceTree = "<group>"; };
@@ -165,7 +163,6 @@
 				9A39A66A1BC958E100FC86E1 /* ViewModel.swift */,
 				9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */,
 				9A2997EB1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift */,
-				9A2997EC1C510BB700801A30 /* TypeAliases.swift */,
 			);
 			name = "Reactive Collections";
 			sourceTree = "<group>";
@@ -288,7 +285,6 @@
 				9A2997FC1C510BE900801A30 /* Dispatch.swift in Sources */,
 				9A2997E91C510BAD00801A30 /* ArraySetSection.swift in Sources */,
 				9A1258FC1C52000C002FE901 /* NSObject+AssociatedProperty.swift in Sources */,
-				9A2997EE1C510BB700801A30 /* TypeAliases.swift in Sources */,
 				9A2997F41C510BD100801A30 /* ResultProducer.swift in Sources */,
 				9A2997E61C510BAD00801A30 /* AnyReactiveSet.swift in Sources */,
 			);
