@@ -54,9 +54,11 @@ public class Object: NSManagedObject {
 					.start { _ in
 						observer.sendCompleted()
 						kvoController
-				}
+					}
 
-				producer.startWithCompleted { disposable.dispose() }
+				producer.startWithCompleted { [weak disposable] in
+					disposable?.dispose()
+				}
 				
 				return producer
 			}
