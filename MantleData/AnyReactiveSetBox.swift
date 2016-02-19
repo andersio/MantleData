@@ -125,7 +125,7 @@ final internal class _AnyReactiveSetSectionBoxBase<S: ReactiveSetSection>: _AnyR
 
 	override func generate() -> Generator {
 		var i = self.startIndex
-		return anyGenerator {
+		return AnyGenerator {
 			if i < self.endIndex {
 				defer { i = i.successor() }
 				return self[i]

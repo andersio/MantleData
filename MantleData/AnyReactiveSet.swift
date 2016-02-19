@@ -178,7 +178,7 @@ public struct AnyReactiveSetSectionSlice<E>: CollectionType {
 
 	public func generate() -> Generator {
 		var index = bounds.startIndex
-		return anyGenerator {
+		return AnyGenerator {
 			if index < self.bounds.endIndex {
 				defer { index = index.successor() }
 				return self.set[index]
