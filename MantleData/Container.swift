@@ -29,8 +29,7 @@ final public class Container: Base {
 				.skipRepeats())
 	}()
 
-
-	public init(url: NSURL, model: NSManagedObjectModel, modelConfiguration: String? = nil) {
+	public init(url: NSURL, model: NSManagedObjectModel, modelConfiguration: String? = nil) throws {
 		self.url = url
 		self.model = model
 		self.modelConfiguration = modelConfiguration
@@ -39,7 +38,7 @@ final public class Container: Base {
 		self.persistentStoreCoordinator = coordinator
 
 		if url.pathExtension != "mdcontainer" {
-			fatalError("You must open a MantleData container.")
+			throw Error.InvalidFileExtension
 		}
 
 		let fileManager = NSFileManager.defaultManager()
@@ -47,30 +46,24 @@ final public class Container: Base {
 			do {
 				try fileManager.createDirectoryAtURL(url, withIntermediateDirectories: false, attributes: nil)
 			} catch let error as NSError {
-				fatalError("Failed to create the container. Message: \(error.description)")
+				throw Error.CannotCreateContainer(error)
 			}
 		}
 
 		if let modelConfiguration = modelConfiguration where !model.configurations.contains(modelConfiguration) {
-			fatalError("The managed object model does not contain the specified configuration.")
+			throw Error.ModelConfigurationNotFound
 		}
 
 		let storeURL = url.URLByAppendingPathComponent("Database.sqlite3")
 
-    do {
-      try persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType,
-				configuration: modelConfiguration,
-				URL: storeURL,
-				options: nil)
-    } catch _ as NSError {
-      try! NSFileManager.defaultManager().removeItemAtURL(storeURL)
-			NSLog("SQLite store deleted.")
-
-      try! persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType,
-				configuration: modelConfiguration,
-				URL: storeURL,
-				options: nil)
-    }
+		do {
+			try persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType,
+			                                                          configuration: modelConfiguration,
+			                                                          URL: storeURL,
+			                                                          options: nil)
+		} catch let error as NSError {
+			throw Error.CannotAddPersistentStore(error)
+		}
 
 		rootSavingContext = ObjectContext(parent: .PersistentStore(persistentStoreCoordinator),
 		                            concurrencyType: .MainQueueConcurrencyType,
@@ -140,6 +133,14 @@ final public class Container: Base {
 			.startWithNext { _ in
 				self._isSaving.modify { $0 - 1 }
 		}
+	}
+
+	// Container Error
+	public enum Error: ErrorType {
+		case InvalidFileExtension
+		case CannotCreateContainer(NSError)
+		case ModelConfigurationNotFound
+		case CannotAddPersistentStore(NSError)
 	}
 }
 
