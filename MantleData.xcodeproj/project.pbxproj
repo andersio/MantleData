@@ -7,6 +7,31 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9A0D9A7F1C76ABA30013C976 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A0D9A7E1C76ABA30013C976 /* CoreData.framework */; };
+		9A0D9A811C76ABA80013C976 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A0D9A801C76ABA80013C976 /* ReactiveCocoa.framework */; };
+		9A0D9A831C76ABAD0013C976 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A0D9A821C76ABAD0013C976 /* Result.framework */; };
+		9A0D9A841C76ABD30013C976 /* AnyReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */; };
+		9A0D9A851C76ABD30013C976 /* AnyReactiveSetBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */; };
+		9A0D9A861C76ABD30013C976 /* ArraySet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E31C510BAD00801A30 /* ArraySet.swift */; };
+		9A0D9A871C76ABD30013C976 /* ArraySetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E41C510BAD00801A30 /* ArraySetSection.swift */; };
+		9A0D9A881C76ABD30013C976 /* ReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E51C510BAD00801A30 /* ReactiveSet.swift */; };
+		9A0D9A891C76ABD30013C976 /* ObjectSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6661BC958E100FC86E1 /* ObjectSet.swift */; };
+		9A0D9A8A1C76ABD30013C976 /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
+		9A0D9A8B1C76ABD30013C976 /* ViewModelSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */; };
+		9A0D9A8C1C76ABD30013C976 /* STLExtensions+FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EB1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift */; };
+		9A0D9A8D1C76ABD30013C976 /* CocoaBridgeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */; };
+		9A0D9A8E1C76ABD30013C976 /* ObjectContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ObjectContext.swift */; };
+		9A0D9A8F1C76ABD30013C976 /* ResultProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F11C510BD100801A30 /* ResultProducer.swift */; };
+		9A0D9A901C76ABD30013C976 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* Object.swift */; };
+		9A0D9A911C76ABD30013C976 /* Attribute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65F1BC958E100FC86E1 /* Attribute.swift */; };
+		9A0D9A921C76ABD30013C976 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6681BC958E100FC86E1 /* Container.swift */; };
+		9A0D9A961C76ABD30013C976 /* NSObject+AssociatedProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */; };
+		9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F71C510BE900801A30 /* Assertions.swift */; };
+		9A0D9A981C76ABD30013C976 /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F81C510BE900801A30 /* Base.swift */; };
+		9A0D9A991C76ABD30013C976 /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F91C510BE900801A30 /* Dispatch.swift */; };
+		9A0D9A9A1C76ABD30013C976 /* Dispatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* Dispatch.m */; };
+		9A0D9A9B1C76ABE00013C976 /* Dispatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A2997FD1C510BF100801A30 /* Dispatch.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9A0D9A9C1C76ADA90013C976 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A104C3D1C5D26A100746235 /* NSObject+AssociatedProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */; };
 		9A141A3E1C495E500049BEC9 /* ViewModelSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */; };
 		9A2997E61C510BAD00801A30 /* AnyReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */; };
@@ -18,17 +43,17 @@
 		9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */; };
 		9A2997F31C510BD100801A30 /* ObjectContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ObjectContext.swift */; };
 		9A2997F41C510BD100801A30 /* ResultProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F11C510BD100801A30 /* ResultProducer.swift */; };
-		9A2997F61C510BDB00801A30 /* ReactiveBindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F51C510BDB00801A30 /* ReactiveBindings.swift */; };
+		9A2997F61C510BDB00801A30 /* ReactiveBindings-iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F51C510BDB00801A30 /* ReactiveBindings-iOS.swift */; };
 		9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F71C510BE900801A30 /* Assertions.swift */; };
 		9A2997FB1C510BE900801A30 /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F81C510BE900801A30 /* Base.swift */; };
 		9A2997FC1C510BE900801A30 /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F91C510BE900801A30 /* Dispatch.swift */; };
 		9A2997FE1C510BF100801A30 /* Dispatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A2997FD1C510BF100801A30 /* Dispatch.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A39A5A71BC90BB300FC86E1 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A39A5A61BC90BB300FC86E1 /* CoreData.framework */; };
-		9A39A66C1BC958E100FC86E1 /* TableViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65A1BC958E100FC86E1 /* TableViewAdapter.swift */; };
+		9A39A66C1BC958E100FC86E1 /* TableViewAdapter-iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */; };
 		9A39A6701BC958E100FC86E1 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* Object.swift */; };
 		9A39A6711BC958E100FC86E1 /* Attribute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65F1BC958E100FC86E1 /* Attribute.swift */; };
 		9A39A6731BC958E100FC86E1 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		9A39A6761BC958E100FC86E1 /* ReactiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6641BC958E100FC86E1 /* ReactiveView.swift */; };
+		9A39A6761BC958E100FC86E1 /* ReactiveView-iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */; };
 		9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6661BC958E100FC86E1 /* ObjectSet.swift */; };
 		9A39A67A1BC958E100FC86E1 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6681BC958E100FC86E1 /* Container.swift */; };
 		9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* Dispatch.m */; };
@@ -38,6 +63,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9A0D9A761C76AB9A0013C976 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9A0D9A7A1C76AB9A0013C976 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9A0D9A7E1C76ABA30013C976 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
+		9A0D9A801C76ABA80013C976 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../../Library/Developer/Xcode/DerivedData/LockyCenter-cpepxbyuqkwrtdfxxeiedodvbthy/Build/Products/Debug/ReactiveCocoa.framework"; sourceTree = "<group>"; };
+		9A0D9A821C76ABAD0013C976 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../../Library/Developer/Xcode/DerivedData/LockyCenter-cpepxbyuqkwrtdfxxeiedodvbthy/Build/Products/Debug/Result.framework"; sourceTree = "<group>"; };
 		9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSObject+AssociatedProperty.swift"; path = "MantleData/NSObject+AssociatedProperty.swift"; sourceTree = "<group>"; };
 		9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AnyReactiveSet.swift; path = MantleData/AnyReactiveSet.swift; sourceTree = "<group>"; };
 		9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AnyReactiveSetBox.swift; path = MantleData/AnyReactiveSetBox.swift; sourceTree = "<group>"; };
@@ -48,19 +78,19 @@
 		9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CocoaBridgeable.swift; path = MantleData/CocoaBridgeable.swift; sourceTree = "<group>"; };
 		9A2997F01C510BD100801A30 /* ObjectContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectContext.swift; path = MantleData/ObjectContext.swift; sourceTree = "<group>"; };
 		9A2997F11C510BD100801A30 /* ResultProducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResultProducer.swift; path = MantleData/ResultProducer.swift; sourceTree = "<group>"; };
-		9A2997F51C510BDB00801A30 /* ReactiveBindings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveBindings.swift; path = MantleData/ReactiveBindings.swift; sourceTree = "<group>"; };
+		9A2997F51C510BDB00801A30 /* ReactiveBindings-iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveBindings-iOS.swift"; path = "MantleData/ReactiveBindings-iOS.swift"; sourceTree = "<group>"; };
 		9A2997F71C510BE900801A30 /* Assertions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Assertions.swift; path = MantleData/Assertions.swift; sourceTree = "<group>"; };
 		9A2997F81C510BE900801A30 /* Base.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Base.swift; path = MantleData/Base.swift; sourceTree = "<group>"; };
 		9A2997F91C510BE900801A30 /* Dispatch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = MantleData/Dispatch.swift; sourceTree = "<group>"; };
 		9A2997FD1C510BF100801A30 /* Dispatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dispatch.h; path = MantleData/Dispatch.h; sourceTree = "<group>"; };
 		9A39A5A61BC90BB300FC86E1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelSet.swift; path = MantleData/ViewModelSet.swift; sourceTree = "<group>"; };
-		9A39A65A1BC958E100FC86E1 /* TableViewAdapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TableViewAdapter.swift; path = MantleData/TableViewAdapter.swift; sourceTree = "<group>"; };
+		9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "TableViewAdapter-iOS.swift"; path = "MantleData/TableViewAdapter-iOS.swift"; sourceTree = "<group>"; };
 		9A39A65D1BC958E100FC86E1 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MantleData/Info.plist; sourceTree = "<group>"; };
 		9A39A65E1BC958E100FC86E1 /* Object.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Object.swift; path = MantleData/Object.swift; sourceTree = "<group>"; };
 		9A39A65F1BC958E100FC86E1 /* Attribute.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Attribute.swift; path = MantleData/Attribute.swift; sourceTree = "<group>"; };
 		9A39A6611BC958E100FC86E1 /* MantleData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MantleData.h; path = MantleData/MantleData.h; sourceTree = "<group>"; };
-		9A39A6641BC958E100FC86E1 /* ReactiveView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveView.swift; path = MantleData/ReactiveView.swift; sourceTree = "<group>"; };
+		9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveView-iOS.swift"; path = "MantleData/ReactiveView-iOS.swift"; sourceTree = "<group>"; };
 		9A39A6661BC958E100FC86E1 /* ObjectSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSet.swift; path = MantleData/ObjectSet.swift; sourceTree = "<group>"; };
 		9A39A6681BC958E100FC86E1 /* Container.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Container.swift; path = MantleData/Container.swift; sourceTree = "<group>"; };
 		9A39A66A1BC958E100FC86E1 /* ViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModel.swift; path = MantleData/ViewModel.swift; sourceTree = "<group>"; };
@@ -71,6 +101,16 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		9A0D9A721C76AB9A0013C976 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9A0D9A831C76ABAD0013C976 /* Result.framework in Frameworks */,
+				9A0D9A811C76ABA80013C976 /* ReactiveCocoa.framework in Frameworks */,
+				9A0D9A7F1C76ABA30013C976 /* CoreData.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9AFFA5091BC7CBEC00B63C58 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -84,6 +124,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9A0D9A771C76AB9A0013C976 /* MantleData-OSX */ = {
+			isa = PBXGroup;
+			children = (
+				9A0D9A7A1C76AB9A0013C976 /* Info.plist */,
+			);
+			path = "MantleData-OSX";
+			sourceTree = "<group>";
+		};
 		9A39A61F1BC956AB00FC86E1 /* MantleData */ = {
 			isa = PBXGroup;
 			children = (
@@ -99,6 +147,9 @@
 		9A39A6201BC956BE00FC86E1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9A0D9A821C76ABAD0013C976 /* Result.framework */,
+				9A0D9A801C76ABA80013C976 /* ReactiveCocoa.framework */,
+				9A0D9A7E1C76ABA30013C976 /* CoreData.framework */,
 				9AE9C0ED1C1186AF00A3D1F3 /* Result.framework */,
 				9AE9C0EB1C1186A800A3D1F3 /* ReactiveCocoa.framework */,
 				9A39A5A61BC90BB300FC86E1 /* CoreData.framework */,
@@ -122,6 +173,7 @@
 		9A3A776D1BC96AB900ADFFE0 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */,
 				9A2997F71C510BE900801A30 /* Assertions.swift */,
 				9A2997F81C510BE900801A30 /* Base.swift */,
 				9A2997F91C510BE900801A30 /* Dispatch.swift */,
@@ -132,10 +184,9 @@
 		9A3A77701BC96B6C00ADFFE0 /* UIKit Additions */ = {
 			isa = PBXGroup;
 			children = (
-				9A2997F51C510BDB00801A30 /* ReactiveBindings.swift */,
-				9A39A6641BC958E100FC86E1 /* ReactiveView.swift */,
-				9A39A65A1BC958E100FC86E1 /* TableViewAdapter.swift */,
-				9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */,
+				9A2997F51C510BDB00801A30 /* ReactiveBindings-iOS.swift */,
+				9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */,
+				9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */,
 			);
 			name = "UIKit Additions";
 			sourceTree = "<group>";
@@ -171,6 +222,7 @@
 			isa = PBXGroup;
 			children = (
 				9A39A61F1BC956AB00FC86E1 /* MantleData */,
+				9A0D9A771C76AB9A0013C976 /* MantleData-OSX */,
 				9AFFA50E1BC7CBEC00B63C58 /* Products */,
 				9A39A6201BC956BE00FC86E1 /* Frameworks */,
 			);
@@ -180,6 +232,7 @@
 			isa = PBXGroup;
 			children = (
 				9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */,
+				9A0D9A761C76AB9A0013C976 /* MantleData.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -187,6 +240,15 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		9A0D9A731C76AB9A0013C976 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9A0D9A9B1C76ABE00013C976 /* Dispatch.h in Headers */,
+				9A0D9A9C1C76ADA90013C976 /* MantleData.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9AFFA50A1BC7CBEC00B63C58 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -199,6 +261,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		9A0D9A751C76AB9A0013C976 /* MantleData-OSX */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9A0D9A7D1C76AB9A0013C976 /* Build configuration list for PBXNativeTarget "MantleData-OSX" */;
+			buildPhases = (
+				9A0D9A711C76AB9A0013C976 /* Sources */,
+				9A0D9A721C76AB9A0013C976 /* Frameworks */,
+				9A0D9A731C76AB9A0013C976 /* Headers */,
+				9A0D9A741C76AB9A0013C976 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "MantleData-OSX";
+			productName = "MantleData-OSX";
+			productReference = 9A0D9A761C76AB9A0013C976 /* MantleData.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		9AFFA50C1BC7CBEC00B63C58 /* MantleData-iOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9AFFA5211BC7CBEC00B63C58 /* Build configuration list for PBXNativeTarget "MantleData-iOS" */;
@@ -227,6 +307,9 @@
 				LastUpgradeCheck = 0710;
 				ORGANIZATIONNAME = Anders;
 				TargetAttributes = {
+					9A0D9A751C76AB9A0013C976 = {
+						CreatedOnToolsVersion = 7.3;
+					};
 					9AFFA50C1BC7CBEC00B63C58 = {
 						CreatedOnToolsVersion = 7.1;
 					};
@@ -245,11 +328,19 @@
 			projectRoot = "";
 			targets = (
 				9AFFA50C1BC7CBEC00B63C58 /* MantleData-iOS */,
+				9A0D9A751C76AB9A0013C976 /* MantleData-OSX */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		9A0D9A741C76AB9A0013C976 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9AFFA50B1BC7CBEC00B63C58 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -260,24 +351,51 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		9A0D9A711C76AB9A0013C976 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9A0D9A841C76ABD30013C976 /* AnyReactiveSet.swift in Sources */,
+				9A0D9A851C76ABD30013C976 /* AnyReactiveSetBox.swift in Sources */,
+				9A0D9A861C76ABD30013C976 /* ArraySet.swift in Sources */,
+				9A0D9A871C76ABD30013C976 /* ArraySetSection.swift in Sources */,
+				9A0D9A881C76ABD30013C976 /* ReactiveSet.swift in Sources */,
+				9A0D9A891C76ABD30013C976 /* ObjectSet.swift in Sources */,
+				9A0D9A8A1C76ABD30013C976 /* ViewModel.swift in Sources */,
+				9A0D9A8B1C76ABD30013C976 /* ViewModelSet.swift in Sources */,
+				9A0D9A8C1C76ABD30013C976 /* STLExtensions+FoundationExtensions.swift in Sources */,
+				9A0D9A8D1C76ABD30013C976 /* CocoaBridgeable.swift in Sources */,
+				9A0D9A8E1C76ABD30013C976 /* ObjectContext.swift in Sources */,
+				9A0D9A8F1C76ABD30013C976 /* ResultProducer.swift in Sources */,
+				9A0D9A901C76ABD30013C976 /* Object.swift in Sources */,
+				9A0D9A911C76ABD30013C976 /* Attribute.swift in Sources */,
+				9A0D9A921C76ABD30013C976 /* Container.swift in Sources */,
+				9A0D9A961C76ABD30013C976 /* NSObject+AssociatedProperty.swift in Sources */,
+				9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */,
+				9A0D9A981C76ABD30013C976 /* Base.swift in Sources */,
+				9A0D9A991C76ABD30013C976 /* Dispatch.swift in Sources */,
+				9A0D9A9A1C76ABD30013C976 /* Dispatch.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9AFFA5081BC7CBEC00B63C58 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9A39A66C1BC958E100FC86E1 /* TableViewAdapter.swift in Sources */,
+				9A39A66C1BC958E100FC86E1 /* TableViewAdapter-iOS.swift in Sources */,
 				9A39A6701BC958E100FC86E1 /* Object.swift in Sources */,
 				9A2997FB1C510BE900801A30 /* Base.swift in Sources */,
 				9A2997E71C510BAD00801A30 /* AnyReactiveSetBox.swift in Sources */,
 				9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */,
 				9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */,
 				9A2997E81C510BAD00801A30 /* ArraySet.swift in Sources */,
-				9A39A6761BC958E100FC86E1 /* ReactiveView.swift in Sources */,
+				9A39A6761BC958E100FC86E1 /* ReactiveView-iOS.swift in Sources */,
 				9A2997F31C510BD100801A30 /* ObjectContext.swift in Sources */,
 				9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */,
 				9A141A3E1C495E500049BEC9 /* ViewModelSet.swift in Sources */,
 				9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */,
 				9A39A67A1BC958E100FC86E1 /* Container.swift in Sources */,
-				9A2997F61C510BDB00801A30 /* ReactiveBindings.swift in Sources */,
+				9A2997F61C510BDB00801A30 /* ReactiveBindings-iOS.swift in Sources */,
 				9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */,
 				9A2997ED1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift in Sources */,
 				9A39A6711BC958E100FC86E1 /* Attribute.swift in Sources */,
@@ -293,6 +411,48 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		9A0D9A7B1C76AB9A0013C976 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = "MantleData-OSX/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleData;
+				PRODUCT_NAME = MantleData;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		9A0D9A7C1C76AB9A0013C976 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = "MantleData-OSX/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleData;
+				PRODUCT_NAME = MantleData;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 		9AFFA51F1BC7CBEC00B63C58 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -430,6 +590,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		9A0D9A7D1C76AB9A0013C976 /* Build configuration list for PBXNativeTarget "MantleData-OSX" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9A0D9A7B1C76AB9A0013C976 /* Debug */,
+				9A0D9A7C1C76AB9A0013C976 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		9AFFA5071BC7CBEC00B63C58 /* Build configuration list for PBXProject "MantleData" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

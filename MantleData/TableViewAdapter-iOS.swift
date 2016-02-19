@@ -15,6 +15,7 @@ public struct TableViewAdapterConfiguration<V: ViewModel> {
 	public var isUniform = false
 	public var shouldReloadRowsForUpdatedObjects = false
 	public var rowAnimation: UITableViewRowAnimation = .Automatic
+	public var sectionNameTransform: ((Int, String?) -> String?)?
 
 	public init() {
 		self.factories = [:]
@@ -101,7 +102,8 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	}
 
 	public func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-		return set.nameFor(section)
+		let sectionName = set.nameFor(section)
+		return configuration.sectionNameTransform?(section, sectionName) ?? sectionName
 	}
 
 	public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {

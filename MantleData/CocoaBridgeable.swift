@@ -6,7 +6,11 @@
 //  Copyright © 2015 Anders. All rights reserved.
 //
 
-import UIKit
+#if os(iOS)
+	import UIKit
+#elseif os(OSX)
+	import Cocoa
+#endif
 
 public protocol CocoaBridgeable {
 	typealias Inner
