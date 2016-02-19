@@ -16,8 +16,12 @@ final public class Container: Base {
 	public let model: NSManagedObjectModel
 	public let modelConfiguration: String?
 
+	public let mainContext: ObjectContext
+	public let rootSavingContext: ObjectContext
+
 	internal let persistentStoreCoordinator: NSPersistentStoreCoordinator
 
+	private var _isSaving = MutableProperty<UInt>(0)
 	private(set) public lazy var isSaving: AnyProperty<Bool> = { [unowned self] in
 		return AnyProperty<Bool>(initialValue: false,
 			producer: self._isSaving.producer
@@ -25,11 +29,6 @@ final public class Container: Base {
 				.skipRepeats())
 	}()
 
-	private var _isSaving = MutableProperty<UInt>(0)
-
-	private var storeURL: NSURL {
-		return url.URLByAppendingPathComponent("Database.sqlite3")
-	}
 
 	public init(url: NSURL, model: NSManagedObjectModel, modelConfiguration: String? = nil) {
 		self.url = url
@@ -38,8 +37,6 @@ final public class Container: Base {
 
 		let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
 		self.persistentStoreCoordinator = coordinator
-
-		super.init()
 
 		if url.pathExtension != "mdcontainer" {
 			fatalError("You must open a MantleData container.")
@@ -58,13 +55,15 @@ final public class Container: Base {
 			fatalError("The managed object model does not contain the specified configuration.")
 		}
 
+		let storeURL = url.URLByAppendingPathComponent("Database.sqlite3")
+
     do {
       try persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType,
 				configuration: modelConfiguration,
 				URL: storeURL,
 				options: nil)
     } catch _ as NSError {
-      try! NSFileManager.defaultManager().removeItemAtURL(url)
+      try! NSFileManager.defaultManager().removeItemAtURL(storeURL)
 			NSLog("SQLite store deleted.")
 
       try! persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType,
@@ -72,10 +71,43 @@ final public class Container: Base {
 				URL: storeURL,
 				options: nil)
     }
+
+		rootSavingContext = ObjectContext(parent: .PersistentStore(persistentStoreCoordinator),
+		                            concurrencyType: .MainQueueConcurrencyType,
+		                            mergePolicy: MergePolicy.RaiseError.cocoaValue)
+
+		mainContext = ObjectContext(parent: .Context(rootSavingContext),
+		                            concurrencyType: .MainQueueConcurrencyType,
+		                            mergePolicy: MergePolicy.RaiseError.cocoaValue)
+
+		super.init()
+
+		observeSavingNotificationsOf(rootSavingContext)
+		observeSavingNotificationsOf(mainContext)
 	}
 
-  public func privateQueueContext(mergePolicy: MergePolicy = .PreferMemoryWhenMerging) -> ObjectContext {
-    let context = ObjectContext(persistentStoreCoordinator: persistentStoreCoordinator,
+	public func prepare<Result>(@noescape action: ObjectContext -> Result) -> Result {
+		return mainContext.prepare { action(mainContext) }
+	}
+
+	public func save(action: ObjectContext -> Void) -> SignalProducer<Void, NSError> {
+		let (producer, observer) = SignalProducer<Void, NSError>.buffer(0)
+
+		rootSavingContext.perform {
+			action(rootSavingContext)
+			do {
+				try rootSavingContext.save()
+				observer.sendCompleted()
+			} catch let e as NSError {
+				observer.sendFailed(e)
+			}
+		}
+
+		return producer
+	}
+
+  public func privateQueueRootContext(mergePolicy: MergePolicy = .PreferMemoryWhenMerging) -> ObjectContext {
+    let context = ObjectContext(parent: .PersistentStore(persistentStoreCoordinator),
 			concurrencyType: .PrivateQueueConcurrencyType,
 			mergePolicy: mergePolicy.cocoaValue)
 		observeSavingNotificationsOf(context)
@@ -83,8 +115,8 @@ final public class Container: Base {
     return context
   }
 
-	public func mainQueueContext(mergePolicy: MergePolicy = .PreferMemoryWhenMerging) -> ObjectContext {
-		let context = ObjectContext(persistentStoreCoordinator: persistentStoreCoordinator,
+	public func mainQueueRootContext(mergePolicy: MergePolicy = .PreferMemoryWhenMerging) -> ObjectContext {
+		let context = ObjectContext(parent: .PersistentStore(persistentStoreCoordinator),
 			concurrencyType: .MainQueueConcurrencyType,
 			mergePolicy: mergePolicy.cocoaValue)
 		observeSavingNotificationsOf(context)

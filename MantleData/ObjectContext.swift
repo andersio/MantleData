@@ -12,6 +12,11 @@ import CoreData
 /// MantleData-enriched Object Context.
 /// - Important: NSManagedObjectC is extended only for providing conveinence methods and mechanics. MantleData does not alter any critical logic of the implementation.
 
+public enum ContextParent {
+	case PersistentStore(NSPersistentStoreCoordinator)
+	case Context(ObjectContext)
+}
+
 final public class ObjectContext: NSManagedObjectContext {
 	internal static let ThreadContextKey = "MDThreadContext"
 	internal static let ThreadContextMutabilityKey = "MDThreadContextIsMutable"
@@ -19,10 +24,17 @@ final public class ObjectContext: NSManagedObjectContext {
 	internal static let DidBatchDeleteNotification = "MDDidBatchDelete"
 	internal static let BatchRequestResultIDs = "MDResultIDs"
 
-	public init(persistentStoreCoordinator: NSPersistentStoreCoordinator, concurrencyType: NSManagedObjectContextConcurrencyType, mergePolicy: AnyObject) {
+	public init(parent: ContextParent, concurrencyType: NSManagedObjectContextConcurrencyType, mergePolicy: AnyObject) {
 		super.init(concurrencyType: concurrencyType)
 		self.mergePolicy = mergePolicy
-		self.persistentStoreCoordinator = persistentStoreCoordinator
+
+		switch parent {
+		case let .PersistentStore(persistentStoreCoordinator):
+			self.persistentStoreCoordinator = persistentStoreCoordinator
+
+		case let .Context(context):
+			self.parentContext = context
+		}
 
 		let defaultCenter = NSNotificationCenter.defaultCenter()
 
