@@ -98,7 +98,7 @@ extension ArraySetSection: MutableCollectionType {
 
 extension ArraySetSection: RangeReplaceableCollectionType {
 	public convenience init() {
-		abort()
+		self.init(name: ReactiveSetSectionName(nil), values: [])
 	}
 
 	public func append(newElement: Generator.Element) {
@@ -184,7 +184,6 @@ extension ArraySetSection: RangeReplaceableCollectionType {
 				indexPathsOfUpdatedRows: updatedRows)
 
 			pushChanges(changes)
-
 		}
 	}
 

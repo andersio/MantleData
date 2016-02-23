@@ -205,14 +205,15 @@ extension ArraySet: RangeReplaceableCollectionType {
 		register(newElements[newElementsRange], from: replacedSections.startIndex)
 		insertedSections.addIndexesInRange(replacedSections.cocoaValue)
 
+		let changes: ReactiveSetChanges
+
 		if newEndIndex > subRange.endIndex {
 			// Appending after replaced items
 			let rangeForAppendedItems = subRange.endIndex ..< newEndIndex
 
 			insertedSections.addIndexesInRange(rangeForAppendedItems.cocoaValue)
-			let changes = ReactiveSetChanges(indiceOfDeletedSections: deletedSections,
+			changes = ReactiveSetChanges(indiceOfDeletedSections: deletedSections,
 				indiceOfInsertedSections: insertedSections)
-			pushChanges(changes)
 
 			let newElementsRange = newElementsRange.endIndex ..< newElements.endIndex
 			register(newElements[newElementsRange], from: rangeForAppendedItems.startIndex)
@@ -221,14 +222,14 @@ extension ArraySet: RangeReplaceableCollectionType {
 			let removingRange = newEndIndex ..< subRange.endIndex
 
 			deletedSections.addIndexesInRange(removingRange.cocoaValue)
-			let changes = ReactiveSetChanges(indiceOfDeletedSections: deletedSections,
+			changes = ReactiveSetChanges(indiceOfDeletedSections: deletedSections,
 				indiceOfInsertedSections: insertedSections)
-			pushChanges(changes)
 
 			dispose(removingRange)
 		}
 
 		storage.replaceRange(subRange, with: newElements)
+		pushChanges(changes)
 	}
 
 	public func reserveCapacity(n: Index.Distance) {
