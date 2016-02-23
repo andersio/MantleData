@@ -7,11 +7,7 @@
 //
 
 import ReactiveCocoa
-#if os(iOS)
-	import UIKit
-#elseif os(OSX)
-	import Cocoa
-#endif
+import UIKit
 
 public protocol ReactiveView: class {
 	typealias MappingViewModel: ViewModel
