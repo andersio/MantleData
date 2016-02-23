@@ -130,6 +130,10 @@ extension CollectionType where Generator.Element == (NSIndexPath, NSIndexPath) {
 			self.init(forItem: row, inSection: section)
 		}
 
+		public convenience init(forSection section: Int) {
+			self.init(index: section)
+		}
+
 		public var row: Int {
 			return item
 		}
