@@ -58,6 +58,8 @@
 		9A39A67A1BC958E100FC86E1 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6681BC958E100FC86E1 /* Container.swift */; };
 		9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* Dispatch.m */; };
 		9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
+		9AA32CF11C8A105300443A3D /* TableViewAdapter-OSX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA32CEE1C8A103E00443A3D /* TableViewAdapter-OSX.swift */; };
+		9AA32CF21C8A105700443A3D /* ReactiveBindings-OSX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA32CED1C8A103E00443A3D /* ReactiveBindings-OSX.swift */; };
 		9AE9C0EC1C1186A800A3D1F3 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE9C0EB1C1186A800A3D1F3 /* ReactiveCocoa.framework */; };
 		9AE9C0EE1C1186AF00A3D1F3 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE9C0ED1C1186AF00A3D1F3 /* Result.framework */; };
 /* End PBXBuildFile section */
@@ -95,6 +97,8 @@
 		9A39A6681BC958E100FC86E1 /* Container.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Container.swift; path = MantleData/Container.swift; sourceTree = "<group>"; };
 		9A39A66A1BC958E100FC86E1 /* ViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModel.swift; path = MantleData/ViewModel.swift; sourceTree = "<group>"; };
 		9A55779F1C1EBC7F00789E02 /* Dispatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Dispatch.m; path = MantleData/Dispatch.m; sourceTree = "<group>"; };
+		9AA32CED1C8A103E00443A3D /* ReactiveBindings-OSX.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveBindings-OSX.swift"; path = "MantleData/ReactiveBindings-OSX.swift"; sourceTree = "<group>"; };
+		9AA32CEE1C8A103E00443A3D /* TableViewAdapter-OSX.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "TableViewAdapter-OSX.swift"; path = "MantleData/TableViewAdapter-OSX.swift"; sourceTree = "<group>"; };
 		9AE9C0EB1C1186A800A3D1F3 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../ReactiveCocoa/ReactiveCocoa/build/Debug-iphoneos/ReactiveCocoa.framework"; sourceTree = "<group>"; };
 		9AE9C0ED1C1186AF00A3D1F3 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../ReactiveCocoa/ReactiveCocoa/Carthage/Checkouts/Result/build/Debug-iphoneos/Result.framework"; sourceTree = "<group>"; };
 		9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -184,6 +188,8 @@
 		9A3A77701BC96B6C00ADFFE0 /* UIKit Additions */ = {
 			isa = PBXGroup;
 			children = (
+				9AA32CED1C8A103E00443A3D /* ReactiveBindings-OSX.swift */,
+				9AA32CEE1C8A103E00443A3D /* TableViewAdapter-OSX.swift */,
 				9A2997F51C510BDB00801A30 /* ReactiveBindings-iOS.swift */,
 				9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */,
 				9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */,
@@ -370,6 +376,8 @@
 				9A0D9A901C76ABD30013C976 /* Object.swift in Sources */,
 				9A0D9A911C76ABD30013C976 /* Attribute.swift in Sources */,
 				9A0D9A921C76ABD30013C976 /* Container.swift in Sources */,
+				9AA32CF21C8A105700443A3D /* ReactiveBindings-OSX.swift in Sources */,
+				9AA32CF11C8A105300443A3D /* TableViewAdapter-OSX.swift in Sources */,
 				9A0D9A961C76ABD30013C976 /* NSObject+AssociatedProperty.swift in Sources */,
 				9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */,
 				9A0D9A981C76ABD30013C976 /* Base.swift in Sources */,
@@ -597,6 +605,7 @@
 				9A0D9A7C1C76AB9A0013C976 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		9AFFA5071BC7CBEC00B63C58 /* Build configuration list for PBXProject "MantleData" */ = {
 			isa = XCConfigurationList;

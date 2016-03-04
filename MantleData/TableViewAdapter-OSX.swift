@@ -23,6 +23,9 @@ public struct TableViewAdapterConfiguration<V: ViewModel> {
 	private var columnCellConfigurators: [String: (viewIdentifier: String, block: CellConfigurationBlock, nib: NSNib?)] = [:]
 	private var sectionHeaderConfigurator: (block: SectionHeaderConfigurationBlock, nib: NSNib)?
 
+	private var sectionHeightBlock: (Int -> CGFloat)?
+	private var rowHeightBlock: (NSIndexPath -> CGFloat)?
+
 	public init() { }
 
 	public mutating func registerSectionHeader(nib: NSNib, configurator: SectionHeaderConfigurationBlock) {
@@ -31,6 +34,14 @@ public struct TableViewAdapterConfiguration<V: ViewModel> {
 
 	public mutating func registerColumn(columnIdentifier: String, nib: NSNib? = nil, configurator: CellConfigurationBlock) {
 		columnCellConfigurators[columnIdentifier] = (columnIdentifier, configurator, nib)
+	}
+
+	public mutating func registerSectionHeightBlock(block: (Int -> CGFloat)? = nil) {
+		sectionHeightBlock = block
+	}
+
+	public mutating func registerRowHeightBlock(block: (NSIndexPath -> CGFloat)? = nil) {
+		rowHeightBlock = block
 	}
 }
 
@@ -99,7 +110,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 				case .Reloaded:
 					self.computeFlattenedRanges()
 					tableView?.reloadData()
-					
+
 				case .Updated(let changes):
 					let previousRanges = self.computeFlattenedRanges()
 
@@ -169,6 +180,15 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 
 	// DELEGATE: NSTableViewDelegate
 
+	public func tableView(tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
+		let indexPath = indexPathFrom(row)
+		if indexPath.length == 1 {
+			return configuration.sectionHeightBlock?(indexPath.section) ?? tableView.rowHeight
+		} else {
+			return configuration.rowHeightBlock?(indexPath) ?? tableView.rowHeight
+		}
+	}
+
 	public func tableView(tableView: NSTableView, isGroupRow row: Int) -> Bool {
 		return hasGroupRowAt(row)
 	}
@@ -201,7 +221,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 		if !configuration.allowSectionHeaderSelection && hasGroupRowAt(row) {
 			return false
 		}
-
+		
 		return true
 	}
 }
