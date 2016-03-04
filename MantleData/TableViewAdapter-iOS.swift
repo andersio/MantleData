@@ -98,11 +98,11 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	}
 
 	public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-		return set.sectionCount
+		return set.numberOfSections
 	}
 
 	public func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-		let sectionName = set.nameFor(section)
+		let sectionName = set.sectionName(for: section)
 		return configuration.sectionNameTransform?(section, sectionName) ?? sectionName
 	}
 
@@ -111,6 +111,6 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	}
 
 	public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		return set.rowCountFor(section)
+		return set.numberOfRows(for: section)
 	}
 }

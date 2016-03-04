@@ -29,25 +29,25 @@ public final class ViewModelSet<U: ViewModel>: Base {
 		return set.isFetched
 	}
 
-	public var objectsCount: Int {
+	public var numberOfObjects: Int {
 		return set.reduce(0, combine: { $0 + Int($1.count) })
 	}
 
-  public var sectionCount: Int {
+  public var numberOfSections: Int {
     return Int(set.count)
   }
 
-  public func rowCountFor(section: Int) -> Int {
-    return Int(set[section].count)
+  public func numberOfRows(for sectionIndex: Int) -> Int {
+    return Int(set[sectionIndex].count)
   }
 
 	public func fetch() throws {
 		try set.fetch()
 	}
 
-  public func nameFor(section: Int) -> String? {
-		let sectionName = set[section].name
-		return sectionNameTransform?(section, sectionName) ?? sectionName.value
+  public func sectionName(for sectionIndex: Int) -> String? {
+		let sectionName = set[sectionIndex].name
+		return sectionNameTransform?(sectionIndex, sectionName) ?? sectionName.value
   }
 
 	public subscript(indexPath: NSIndexPath) -> U {

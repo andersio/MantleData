@@ -17,7 +17,7 @@ extension Range where Element: CocoaBridgeable, Element: ForwardIndexType, Eleme
 }
 
 extension CollectionType where Generator.Element: ReactiveSetSection {
-	internal func indexFor(name: ReactiveSetSectionName) -> Index? {
+	internal func index(forName name: ReactiveSetSectionName) -> Index? {
 		for i in indices {
 			if self[i].name == name {
 				return i

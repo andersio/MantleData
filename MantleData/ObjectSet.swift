@@ -73,7 +73,7 @@ final public class ObjectSet<E: Object>: Base {
 		}
 
 		func completionBlock(result: NSAsynchronousFetchResult) {
-			self.sectionize(result.finalResult as? [E] ?? [])
+			self.sectionize(using: result.finalResult as? [E] ?? [])
 			eventObserver?.sendNext(.Reloaded)
 
 			NSNotificationCenter.defaultCenter().addObserver(self,
@@ -103,7 +103,7 @@ final public class ObjectSet<E: Object>: Base {
 		}
 	}
 
-	private func sectionize(fetchedObjects: [E]) {
+	private func sectionize(using fetchedObjects: [E]) {
 		guard let keyPath = sectionNameKeyPath else {
 			sections = [ObjectSetSection(name: ReactiveSetSectionName(nil),
 				array: fetchedObjects)]
@@ -145,7 +145,7 @@ final public class ObjectSet<E: Object>: Base {
 		isFetched = true
 	}
 
-	private func sectionNameFor(object: E) -> ReactiveSetSectionName {
+	private func sectionName(from object: E) -> ReactiveSetSectionName {
 		if let keyPath = self.sectionNameKeyPath {
 			switch object.valueForKeyPath(keyPath) {
 			case let name as String:
@@ -159,7 +159,7 @@ final public class ObjectSet<E: Object>: Base {
 		return ReactiveSetSectionName(nil)
 	}
 
-	private func shouldInclude(object: NSManagedObject) -> E? {
+	private func isInclusiveOf(object: NSManagedObject) -> E? {
 		if object.entity.name == entity.name {
 			if fetchRequest.predicate?.evaluateWithObject(object) ?? true {
 				return object as? E
@@ -170,74 +170,68 @@ final public class ObjectSet<E: Object>: Base {
 
 	/// Merge changes since last posting of NSManagedContextObjectsDidChangeNotification.
 	@objc private func mergeChangesFrom(notification: NSNotification) {
-		if let changes = extractExternalChangesFrom(notification) {
-			apply(changes)
-		}
-	}
-
-	private func extractExternalChangesFrom(notification: NSNotification) -> ExternalChanges<E>? {
 		guard let userInfo = notification.userInfo else {
-			return nil
+			return
 		}
 
-		var notification = ExternalChanges<E>()
+		var externalChanges = ExternalChanges<E>()
 
 		if let insertedObjects = userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject> {
 			for object in insertedObjects {
-				if let object = shouldInclude(object) {
-					let sectionName = sectionNameFor(object)
-					notification.insertedObjects.insert(object, inSetForKey: sectionName)
-					notification.insertedObjectsCount = notification.insertedObjectsCount + 1
+				if let object = isInclusiveOf(object) {
+					let name = sectionName(from: object)
+					externalChanges.insertedObjects.insert(object, inSetForKey: name)
+					externalChanges.insertedObjectsCount = externalChanges.insertedObjectsCount + 1
 				}
 			}
 		}
 
 		if let deletedObjects = userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject> {
 			for object in deletedObjects {
-				if let object = shouldInclude(object) {
-					let sectionName = sectionNameFor(object)
-					notification.deletedObjects.insert(object, inSetForKey: sectionName)
-					notification.deletedObjectsCount = notification.deletedObjectsCount + 1
+				if let object = isInclusiveOf(object) {
+					let name = sectionName(from: object)
+					externalChanges.deletedObjects.insert(object, inSetForKey: name)
+					externalChanges.deletedObjectsCount = externalChanges.deletedObjectsCount + 1
 				}
 			}
 		}
 
 		if let updatedObjects = userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject> {
 			for object in updatedObjects {
-				if let object = shouldInclude(object) {
-					let sectionName: ReactiveSetSectionName
+				if let object = isInclusiveOf(object) {
+					let name: ReactiveSetSectionName
 
 					if sectionNameKeyPath != nil {
 						let __object: E = _sectionNameKeyPath!.count > 1
 							? object.valueForKeyPath(_sectionNameKeyPath!.first!) as! E
 							: object
 
-						sectionName = sectionNameFor(object)
+						name = sectionName(from: object)
 
 						let changedDict = __object.changedValuesForCurrentEvent()
 						if changedDict.keys.contains(_sectionNameKeyPath!.last!) {
 							let oldSectionName = ReactiveSetSectionName(changedDict[_sectionNameKeyPath!.last!] as? String)
-							if oldSectionName != sectionName {
-								notification.movedObjects.insert(object, inSetForKey: oldSectionName)
-								notification.movedObjectsCount = notification.movedObjectsCount + 1
+							if oldSectionName != name {
+								externalChanges.movedObjects.insert(object, inSetForKey: oldSectionName)
+								externalChanges.movedObjectsCount = externalChanges.movedObjectsCount + 1
 
 								continue
 							}
 						}
 					} else {
-						sectionName = ReactiveSetSectionName(nil)
+						name = ReactiveSetSectionName(nil)
 					}
 
-					notification.updatedObjects.insert(object, inSetForKey: sectionName)
-					notification.updatedObjectsCount = notification.updatedObjectsCount + 1
+					externalChanges.updatedObjects.insert(object, inSetForKey: name)
+					externalChanges.updatedObjectsCount = externalChanges.updatedObjectsCount + 1
 				}
 			}
 		}
 
-		return notification
-	}
+		guard externalChanges.hasChanges else {
+			return
+		}
 
-	private func apply(externalChanges: ExternalChanges<E>) {
 		let oldSections = sections
 		var updatedSections = sections
 
@@ -259,7 +253,7 @@ final public class ObjectSet<E: Object>: Base {
 		indexPathsOfMovedRows.reserveCapacity(originsOfMoved.capacity)
 
 		for (sectionName, objects) in externalChanges.deletedObjects {
-			guard let sectionIndex = oldSections.indexFor(sectionName) else {
+			guard let sectionIndex = oldSections.index(forName: sectionName) else {
 				assertionFailure("Section `\(sectionName)` should be in the result set, but it cannot be found.")
 				continue
 			}
@@ -276,7 +270,7 @@ final public class ObjectSet<E: Object>: Base {
 		}
 
 		for (oldSectionName, objects) in externalChanges.movedObjects {
-			guard let oldSectionIndex = oldSections.indexFor(oldSectionName) else {
+			guard let oldSectionIndex = oldSections.index(forName: oldSectionName) else {
 				assertionFailure("Section `\(oldSectionName)` should be in the result set, but cannot be found.")
 				continue
 			}
@@ -294,8 +288,8 @@ final public class ObjectSet<E: Object>: Base {
 
 		for indexPath in originsOfMoved {
 			let object = oldSections[indexPath.section][indexPath.row]
-			let sectionName = sectionNameFor(object)
-			inboundObjects.insert(object, inSetForKey: sectionName)
+			let name = sectionName(from: object)
+			inboundObjects.insert(object, inSetForKey: name)
 		}
 
 		var pendingDelete = ContiguousArray<NSIndexPath>()
@@ -318,7 +312,7 @@ final public class ObjectSet<E: Object>: Base {
 		}
 
 		for (sectionName, objects) in externalChanges.insertedObjects {
-			if let sectionIndex = updatedSections.indexFor(sectionName) {
+			if let sectionIndex = updatedSections.index(forName: sectionName) {
 				updatedSections[sectionIndex].appendContentsOf(objects)
 			} else {
 				let index = updatedSections.insertSection(sectionName,
@@ -331,7 +325,7 @@ final public class ObjectSet<E: Object>: Base {
 		}
 
 		for (sectionName, objects) in inboundObjects {
-			if let sectionIndex = updatedSections.indexFor(sectionName) {
+			if let sectionIndex = updatedSections.index(forName: sectionName) {
 				updatedSections[sectionIndex].appendContentsOf(objects)
 			} else {
 				let index = updatedSections.insertSection(sectionName,
@@ -345,7 +339,7 @@ final public class ObjectSet<E: Object>: Base {
 
 		for sectionIndex in updatedSections.indices {
 			let sectionName = updatedSections[sectionIndex].name
-			let oldSectionIndex = oldSections.indexFor(sectionName)
+			let oldSectionIndex = oldSections.index(forName: sectionName)
 
 			updatedSections[sectionIndex]._sortInPlace(objectSortDescriptors)
 
@@ -457,6 +451,10 @@ private struct ExternalChanges<E: Object> {
 	var deletedObjectsCount: Int = 0
 	var movedObjectsCount: Int = 0
 	var updatedObjectsCount: Int = 0
+
+	var hasChanges: Bool {
+		return insertedObjectsCount > 0 || deletedObjectsCount > 0 || movedObjectsCount > 0 || updatedObjectsCount > 0
+	}
 }
 
 public struct ObjectSetSection<E: Object> {
