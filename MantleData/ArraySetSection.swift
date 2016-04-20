@@ -107,7 +107,9 @@ extension ArraySetSection: RangeReplaceableCollectionType {
 
 	public func appendContentsOf<S : SequenceType where S.Generator.Element == Generator.Element>(newElements: S) {
 		let elements =  Array(newElements)
-		replaceRange(endIndex ..< endIndex, with: elements)
+		if !elements.isEmpty {
+			replaceRange(endIndex ..< endIndex, with: elements)
+		}
 	}
 
 	public func insert(newElement: Generator.Element, atIndex i: Index) {

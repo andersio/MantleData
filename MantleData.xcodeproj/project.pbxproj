@@ -43,7 +43,7 @@
 		9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */; };
 		9A2997F31C510BD100801A30 /* ObjectContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ObjectContext.swift */; };
 		9A2997F41C510BD100801A30 /* ResultProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F11C510BD100801A30 /* ResultProducer.swift */; };
-		9A2997F61C510BDB00801A30 /* ReactiveBindings-iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F51C510BDB00801A30 /* ReactiveBindings-iOS.swift */; };
+		9A2997F61C510BDB00801A30 /* KeyValueBindings+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F51C510BDB00801A30 /* KeyValueBindings+iOS.swift */; };
 		9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F71C510BE900801A30 /* Assertions.swift */; };
 		9A2997FB1C510BE900801A30 /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F81C510BE900801A30 /* Base.swift */; };
 		9A2997FC1C510BE900801A30 /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F91C510BE900801A30 /* Dispatch.swift */; };
@@ -58,8 +58,10 @@
 		9A39A67A1BC958E100FC86E1 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6681BC958E100FC86E1 /* Container.swift */; };
 		9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* Dispatch.m */; };
 		9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
-		9AE9C0EC1C1186A800A3D1F3 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE9C0EB1C1186A800A3D1F3 /* ReactiveCocoa.framework */; };
-		9AE9C0EE1C1186AF00A3D1F3 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE9C0ED1C1186AF00A3D1F3 /* Result.framework */; };
+		9A974BB01CC7B88C00395E2D /* UIKitBindings+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A974BAF1CC7B88C00395E2D /* UIKitBindings+iOS.swift */; };
+		9AB7ABD51CAE13E700AEC6DB /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AB7ABD41CAE13E700AEC6DB /* Result.framework */; };
+		9AB7ABD71CAE13EF00AEC6DB /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AB7ABD61CAE13EF00AEC6DB /* ReactiveCocoa.framework */; };
+		9AEC56F31C92D735000DF9D6 /* UIKit+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEC56F21C92D735000DF9D6 /* UIKit+Additions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -78,7 +80,7 @@
 		9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CocoaBridgeable.swift; path = MantleData/CocoaBridgeable.swift; sourceTree = "<group>"; };
 		9A2997F01C510BD100801A30 /* ObjectContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectContext.swift; path = MantleData/ObjectContext.swift; sourceTree = "<group>"; };
 		9A2997F11C510BD100801A30 /* ResultProducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResultProducer.swift; path = MantleData/ResultProducer.swift; sourceTree = "<group>"; };
-		9A2997F51C510BDB00801A30 /* ReactiveBindings-iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveBindings-iOS.swift"; path = "MantleData/ReactiveBindings-iOS.swift"; sourceTree = "<group>"; };
+		9A2997F51C510BDB00801A30 /* KeyValueBindings+iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "KeyValueBindings+iOS.swift"; path = "MantleData/KeyValueBindings+iOS.swift"; sourceTree = "<group>"; };
 		9A2997F71C510BE900801A30 /* Assertions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Assertions.swift; path = MantleData/Assertions.swift; sourceTree = "<group>"; };
 		9A2997F81C510BE900801A30 /* Base.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Base.swift; path = MantleData/Base.swift; sourceTree = "<group>"; };
 		9A2997F91C510BE900801A30 /* Dispatch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = MantleData/Dispatch.swift; sourceTree = "<group>"; };
@@ -95,8 +97,12 @@
 		9A39A6681BC958E100FC86E1 /* Container.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Container.swift; path = MantleData/Container.swift; sourceTree = "<group>"; };
 		9A39A66A1BC958E100FC86E1 /* ViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModel.swift; path = MantleData/ViewModel.swift; sourceTree = "<group>"; };
 		9A55779F1C1EBC7F00789E02 /* Dispatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Dispatch.m; path = MantleData/Dispatch.m; sourceTree = "<group>"; };
+		9A974BAF1CC7B88C00395E2D /* UIKitBindings+iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKitBindings+iOS.swift"; path = "MantleData/UIKitBindings+iOS.swift"; sourceTree = "<group>"; };
+		9AB7ABD41CAE13E700AEC6DB /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../../Library/Developer/Xcode/DerivedData/LockySimulator-csxaavtqngvwmagbiyrmpidsixwg/Build/Products/Debug-iphoneos/Result.framework"; sourceTree = "<group>"; };
+		9AB7ABD61CAE13EF00AEC6DB /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../../Library/Developer/Xcode/DerivedData/LockySimulator-csxaavtqngvwmagbiyrmpidsixwg/Build/Products/Debug-iphoneos/ReactiveCocoa.framework"; sourceTree = "<group>"; };
 		9AE9C0EB1C1186A800A3D1F3 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../ReactiveCocoa/ReactiveCocoa/build/Debug-iphoneos/ReactiveCocoa.framework"; sourceTree = "<group>"; };
 		9AE9C0ED1C1186AF00A3D1F3 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../ReactiveCocoa/ReactiveCocoa/Carthage/Checkouts/Result/build/Debug-iphoneos/Result.framework"; sourceTree = "<group>"; };
+		9AEC56F21C92D735000DF9D6 /* UIKit+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKit+Additions.swift"; path = "MantleData/UIKit+Additions.swift"; sourceTree = "<group>"; };
 		9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -115,8 +121,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9AE9C0EE1C1186AF00A3D1F3 /* Result.framework in Frameworks */,
-				9AE9C0EC1C1186A800A3D1F3 /* ReactiveCocoa.framework in Frameworks */,
+				9AB7ABD71CAE13EF00AEC6DB /* ReactiveCocoa.framework in Frameworks */,
+				9AB7ABD51CAE13E700AEC6DB /* Result.framework in Frameworks */,
 				9A39A5A71BC90BB300FC86E1 /* CoreData.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -147,6 +153,8 @@
 		9A39A6201BC956BE00FC86E1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9AB7ABD61CAE13EF00AEC6DB /* ReactiveCocoa.framework */,
+				9AB7ABD41CAE13E700AEC6DB /* Result.framework */,
 				9A0D9A821C76ABAD0013C976 /* Result.framework */,
 				9A0D9A801C76ABA80013C976 /* ReactiveCocoa.framework */,
 				9A0D9A7E1C76ABA30013C976 /* CoreData.framework */,
@@ -184,9 +192,11 @@
 		9A3A77701BC96B6C00ADFFE0 /* UIKit Additions */ = {
 			isa = PBXGroup;
 			children = (
-				9A2997F51C510BDB00801A30 /* ReactiveBindings-iOS.swift */,
+				9A2997F51C510BDB00801A30 /* KeyValueBindings+iOS.swift */,
+				9A974BAF1CC7B88C00395E2D /* UIKitBindings+iOS.swift */,
 				9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */,
 				9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */,
+				9AEC56F21C92D735000DF9D6 /* UIKit+Additions.swift */,
 			);
 			name = "UIKit Additions";
 			sourceTree = "<group>";
@@ -385,9 +395,11 @@
 				9A39A66C1BC958E100FC86E1 /* TableViewAdapter-iOS.swift in Sources */,
 				9A39A6701BC958E100FC86E1 /* Object.swift in Sources */,
 				9A2997FB1C510BE900801A30 /* Base.swift in Sources */,
+				9AEC56F31C92D735000DF9D6 /* UIKit+Additions.swift in Sources */,
 				9A2997E71C510BAD00801A30 /* AnyReactiveSetBox.swift in Sources */,
 				9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */,
 				9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */,
+				9A974BB01CC7B88C00395E2D /* UIKitBindings+iOS.swift in Sources */,
 				9A2997E81C510BAD00801A30 /* ArraySet.swift in Sources */,
 				9A39A6761BC958E100FC86E1 /* ReactiveView-iOS.swift in Sources */,
 				9A2997F31C510BD100801A30 /* ObjectContext.swift in Sources */,
@@ -395,7 +407,7 @@
 				9A141A3E1C495E500049BEC9 /* ViewModelSet.swift in Sources */,
 				9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */,
 				9A39A67A1BC958E100FC86E1 /* Container.swift in Sources */,
-				9A2997F61C510BDB00801A30 /* ReactiveBindings-iOS.swift in Sources */,
+				9A2997F61C510BDB00801A30 /* KeyValueBindings+iOS.swift in Sources */,
 				9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */,
 				9A2997ED1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift in Sources */,
 				9A39A6711BC958E100FC86E1 /* Attribute.swift in Sources */,
@@ -597,6 +609,7 @@
 				9A0D9A7C1C76AB9A0013C976 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		9AFFA5071BC7CBEC00B63C58 /* Build configuration list for PBXProject "MantleData" */ = {
 			isa = XCConfigurationList;

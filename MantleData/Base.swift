@@ -7,6 +7,8 @@
 //
 
 import ReactiveCocoa
+import enum Result.NoError
+public typealias NoError = Result.NoError
 
 public class Base {
   final private var willDeinitObserver: Signal<(), NoError>.Observer! = nil

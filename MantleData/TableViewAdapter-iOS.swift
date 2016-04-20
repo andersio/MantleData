@@ -16,6 +16,7 @@ public struct TableViewAdapterConfiguration<V: ViewModel> {
 	public var shouldReloadRowsForUpdatedObjects = false
 	public var rowAnimation: UITableViewRowAnimation = .Automatic
 	public var sectionNameTransform: ((Int, String?) -> String?)?
+	public var emptySetHandler: (Bool -> Void)?
 
 	public init() {
 		self.factories = [:]
@@ -42,6 +43,7 @@ public struct TableViewAdapterConfiguration<V: ViewModel> {
 final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSource {
 	private let set: ViewModelSet<V>
 	private let configuration: TableViewAdapterConfiguration<V>
+	private var isEmpty: Bool = false
 
 	public init(set: ViewModelSet<V>, configuration: TableViewAdapterConfiguration<V>) {
 		self.set = set
@@ -57,6 +59,13 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 				switch($0) {
 				case .Reloaded:
 					tableView?.reloadData()
+					if self.set.numberOfObjects == 0 {
+						self.isEmpty = true
+						self.configuration.emptySetHandler?(true)
+					} else if self.isEmpty {
+						self.isEmpty = false
+						self.configuration.emptySetHandler?(false)
+					}
 					
 				case .Updated(let changes):
 					tableView?.beginUpdates()
@@ -92,6 +101,14 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					}
 
 					tableView?.endUpdates()
+
+					if self.set.numberOfObjects == 0 {
+						self.isEmpty = true
+						self.configuration.emptySetHandler?(true)
+					} else if self.isEmpty {
+						self.isEmpty = false
+						self.configuration.emptySetHandler?(false)
+					}
 				}
 		}
 		try! set.fetch()
