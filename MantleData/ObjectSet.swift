@@ -106,7 +106,7 @@ final public class ObjectSet<E: Object>: Base {
 	private func sectionize(using fetchedObjects: [E]) {
 		guard let keyPath = sectionNameKeyPath else {
 			sections = [ObjectSetSection(name: ReactiveSetSectionName(nil),
-				array: fetchedObjects)]
+				array: ContiguousArray(fetchedObjects))]
 
 			return
 		}
@@ -137,7 +137,7 @@ final public class ObjectSet<E: Object>: Base {
 			sections.reserveCapacity(ranges.count)
 
 			for (range, name) in ranges {
-				let section = ObjectSetSection(name: name, array: Array(fetchedObjects[range]))
+				let section = ObjectSetSection(name: name, array: ContiguousArray(fetchedObjects[range]))
 				sections.append(section)
 			}
 		}
@@ -168,10 +168,10 @@ final public class ObjectSet<E: Object>: Base {
 		return nil
 	}
 
-	private func hasObject(object: NSManagedObject) -> ReactiveSetSectionName? {
+	private func hasObject(object: NSManagedObject) -> (sectionName: ReactiveSetSectionName, index: Int)? {
 		for section in sections {
 			if let index = section.storage.indexOf({ $0.isEqual(object) }) {
-				return section.name
+				return (sectionName: section.name, index: index)
 			}
 		}
 
@@ -198,8 +198,8 @@ final public class ObjectSet<E: Object>: Base {
 
 		if let deletedObjects = userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject> {
 			for object in deletedObjects {
-				if let sectionName = hasObject(object) {
-					externalChanges.deletedObjects.insert(object as! E, inSetForKey: sectionName)
+				if let (sectionName, index) = hasObject(object) {
+					externalChanges.deletedObjects.insert(index, inSetForKey: sectionName)
 					externalChanges.deletedObjectsCount = externalChanges.deletedObjectsCount + 1
 				}
 			}
@@ -261,19 +261,14 @@ final public class ObjectSet<E: Object>: Base {
 		indexPathsOfUpdatedRows.reserveCapacity(externalChanges.updatedObjectsCount)
 		indexPathsOfMovedRows.reserveCapacity(originsOfMoved.capacity)
 
-		for (sectionName, objects) in externalChanges.deletedObjects {
+		for (sectionName, objectIndice) in externalChanges.deletedObjects {
 			guard let sectionIndex = oldSections.index(forName: sectionName) else {
 				assertionFailure("Section `\(sectionName)` should be in the result set, but it cannot be found.")
 				continue
 			}
 
-			for object in objects {
-				guard let rowIndex = oldSections[sectionIndex].indexOf(object) else {
-					assertionFailure("Object `\(object)` should be in the section `\(sectionName)`, but it cannot be found.")
-					continue
-				}
-
-				let indexPath = NSIndexPath(forRow: rowIndex, inSection: sectionIndex)
+			for objectIndex in objectIndice {
+				let indexPath = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
 				indexPathsOfDeletedRows.append(indexPath)
 			}
 		}
@@ -327,7 +322,7 @@ final public class ObjectSet<E: Object>: Base {
 				let index = updatedSections.insertSection(sectionName,
 				                                          ordering: sectionNameOrdering,
 				                                          section: ObjectSetSection(name: sectionName,
-																										array: Array(objects)))
+																										array: ContiguousArray(objects)))
 
 				indiceOfInsertedSections.addIndex(index)
 			}
@@ -340,7 +335,7 @@ final public class ObjectSet<E: Object>: Base {
 				let index = updatedSections.insertSection(sectionName,
 				                                          ordering: sectionNameOrdering,
 				                                          section: ObjectSetSection(name: sectionName,
-																										array: Array(objects)))
+																										array: ContiguousArray(objects)))
 
 				indiceOfInsertedSections.addIndex(index)
 			}
@@ -452,7 +447,7 @@ extension ObjectSet: ReactiveSet {
 
 private struct ExternalChanges<E: Object> {
 	var insertedObjects: [ReactiveSetSectionName: Set<E>] = [:]
-	var deletedObjects: [ReactiveSetSectionName: Set<E>] = [:]
+	var deletedObjects: [ReactiveSetSectionName: Set<Int>] = [:]
 	var movedObjects: [ReactiveSetSectionName: Set<E>] = [:]
 	var updatedObjects: [ReactiveSetSectionName: Set<E>] = [:]
 
@@ -468,9 +463,9 @@ private struct ExternalChanges<E: Object> {
 
 public struct ObjectSetSection<E: Object> {
 	public let name: ReactiveSetSectionName
-	private var storage: [E]
+	private var storage: ContiguousArray<E>
 
-	public init(name: ReactiveSetSectionName, array: [E]?) {
+	public init(name: ReactiveSetSectionName, array: ContiguousArray<E>?) {
 		self.name = name
 		self.storage = array ?? []
 	}
@@ -494,7 +489,7 @@ extension ObjectSetSection: ReactiveSetSection {
 
 	// SequenceType
 
-	public func generate() -> IndexingGenerator<Array<E>> {
+	public func generate() -> IndexingGenerator<ContiguousArray<E>> {
 		return IndexingGenerator(storage)
 	}
 }
