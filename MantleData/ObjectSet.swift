@@ -168,6 +168,16 @@ final public class ObjectSet<E: Object>: Base {
 		return nil
 	}
 
+	private func hasObject(object: NSManagedObject) -> ReactiveSetSectionName? {
+		for section in sections {
+			if let index = section.storage.indexOf({ $0.isEqual(object) }) {
+				return section.name
+			}
+		}
+
+		return nil
+	}
+
 	/// Merge changes since last posting of NSManagedContextObjectsDidChangeNotification.
 	@objc private func mergeChangesFrom(notification: NSNotification) {
 		guard let userInfo = notification.userInfo else {
@@ -188,9 +198,8 @@ final public class ObjectSet<E: Object>: Base {
 
 		if let deletedObjects = userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject> {
 			for object in deletedObjects {
-				if let object = isInclusiveOf(object) {
-					let name = sectionName(from: object)
-					externalChanges.deletedObjects.insert(object, inSetForKey: name)
+				if let sectionName = hasObject(object) {
+					externalChanges.deletedObjects.insert(object as! E, inSetForKey: sectionName)
 					externalChanges.deletedObjectsCount = externalChanges.deletedObjectsCount + 1
 				}
 			}

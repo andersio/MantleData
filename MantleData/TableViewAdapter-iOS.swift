@@ -43,7 +43,7 @@ public struct TableViewAdapterConfiguration<V: ViewModel> {
 final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSource {
 	private let set: ViewModelSet<V>
 	private let configuration: TableViewAdapterConfiguration<V>
-	private var isEmpty: Bool = false
+	private var isEmpty: Bool = true
 
 	public init(set: ViewModelSet<V>, configuration: TableViewAdapterConfiguration<V>) {
 		self.set = set

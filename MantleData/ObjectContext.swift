@@ -39,19 +39,19 @@ final public class ObjectContext: NSManagedObjectContext {
 		let defaultCenter = NSNotificationCenter.defaultCenter()
 
 		defaultCenter.addObserver(self,
-			selector: "handleExternalBatchUpdate:",
-			name: ObjectContext.DidBatchUpdateNotification,
-			object: nil)
+		                          selector: #selector(ObjectContext.handleExternalBatchUpdate(_:)),
+		                          name: ObjectContext.DidBatchUpdateNotification,
+		                          object: nil)
 
 		defaultCenter.addObserver(self,
-			selector: "handleExternalBatchDelete:",
-			name: ObjectContext.DidBatchDeleteNotification,
-			object: nil)
+		                          selector: #selector(ObjectContext.handleExternalBatchDelete(_:)),
+		                          name: ObjectContext.DidBatchDeleteNotification,
+		                          object: nil)
 
 		defaultCenter.addObserver(self,
-			selector: "handleExternalChanges:",
-			name: NSManagedObjectContextDidSaveNotification,
-			object: nil)
+		                          selector: #selector(ObjectContext.handleExternalChanges(_:)),
+		                          name: NSManagedObjectContextDidSaveNotification,
+		                          object: nil)
 	}
 
 	public required init?(coder aDecoder: NSCoder) {
@@ -102,8 +102,7 @@ final public class ObjectContext: NSManagedObjectContext {
     }
 	}
 
-	/// Synchronously batch updating properties of objects, constrained by a predicate.
-	/// - Important: Deadlock if you call this from remote contexts, since it would synchronously update remote contexts after the persistent store result returns.
+	/// Batch update objects, and update other contexts asynchronously.
 	public func batchUpdate(request: NSBatchUpdateRequest) throws {
 		request.resultType = .UpdatedObjectIDsResultType
 
@@ -118,12 +117,11 @@ final public class ObjectContext: NSManagedObjectContext {
 		updateObjectsWith(objectIDs)
 
 		NSNotificationCenter.defaultCenter().postNotificationName(ObjectContext.DidBatchUpdateNotification,
-			object: self,
-			userInfo: [ObjectContext.BatchRequestResultIDs: objectIDs])
+		                                                          object: self,
+		                                                          userInfo: [ObjectContext.BatchRequestResultIDs: objectIDs])
 	}
 
-	/// Synchronously batch deleting objects, constrained by a predicate.
-	/// - Important: Deadlock if you call this from remote contexts, since it would synchronously update remote contexts after the persistent store result returns.
+	/// Batch delete objects, and update other contexts asynchronously.
 	public func batchDelete(request: NSBatchDeleteRequest) throws {
 		request.resultType = .ResultTypeObjectIDs
 
@@ -138,38 +136,8 @@ final public class ObjectContext: NSManagedObjectContext {
 		deleteObjectsWith(objectIDs)
 
 		NSNotificationCenter.defaultCenter().postNotificationName(ObjectContext.DidBatchDeleteNotification,
-			object: self,
-			userInfo: [ObjectContext.BatchRequestResultIDs: objectIDs])
-	}
-
-	private func isSiblingContextOf(object: AnyObject?) -> Bool {
-		if let context = object as? NSManagedObjectContext {
-			if context !== self && context.persistentStoreCoordinator === persistentStoreCoordinator {
-				return true
-			}
-		}
-
-		return false
-	}
-
-	@objc public func handleExternalChanges(notification: NSNotification) {
-		if isSiblingContextOf(notification.object) {
-			performBlockAndWaitNoEscape {
-				mergeChangesFromContextDidSaveNotification(notification)
-			}
-		}
-	}
-
-	@objc public func handleExternalBatchDelete(notification: NSNotification) {
-		if isSiblingContextOf(notification.object) {
-			performBlockAndWaitNoEscape {
-				guard let resultIDs = notification.userInfo?[ObjectContext.BatchRequestResultIDs] as? [NSManagedObjectID] else {
-					return
-				}
-
-				deleteObjectsWith(resultIDs)
-			}
-		}
+		                                                          object: self,
+		                                                          userInfo: [ObjectContext.BatchRequestResultIDs: objectIDs])
 	}
 
 	private func deleteObjectsWith(resultIDs: [NSManagedObjectID]) {
@@ -180,17 +148,6 @@ final public class ObjectContext: NSManagedObjectContext {
 		}
 	}
 
-	@objc public func handleExternalBatchUpdate(notification: NSNotification) {
-		if isSiblingContextOf(notification.object) {
-			performBlockAndWaitNoEscape {
-				guard let resultIDs = notification.userInfo?[ObjectContext.BatchRequestResultIDs] as? [NSManagedObjectID] else {
-					return
-				}
-
-				updateObjectsWith(resultIDs)
-			}
-		}
-	}
 
 	private func updateObjectsWith(resultIDs: [NSManagedObjectID]) {
 		// Force the context to discard the cached data.
@@ -204,5 +161,68 @@ final public class ObjectContext: NSManagedObjectContext {
 		}
 
 		stalenessInterval = previousInterval
+	}
+
+	private func isSiblingOf(other: NSManagedObjectContext) -> Bool {
+		if other !== self {
+			// Fast Path
+			if persistentStoreCoordinator == other.persistentStoreCoordinator {
+				return true
+			}
+
+			// Slow Path
+			var myPSC = persistentStoreCoordinator
+			var otherPSC = other.persistentStoreCoordinator
+			var myContext: NSManagedObjectContext = self
+			var otherContext: NSManagedObjectContext = other
+
+			while let parent = myContext.parentContext {
+				myContext = parent
+				myPSC = myContext.persistentStoreCoordinator
+			}
+
+			while let parent = otherContext.parentContext {
+				otherContext = parent
+				otherPSC = otherContext.persistentStoreCoordinator
+			}
+
+			if myPSC == otherPSC {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	@objc public func handleExternalChanges(notification: NSNotification) {
+		if let context = notification.object as? NSManagedObjectContext where self.isSiblingOf(context) {
+			performBlock {
+				self.mergeChangesFromContextDidSaveNotification(notification)
+			}
+		}
+	}
+
+	@objc public func handleExternalBatchDelete(notification: NSNotification) {
+		if let context = notification.object as? NSManagedObjectContext where self.isSiblingOf(context) {
+			performBlock {
+				guard let resultIDs = notification.userInfo?[ObjectContext.BatchRequestResultIDs] as? [NSManagedObjectID] else {
+					return
+				}
+
+				self.deleteObjectsWith(resultIDs)
+			}
+		}
+	}
+
+	@objc public func handleExternalBatchUpdate(notification: NSNotification) {
+		if let context = notification.object as? NSManagedObjectContext where self.isSiblingOf(context) {
+			performBlock {
+				guard let resultIDs = notification.userInfo?[ObjectContext.BatchRequestResultIDs] as? [NSManagedObjectID] else {
+					return
+				}
+
+				self.updateObjectsWith(resultIDs)
+			}
+		}
 	}
 }

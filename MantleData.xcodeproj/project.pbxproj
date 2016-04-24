@@ -23,7 +23,6 @@
 		9A0D9A8E1C76ABD30013C976 /* ObjectContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ObjectContext.swift */; };
 		9A0D9A8F1C76ABD30013C976 /* ResultProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F11C510BD100801A30 /* ResultProducer.swift */; };
 		9A0D9A901C76ABD30013C976 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* Object.swift */; };
-		9A0D9A911C76ABD30013C976 /* Attribute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65F1BC958E100FC86E1 /* Attribute.swift */; };
 		9A0D9A921C76ABD30013C976 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6681BC958E100FC86E1 /* Container.swift */; };
 		9A0D9A961C76ABD30013C976 /* NSObject+AssociatedProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */; };
 		9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F71C510BE900801A30 /* Assertions.swift */; };
@@ -48,10 +47,13 @@
 		9A2997FB1C510BE900801A30 /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F81C510BE900801A30 /* Base.swift */; };
 		9A2997FC1C510BE900801A30 /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F91C510BE900801A30 /* Dispatch.swift */; };
 		9A2997FE1C510BF100801A30 /* Dispatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A2997FD1C510BF100801A30 /* Dispatch.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */; };
+		9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */; };
+		9A36ADF31CCCBDA9001D4449 /* FetchRequestBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADF21CCCBDA9001D4449 /* FetchRequestBuilder.swift */; };
+		9A36ADF41CCCBDA9001D4449 /* FetchRequestBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADF21CCCBDA9001D4449 /* FetchRequestBuilder.swift */; };
 		9A39A5A71BC90BB300FC86E1 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A39A5A61BC90BB300FC86E1 /* CoreData.framework */; };
 		9A39A66C1BC958E100FC86E1 /* TableViewAdapter-iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */; };
 		9A39A6701BC958E100FC86E1 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* Object.swift */; };
-		9A39A6711BC958E100FC86E1 /* Attribute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65F1BC958E100FC86E1 /* Attribute.swift */; };
 		9A39A6731BC958E100FC86E1 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A39A6761BC958E100FC86E1 /* ReactiveView-iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */; };
 		9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6661BC958E100FC86E1 /* ObjectSet.swift */; };
@@ -85,12 +87,13 @@
 		9A2997F81C510BE900801A30 /* Base.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Base.swift; path = MantleData/Base.swift; sourceTree = "<group>"; };
 		9A2997F91C510BE900801A30 /* Dispatch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = MantleData/Dispatch.swift; sourceTree = "<group>"; };
 		9A2997FD1C510BF100801A30 /* Dispatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dispatch.h; path = MantleData/Dispatch.h; sourceTree = "<group>"; };
+		9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveCocoa+Additions.swift"; path = "MantleData/ReactiveCocoa+Additions.swift"; sourceTree = "<group>"; };
+		9A36ADF21CCCBDA9001D4449 /* FetchRequestBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FetchRequestBuilder.swift; path = MantleData/FetchRequestBuilder.swift; sourceTree = "<group>"; };
 		9A39A5A61BC90BB300FC86E1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelSet.swift; path = MantleData/ViewModelSet.swift; sourceTree = "<group>"; };
 		9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "TableViewAdapter-iOS.swift"; path = "MantleData/TableViewAdapter-iOS.swift"; sourceTree = "<group>"; };
 		9A39A65D1BC958E100FC86E1 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MantleData/Info.plist; sourceTree = "<group>"; };
 		9A39A65E1BC958E100FC86E1 /* Object.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Object.swift; path = MantleData/Object.swift; sourceTree = "<group>"; };
-		9A39A65F1BC958E100FC86E1 /* Attribute.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Attribute.swift; path = MantleData/Attribute.swift; sourceTree = "<group>"; };
 		9A39A6611BC958E100FC86E1 /* MantleData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MantleData.h; path = MantleData/MantleData.h; sourceTree = "<group>"; };
 		9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveView-iOS.swift"; path = "MantleData/ReactiveView-iOS.swift"; sourceTree = "<group>"; };
 		9A39A6661BC958E100FC86E1 /* ObjectSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSet.swift; path = MantleData/ObjectSet.swift; sourceTree = "<group>"; };
@@ -172,8 +175,8 @@
 				9A2997F01C510BD100801A30 /* ObjectContext.swift */,
 				9A2997F11C510BD100801A30 /* ResultProducer.swift */,
 				9A39A65E1BC958E100FC86E1 /* Object.swift */,
-				9A39A65F1BC958E100FC86E1 /* Attribute.swift */,
 				9A39A6681BC958E100FC86E1 /* Container.swift */,
+				9A36ADF21CCCBDA9001D4449 /* FetchRequestBuilder.swift */,
 			);
 			name = Objects;
 			sourceTree = "<group>";
@@ -185,6 +188,7 @@
 				9A2997F71C510BE900801A30 /* Assertions.swift */,
 				9A2997F81C510BE900801A30 /* Base.swift */,
 				9A2997F91C510BE900801A30 /* Dispatch.swift */,
+				9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -371,6 +375,8 @@
 				9A0D9A871C76ABD30013C976 /* ArraySetSection.swift in Sources */,
 				9A0D9A881C76ABD30013C976 /* ReactiveSet.swift in Sources */,
 				9A0D9A891C76ABD30013C976 /* ObjectSet.swift in Sources */,
+				9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
+				9A36ADF41CCCBDA9001D4449 /* FetchRequestBuilder.swift in Sources */,
 				9A0D9A8A1C76ABD30013C976 /* ViewModel.swift in Sources */,
 				9A0D9A8B1C76ABD30013C976 /* ViewModelSet.swift in Sources */,
 				9A0D9A8C1C76ABD30013C976 /* STLExtensions+FoundationExtensions.swift in Sources */,
@@ -378,7 +384,6 @@
 				9A0D9A8E1C76ABD30013C976 /* ObjectContext.swift in Sources */,
 				9A0D9A8F1C76ABD30013C976 /* ResultProducer.swift in Sources */,
 				9A0D9A901C76ABD30013C976 /* Object.swift in Sources */,
-				9A0D9A911C76ABD30013C976 /* Attribute.swift in Sources */,
 				9A0D9A921C76ABD30013C976 /* Container.swift in Sources */,
 				9A0D9A961C76ABD30013C976 /* NSObject+AssociatedProperty.swift in Sources */,
 				9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */,
@@ -400,6 +405,7 @@
 				9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */,
 				9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */,
 				9A974BB01CC7B88C00395E2D /* UIKitBindings+iOS.swift in Sources */,
+				9A36ADF31CCCBDA9001D4449 /* FetchRequestBuilder.swift in Sources */,
 				9A2997E81C510BAD00801A30 /* ArraySet.swift in Sources */,
 				9A39A6761BC958E100FC86E1 /* ReactiveView-iOS.swift in Sources */,
 				9A2997F31C510BD100801A30 /* ObjectContext.swift in Sources */,
@@ -408,9 +414,9 @@
 				9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */,
 				9A39A67A1BC958E100FC86E1 /* Container.swift in Sources */,
 				9A2997F61C510BDB00801A30 /* KeyValueBindings+iOS.swift in Sources */,
+				9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
 				9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */,
 				9A2997ED1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift in Sources */,
-				9A39A6711BC958E100FC86E1 /* Attribute.swift in Sources */,
 				9A2997EA1C510BAD00801A30 /* ReactiveSet.swift in Sources */,
 				9A2997FC1C510BE900801A30 /* Dispatch.swift in Sources */,
 				9A2997E91C510BAD00801A30 /* ArraySetSection.swift in Sources */,

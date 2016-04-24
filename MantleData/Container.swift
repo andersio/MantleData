@@ -79,11 +79,11 @@ final public class Container: Base {
 		observeSavingNotificationsOf(mainContext)
 	}
 
-	public func prepare<Result>(@noescape action: ObjectContext -> Result) -> Result {
+	public func prepareOnMainThread<Result>(@noescape action: ObjectContext -> Result) -> Result {
 		return mainContext.prepare { action(mainContext) }
 	}
 
-	public func save(action: ObjectContext -> Void) -> SignalProducer<Void, NSError> {
+	public func saveInBackground(action: ObjectContext -> Void) -> SignalProducer<Void, NSError> {
 		let (producer, observer) = SignalProducer<Void, NSError>.buffer(0)
 
 		rootSavingContext.perform {
