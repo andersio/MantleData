@@ -49,8 +49,6 @@
 		9A2997FE1C510BF100801A30 /* Dispatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A2997FD1C510BF100801A30 /* Dispatch.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */; };
 		9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */; };
-		9A36ADF31CCCBDA9001D4449 /* FetchRequestBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADF21CCCBDA9001D4449 /* FetchRequestBuilder.swift */; };
-		9A36ADF41CCCBDA9001D4449 /* FetchRequestBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADF21CCCBDA9001D4449 /* FetchRequestBuilder.swift */; };
 		9A39A5A71BC90BB300FC86E1 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A39A5A61BC90BB300FC86E1 /* CoreData.framework */; };
 		9A39A66C1BC958E100FC86E1 /* TableViewAdapter-iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */; };
 		9A39A6701BC958E100FC86E1 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* Object.swift */; };
@@ -88,7 +86,6 @@
 		9A2997F91C510BE900801A30 /* Dispatch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Dispatch.swift; path = MantleData/Dispatch.swift; sourceTree = "<group>"; };
 		9A2997FD1C510BF100801A30 /* Dispatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dispatch.h; path = MantleData/Dispatch.h; sourceTree = "<group>"; };
 		9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveCocoa+Additions.swift"; path = "MantleData/ReactiveCocoa+Additions.swift"; sourceTree = "<group>"; };
-		9A36ADF21CCCBDA9001D4449 /* FetchRequestBuilder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FetchRequestBuilder.swift; path = MantleData/FetchRequestBuilder.swift; sourceTree = "<group>"; };
 		9A39A5A61BC90BB300FC86E1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelSet.swift; path = MantleData/ViewModelSet.swift; sourceTree = "<group>"; };
 		9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "TableViewAdapter-iOS.swift"; path = "MantleData/TableViewAdapter-iOS.swift"; sourceTree = "<group>"; };
@@ -176,7 +173,6 @@
 				9A2997F11C510BD100801A30 /* ResultProducer.swift */,
 				9A39A65E1BC958E100FC86E1 /* Object.swift */,
 				9A39A6681BC958E100FC86E1 /* Container.swift */,
-				9A36ADF21CCCBDA9001D4449 /* FetchRequestBuilder.swift */,
 			);
 			name = Objects;
 			sourceTree = "<group>";
@@ -376,7 +372,6 @@
 				9A0D9A881C76ABD30013C976 /* ReactiveSet.swift in Sources */,
 				9A0D9A891C76ABD30013C976 /* ObjectSet.swift in Sources */,
 				9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
-				9A36ADF41CCCBDA9001D4449 /* FetchRequestBuilder.swift in Sources */,
 				9A0D9A8A1C76ABD30013C976 /* ViewModel.swift in Sources */,
 				9A0D9A8B1C76ABD30013C976 /* ViewModelSet.swift in Sources */,
 				9A0D9A8C1C76ABD30013C976 /* STLExtensions+FoundationExtensions.swift in Sources */,
@@ -405,7 +400,6 @@
 				9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */,
 				9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */,
 				9A974BB01CC7B88C00395E2D /* UIKitBindings+iOS.swift in Sources */,
-				9A36ADF31CCCBDA9001D4449 /* FetchRequestBuilder.swift in Sources */,
 				9A2997E81C510BAD00801A30 /* ArraySet.swift in Sources */,
 				9A39A6761BC958E100FC86E1 /* ReactiveView-iOS.swift in Sources */,
 				9A2997F31C510BD100801A30 /* ObjectContext.swift in Sources */,
