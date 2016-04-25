@@ -18,6 +18,7 @@ final public class Container: Base {
 
 	public let mainContext: ObjectContext
 	public let rootSavingContext: ObjectContext
+	internal let mergePolicy: ObjectMergePolicy
 
 	internal let persistentStoreCoordinator: NSPersistentStoreCoordinator
 
@@ -65,6 +66,7 @@ final public class Container: Base {
 			throw Error.CannotAddPersistentStore(error)
 		}
 
+		mergePolicy = ObjectMergePolicy.make()
 		rootSavingContext = ObjectContext(parent: .PersistentStore(persistentStoreCoordinator),
 		                            concurrencyType: .MainQueueConcurrencyType,
 		                            mergePolicy: MergePolicy.RaiseError.cocoaValue)
@@ -76,7 +78,15 @@ final public class Container: Base {
 		super.init()
 
 		observeSavingNotificationsOf(rootSavingContext)
+		rootSavingContext.mergePolicy = mergePolicy
+
 		observeSavingNotificationsOf(mainContext)
+		mainContext.mergePolicy = NSRollbackMergePolicy
+	}
+
+	public func resetMergePolicy(for context: ObjectContext) {
+		assert(context.persistentStoreCoordinator == persistentStoreCoordinator)
+		context.mergePolicy = mergePolicy
 	}
 
 	public func prepareOnMainThread<Result>(@noescape action: ObjectContext -> Result) -> Result {
