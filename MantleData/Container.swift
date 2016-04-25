@@ -11,7 +11,7 @@ import ReactiveCocoa
 import CoreData
 
 /// Container manages a Core Data persistent store and coordinates between requested object contexts.
-final public class Container: Base {
+final public class Container {
 	public let url: NSURL
 	public let model: NSManagedObjectModel
 	public let modelConfiguration: String?
@@ -68,14 +68,10 @@ final public class Container: Base {
 
 		mergePolicy = ObjectMergePolicy.make()
 		rootSavingContext = ObjectContext(parent: .PersistentStore(persistentStoreCoordinator),
-		                            concurrencyType: .MainQueueConcurrencyType,
-		                            mergePolicy: MergePolicy.RaiseError.cocoaValue)
+		                                  concurrencyType: .PrivateQueueConcurrencyType)
 
-		mainContext = ObjectContext(parent: .Context(rootSavingContext),
-		                            concurrencyType: .MainQueueConcurrencyType,
-		                            mergePolicy: MergePolicy.RaiseError.cocoaValue)
-
-		super.init()
+		mainContext = ObjectContext(parent: .PersistentStore(persistentStoreCoordinator),
+		                            concurrencyType: .MainQueueConcurrencyType)
 
 		observeSavingNotificationsOf(rootSavingContext)
 		rootSavingContext.mergePolicy = mergePolicy
@@ -109,23 +105,14 @@ final public class Container: Base {
 		return producer
 	}
 
-  public func privateQueueRootContext(mergePolicy: MergePolicy = .PreferMemoryWhenMerging) -> ObjectContext {
+	public func makeContext(for concurrencyType: NSManagedObjectContextConcurrencyType) -> ObjectContext {
     let context = ObjectContext(parent: .PersistentStore(persistentStoreCoordinator),
-			concurrencyType: .PrivateQueueConcurrencyType,
-			mergePolicy: mergePolicy.cocoaValue)
+			concurrencyType: concurrencyType)
 		observeSavingNotificationsOf(context)
+		context.mergePolicy = mergePolicy
 
     return context
   }
-
-	public func mainQueueRootContext(mergePolicy: MergePolicy = .PreferMemoryWhenMerging) -> ObjectContext {
-		let context = ObjectContext(parent: .PersistentStore(persistentStoreCoordinator),
-			concurrencyType: .MainQueueConcurrencyType,
-			mergePolicy: mergePolicy.cocoaValue)
-		observeSavingNotificationsOf(context)
-
-		return context
-	}
 
 	private func observeSavingNotificationsOf<C: NSManagedObjectContext>(context: C) {
 		let center = NSNotificationCenter.defaultCenter()
@@ -152,36 +139,4 @@ final public class Container: Base {
 		case ModelConfigurationNotFound
 		case CannotAddPersistentStore(NSError)
 	}
-}
-
-public enum MergePolicy {
-	case Custom(NSMergePolicy)
-  case PreferMemoryWhenMerging
-  case PreferStoreWhenMerging
-  case OverwriteStore
-  case RollbackToStore
-  case RaiseError
-
-  private var cocoaValue: AnyObject {
-    switch self {
-    case .PreferMemoryWhenMerging:  return NSMergeByPropertyObjectTrumpMergePolicy
-    case .PreferStoreWhenMerging:   return NSMergeByPropertyStoreTrumpMergePolicy
-    case .RaiseError:         return NSErrorMergePolicy
-    case .OverwriteStore:     return NSOverwriteMergePolicy
-    case .RollbackToStore:    return NSRollbackMergePolicy
-		case let .Custom(mergePolicy): return mergePolicy
-    }
-  }
-}
-
-public enum Concurrency {
-  case MainQueue
-  case PrivateQueue
-  
-  private var cocoaValue: NSManagedObjectContextConcurrencyType {
-    switch self {
-    case .MainQueue:    return .MainQueueConcurrencyType
-    case .PrivateQueue: return .PrivateQueueConcurrencyType
-    }
-  }
 }
