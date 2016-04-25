@@ -24,9 +24,58 @@ final public class ObjectContext: NSManagedObjectContext {
 	internal static let DidBatchDeleteNotification = "MDDidBatchDelete"
 	internal static let BatchRequestResultIDs = "MDResultIDs"
 
-	public init(parent: ContextParent, concurrencyType: NSManagedObjectContextConcurrencyType, mergePolicy: AnyObject) {
+	public var shouldMergeExternalChanges: Bool = false {
+		/// NOTE: didSet works on only the subsequent changes to the initial value.
+		didSet {
+			if oldValue != shouldMergeExternalChanges {
+				if shouldMergeExternalChanges {
+					NSNotificationCenter.defaultCenter()
+						.addObserver(self,
+						             selector: #selector(ObjectContext.handleExternalChanges(_:)),
+						             name: NSManagedObjectContextDidSaveNotification,
+						             object: nil)
+				} else {
+					NSNotificationCenter.defaultCenter()
+						.removeObserver(self,
+						                name: NSManagedObjectContextDidSaveNotification,
+						                object: nil)
+				}
+			}
+		}
+	}
+
+	public var shouldMergeBatchRequests: Bool = false {
+		didSet {
+			if oldValue != shouldMergeBatchRequests {
+				if shouldMergeBatchRequests {
+					let defaultCenter = NSNotificationCenter.defaultCenter()
+
+					defaultCenter.addObserver(self,
+					                          selector: #selector(ObjectContext.handleExternalBatchUpdate(_:)),
+					                          name: ObjectContext.DidBatchUpdateNotification,
+					                          object: nil)
+
+					defaultCenter.addObserver(self,
+					                          selector: #selector(ObjectContext.handleExternalBatchDelete(_:)),
+					                          name: ObjectContext.DidBatchDeleteNotification,
+					                          object: nil)
+				} else {
+					let defaultCenter = NSNotificationCenter.defaultCenter()
+
+					defaultCenter.removeObserver(self,
+					                             name: ObjectContext.DidBatchDeleteNotification,
+					                             object: nil)
+
+					defaultCenter.removeObserver(self,
+					                             name: ObjectContext.DidBatchUpdateNotification,
+					                             object: nil)
+				}
+			}
+		}
+	}
+
+	public init(parent: ContextParent, concurrencyType: NSManagedObjectContextConcurrencyType) {
 		super.init(concurrencyType: concurrencyType)
-		self.mergePolicy = mergePolicy
 
 		switch parent {
 		case let .PersistentStore(persistentStoreCoordinator):
@@ -36,22 +85,11 @@ final public class ObjectContext: NSManagedObjectContext {
 			self.parentContext = context
 		}
 
-		let defaultCenter = NSNotificationCenter.defaultCenter()
-
-		defaultCenter.addObserver(self,
-		                          selector: #selector(ObjectContext.handleExternalBatchUpdate(_:)),
-		                          name: ObjectContext.DidBatchUpdateNotification,
-		                          object: nil)
-
-		defaultCenter.addObserver(self,
-		                          selector: #selector(ObjectContext.handleExternalBatchDelete(_:)),
-		                          name: ObjectContext.DidBatchDeleteNotification,
-		                          object: nil)
-
-		defaultCenter.addObserver(self,
-		                          selector: #selector(ObjectContext.handleExternalChanges(_:)),
-		                          name: NSManagedObjectContextDidSaveNotification,
-		                          object: nil)
+		/// NOTE: Workaround for `didSet` not working in `init` directly.
+		{
+			shouldMergeExternalChanges = true
+			shouldMergeBatchRequests = true
+		}()
 	}
 
 	public required init?(coder aDecoder: NSCoder) {
@@ -59,19 +97,8 @@ final public class ObjectContext: NSManagedObjectContext {
 	}
 
 	deinit {
-		let defaultCenter = NSNotificationCenter.defaultCenter()
-
-		defaultCenter.removeObserver(self,
-			name: ObjectContext.DidBatchDeleteNotification,
-			object: nil)
-
-		defaultCenter.removeObserver(self,
-			name: ObjectContext.DidBatchUpdateNotification,
-			object: nil)
-
-		defaultCenter.removeObserver(self,
-			name: NSManagedObjectContextDidSaveNotification,
-			object: nil)
+		shouldMergeExternalChanges = false
+		shouldMergeBatchRequests = false
 	}
 
   public func schedule(block: () -> Void) {
