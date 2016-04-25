@@ -87,13 +87,11 @@ class ObjectMergePolicy: NSMergePolicy {
 	override func resolveConflicts(list: [AnyObject]) throws {
 		try super.resolveConflicts(list)
 
-		guard let list = list as? [NSMergeConflict] else {
-			preconditionFailure("Failed to retrieve the list of conflicts.")
-		}
+		let list = list as! [NSMergeConflict]
 
 		for conflict in list {
 			if conflict.persistedSnapshot != nil {
-				preconditionFailure("[UNIMPLEMENTED] Handler for PSC vs Store inconsistency is to be implemented.")
+				preconditionFailure("[UNIMPLEMENTED] Handler for PSC vs Store inconsistency.")
 			} else {
 				if let objectType = conflict.sourceObject.dynamicType as? ConflictResolving.Type {
 					 let resolved = objectType.resolveConflict(of: conflict.sourceObject,
@@ -106,7 +104,7 @@ class ObjectMergePolicy: NSMergePolicy {
 						              userInfo: [NSLocalizedDescriptionKey: "Failed to resolve a conflict of an `\(conflict.sourceObject.entity.name)` object."])
 					}
 				} else {
-					preconditionFailure("Failed to cast the runtime class of the object-in-conflict to the `ConflictResolving` protocol. Note that subclassing `Object` should have already introduced the conformance of this protocol.")
+					preconditionFailure("The runtime class of the object-in-conflict does not conform to the `ConflictResolving` protocol.")
 				}
 			}
 		}
