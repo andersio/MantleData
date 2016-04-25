@@ -39,35 +39,30 @@ public class Object: NSManagedObject {
 
 	/// Important: The returned producer will fire a fault when started.
 	final public func producer<Value: CocoaBridgeable where Value.Inner: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> {
-		return _isFaulted.producer
-			.filter { !$0 }
-			.flatMap(.Latest) { [unowned self] _ -> SignalProducer<Value, NoError> in
-				let (producer, observer) = SignalProducer<Value, NoError>.buffer(1)
-
-				let kvoController = AttributeKVOController(object: self,
-					keyPath: keyPath,
-					newValueObserver: {
-						observer.sendNext(Value(cocoaValue: $0))
-					})
-
-				let disposable = self.isFaulted.producer
-					.filter { $0 }
-					.take(1)
-					.start { _ in
-						observer.sendCompleted()
-						kvoController
-					}
-
-				producer.startWithCompleted { [weak disposable] in
-					disposable?.dispose()
-				}
-				
-				return producer
+		return SignalProducer { [weak self] observer, disposable in
+			guard let strongSelf = self else {
+				observer.sendInterrupted()
+				return
 			}
-			.on(started: {
-				self.willAccessValueForKey(nil)
-				self.didAccessValueForKey(nil)
-			})
+
+			// Fire fault.
+			strongSelf.willAccessValueForKey(nil)
+
+			var kvoController: AttributeKVOController?
+
+			disposable += strongSelf._isFaulted.producer
+				.startWithNext { isFaulted in
+					if !isFaulted {
+						kvoController = AttributeKVOController(object: strongSelf,
+																									 keyPath: keyPath,
+																									 newValueObserver: { observer.sendNext(Value(cocoaValue: $0)) })
+					} else {
+						kvoController = nil
+					}
+				}
+
+			strongSelf.didAccessValueForKey(nil)
+		}
 	}
 
 	private dynamic var isChanged: Bool {
