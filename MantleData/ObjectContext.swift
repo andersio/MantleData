@@ -192,8 +192,13 @@ final public class ObjectContext: NSManagedObjectContext {
 
 	private func isSiblingOf(other: NSManagedObjectContext) -> Bool {
 		if other !== self {
-			// Fast Path
-			if persistentStoreCoordinator == other.persistentStoreCoordinator {
+			// Fast Paths
+			if let persistentStoreCoordinator = persistentStoreCoordinator
+				 where persistentStoreCoordinator == other.persistentStoreCoordinator {
+				return true
+			}
+
+			if let parentContext = parentContext where parentContext == other.parentContext {
 				return true
 			}
 
