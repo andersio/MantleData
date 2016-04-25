@@ -190,7 +190,7 @@ final public class ObjectSet<E: Object>: Base {
 			for object in insertedObjects {
 				if let object = isInclusiveOf(object) {
 					let name = sectionName(from: object)
-					externalChanges.insertedObjects.insert(object, inSetForKey: name)
+					externalChanges.insertedObjects.insert(object, intoSetOfKey: name)
 					externalChanges.insertedObjectsCount = externalChanges.insertedObjectsCount + 1
 				}
 			}
@@ -199,7 +199,7 @@ final public class ObjectSet<E: Object>: Base {
 		if let deletedObjects = userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject> {
 			for object in deletedObjects {
 				if let (sectionName, index) = hasObject(object) {
-					externalChanges.deletedObjects.insert(index, inSetForKey: sectionName)
+					externalChanges.deletedObjects.insert(index, intoSetOfKey: sectionName)
 					externalChanges.deletedObjectsCount = externalChanges.deletedObjectsCount + 1
 				}
 			}
@@ -221,7 +221,7 @@ final public class ObjectSet<E: Object>: Base {
 						if changedDict.keys.contains(_sectionNameKeyPath!.last!) {
 							let oldSectionName = ReactiveSetSectionName(changedDict[_sectionNameKeyPath!.last!] as? String)
 							if oldSectionName != name {
-								externalChanges.movedObjects.insert(object, inSetForKey: oldSectionName)
+								externalChanges.movedObjects.insert(object, intoSetOfKey: oldSectionName)
 								externalChanges.movedObjectsCount = externalChanges.movedObjectsCount + 1
 
 								continue
@@ -231,7 +231,7 @@ final public class ObjectSet<E: Object>: Base {
 						name = ReactiveSetSectionName(nil)
 					}
 
-					externalChanges.updatedObjects.insert(object, inSetForKey: name)
+					externalChanges.updatedObjects.insert(object, intoSetOfKey: name)
 					externalChanges.updatedObjectsCount = externalChanges.updatedObjectsCount + 1
 				}
 			}
@@ -293,7 +293,7 @@ final public class ObjectSet<E: Object>: Base {
 		for indexPath in originsOfMoved {
 			let object = oldSections[indexPath.section][indexPath.row]
 			let name = sectionName(from: object)
-			inboundObjects.insert(object, inSetForKey: name)
+			inboundObjects.insert(object, intoSetOfKey: name)
 		}
 
 		var pendingDelete = ContiguousArray<NSIndexPath>()
@@ -319,10 +319,10 @@ final public class ObjectSet<E: Object>: Base {
 			if let sectionIndex = updatedSections.index(forName: sectionName) {
 				updatedSections[sectionIndex].appendContentsOf(objects)
 			} else {
-				let index = updatedSections.insertSection(sectionName,
-				                                          ordering: sectionNameOrdering,
-				                                          section: ObjectSetSection(name: sectionName,
-																										array: ContiguousArray(objects)))
+				let index = updatedSections.insert(ObjectSetSection(name: sectionName,
+																														array: ContiguousArray(objects)),
+				                                   name: sectionName,
+				                                   ordering: sectionNameOrdering)
 
 				indiceOfInsertedSections.addIndex(index)
 			}
@@ -332,10 +332,10 @@ final public class ObjectSet<E: Object>: Base {
 			if let sectionIndex = updatedSections.index(forName: sectionName) {
 				updatedSections[sectionIndex].appendContentsOf(objects)
 			} else {
-				let index = updatedSections.insertSection(sectionName,
-				                                          ordering: sectionNameOrdering,
-				                                          section: ObjectSetSection(name: sectionName,
-																										array: ContiguousArray(objects)))
+				let index = updatedSections.insert(ObjectSetSection(name: sectionName,
+																														array: ContiguousArray(objects)),
+				                                   name: sectionName,
+				                                   ordering: sectionNameOrdering)
 
 				indiceOfInsertedSections.addIndex(index)
 			}
@@ -345,7 +345,7 @@ final public class ObjectSet<E: Object>: Base {
 			let sectionName = updatedSections[sectionIndex].name
 			let oldSectionIndex = oldSections.index(forName: sectionName)
 
-			updatedSections[sectionIndex]._sortInPlace(objectSortDescriptors)
+			updatedSections[sectionIndex].sort(with: objectSortDescriptors)
 
 			for (objectIndex, object) in updatedSections[sectionIndex].enumerate() {
 				if let oldSectionIndex = oldSectionIndex {

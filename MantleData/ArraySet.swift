@@ -39,8 +39,8 @@ final public class ArraySet<E> {
 				indexPathsOfInsertedRows: bufferingChanges!.flatMap { $0.indexPathsOfInsertedRows ?? [] },
 				indexPathsOfMovedRows: bufferingChanges!.flatMap { $0.indexPathsOfMovedRows ?? [] },
 				indexPathsOfUpdatedRows: bufferingChanges!.flatMap { $0.indexPathsOfUpdatedRows ?? [] },
-				indiceOfInsertedSections: bufferingChanges!.map { $0.indiceOfInsertedSections }.flatten(),
-				indiceOfDeletedSections: bufferingChanges!.map { $0.indiceOfInsertedSections }.flatten())
+				indiceOfInsertedSections: bufferingChanges!.map { $0.indiceOfInsertedSections }.flattened(),
+				indiceOfDeletedSections: bufferingChanges!.map { $0.indiceOfInsertedSections }.flattened())
 
 			eventObserver.sendNext(.Updated(changes))
 		}
