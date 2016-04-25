@@ -10,32 +10,32 @@ import CoreData
 import ReactiveCocoa
 
 public class Object: NSManagedObject {
-  final private var _isFaulted = MutableProperty<Bool>(true)
-  final private(set) public lazy var isFaulted: AnyProperty<Bool> = AnyProperty(self._isFaulted)
+	final private var _isFaulted = MutableProperty<Bool>(true)
+	final private(set) public lazy var isFaulted: AnyProperty<Bool> = AnyProperty(self._isFaulted)
 
 	required override public init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
 		super.init(entity: entity, insertIntoManagedObjectContext: context)
 	}
 
-  public override func awakeFromInsert() {
-    super.awakeFromInsert()
-    _isFaulted.value = false
-  }
-  
-  public override func awakeFromFetch() {
-    super.awakeFromFetch()
-    _isFaulted.value = false
-  }
+	public override func awakeFromInsert() {
+		super.awakeFromInsert()
+		_isFaulted.value = false
+	}
 
-  public override func prepareForDeletion() {
-    super.prepareForDeletion()
-    _isFaulted.value = true
-  }
-  
-  public override func willTurnIntoFault() {
-    super.willTurnIntoFault()
-    _isFaulted.value = true
-  }
+	public override func awakeFromFetch() {
+		super.awakeFromFetch()
+		_isFaulted.value = false
+	}
+
+	public override func prepareForDeletion() {
+		super.prepareForDeletion()
+		_isFaulted.value = true
+	}
+
+	public override func willTurnIntoFault() {
+		super.willTurnIntoFault()
+		_isFaulted.value = true
+	}
 
 	/// Important: The returned producer will fire a fault when started.
 	final public func producer<Value: CocoaBridgeable where Value.Inner: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> {
@@ -54,12 +54,12 @@ public class Object: NSManagedObject {
 				.startWithNext { isFaulted in
 					if !isFaulted {
 						kvoController = AttributeKVOController(object: strongSelf,
-																									 keyPath: keyPath,
-																									 newValueObserver: { observer.sendNext(Value(cocoaValue: $0)) })
+							keyPath: keyPath,
+							newValueObserver: { observer.sendNext(Value(cocoaValue: $0)) })
 					} else {
 						kvoController = nil
 					}
-				}
+			}
 
 			strongSelf.didAccessValueForKey(nil)
 		}
@@ -116,14 +116,14 @@ extension ObjectType where Self: Object {
 		                   producer: producer(forKeyPath: keyPath))
 	}
 
-  final public var objectContext: ObjectContext {
-    if let context = managedObjectContext as? ObjectContext {
-      return context
-    }
-    
-    precondition(managedObjectContext != nil, "The object context is deallocated.")
-    preconditionFailure("The object is not from a MantleData object context.")
-  }
+	final public var objectContext: ObjectContext {
+		if let context = managedObjectContext as? ObjectContext {
+			return context
+		}
+
+		precondition(managedObjectContext != nil, "The object context is deallocated.")
+		preconditionFailure("The object is not from a MantleData object context.")
+	}
 
 	final public func converted(for context: ObjectContext) -> Self {
 		if context === managedObjectContext {
@@ -136,18 +136,18 @@ extension ObjectType where Self: Object {
 			}
 		}
 	}
-  
-  final public func save() throws {
-    try objectContext.save()
-  }
 
-  final public static var entityName: String {
-    return String(Self)
-  }
+	final public func save() throws {
+		try objectContext.save()
+	}
+
+	final public static var entityName: String {
+		return String(Self)
+	}
 
 
 	final public static func with(context: ObjectContext,
-														 @noescape action: (inout using: FetchRequestBuilder) throws -> Void) rethrows -> ResultProducer<Self> {
+	                              @noescape action: (inout using: FetchRequestBuilder) throws -> Void) rethrows -> ResultProducer<Self> {
 		var builder = FetchRequestBuilder(entity: entityName, in: context)
 		try action(using: &builder)
 		return ResultProducer(builder: builder)
