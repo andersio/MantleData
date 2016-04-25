@@ -10,6 +10,6 @@ import ReactiveCocoa
 import UIKit
 
 public protocol ReactiveView: class {
-	typealias MappingViewModel: ViewModel
+	associatedtype MappingViewModel: ViewModel
   var viewModel: MutableProperty<MappingViewModel?> { get }
 }

@@ -13,7 +13,7 @@
 #endif
 
 public protocol CocoaBridgeable {
-	typealias Inner
+	associatedtype Inner
   init(cocoaValue: AnyObject?)
   var cocoaValue: AnyObject? { get }
 }

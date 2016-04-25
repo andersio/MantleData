@@ -11,7 +11,7 @@ import ReactiveCocoa
 /// ReactiveSet
 
 public protocol ReactiveSetGenerator: GeneratorType {
-	typealias Element: ReactiveSetSection
+	associatedtype Element: ReactiveSetSection
 }
 
 public struct AnyReactiveSetIterator<S: ReactiveSetSection>: ReactiveSetGenerator {
@@ -29,8 +29,8 @@ public struct AnyReactiveSetIterator<S: ReactiveSetSection>: ReactiveSetGenerato
 }
 
 public protocol ReactiveSet: class, CollectionType {
-	typealias Generator: ReactiveSetGenerator
-	typealias Index: ReactiveSetIndex
+	associatedtype Generator: ReactiveSetGenerator
+	associatedtype Index: ReactiveSetIndex
 
 	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> { get }
 	var isFetched: Bool { get }
@@ -161,7 +161,7 @@ extension ReactiveSetChanges: CustomStringConvertible {
 /// Section of ReactiveSet
 
 public protocol ReactiveSetSection: CollectionType {
-	typealias Index: ReactiveSetIndex
+	associatedtype Index: ReactiveSetIndex
 
 	var name: ReactiveSetSectionName { get }
 }

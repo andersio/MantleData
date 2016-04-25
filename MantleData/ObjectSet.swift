@@ -77,7 +77,7 @@ final public class ObjectSet<E: Object>: Base {
 			eventObserver?.sendNext(.Reloaded)
 
 			NSNotificationCenter.defaultCenter().addObserver(self,
-			                                                 selector: "mergeChangesFrom:",
+			                                                 selector: #selector(ObjectSet.mergeChangesFrom(_:)),
 			                                                 name: NSManagedObjectContextObjectsDidChangeNotification,
 			                                                 object: self.context)
 

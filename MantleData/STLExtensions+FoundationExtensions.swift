@@ -42,7 +42,7 @@ extension RangeReplaceableCollectionType where Generator.Element: ReactiveSetSec
 }
 
 public protocol SetType {
-	typealias Element: Hashable
+	associatedtype Element: Hashable
 	init()
 	mutating func insert(member: Element)
 	func contains(member: Element) -> Bool
