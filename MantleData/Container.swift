@@ -92,10 +92,10 @@ final public class Container {
 	public func saveInBackground(action: ObjectContext -> Void) -> SignalProducer<Void, NSError> {
 		let (producer, observer) = SignalProducer<Void, NSError>.buffer(0)
 
-		rootSavingContext.perform {
-			action(rootSavingContext)
+		rootSavingContext.schedule {
+			action(self.rootSavingContext)
 			do {
-				try rootSavingContext.save()
+				try self.rootSavingContext.save()
 				observer.sendCompleted()
 			} catch let e as NSError {
 				observer.sendFailed(e)
