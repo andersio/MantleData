@@ -9,6 +9,19 @@
 import CoreData
 
 public struct FetchRequestBuilder {
+	public enum Order {
+		case ascending
+		case descending
+
+		private var isAscending: Bool {
+			if case .ascending = self {
+				return true
+			}
+
+			return false
+		}
+	}
+
   private let context: ObjectContext
   private let entityName: String
 
@@ -55,16 +68,16 @@ public struct FetchRequestBuilder {
 
   /// MARK: Ordering operators
   
-  public mutating func sort(byKeyPath path: String, ascending: Bool = true) {
+  public mutating func sort(byKeyPath path: String, order: Order = .ascending) {
 		if sortDescriptors == nil {
 			sortDescriptors = []
 		}
 
-    sortDescriptors!.append(NSSortDescriptor(key: path, ascending: ascending))
+    sortDescriptors!.append(NSSortDescriptor(key: path, ascending: order.isAscending))
   }
   
-  public mutating func group(byKeyPath path: String, ascending: Bool = true) {
-    groupingDescriptor = NSSortDescriptor(key: path, ascending: ascending)
+  public mutating func group(byKeyPath path: String, order: Order = .ascending) {
+    groupingDescriptor = NSSortDescriptor(key: path, ascending: order.isAscending)
 	}
 }
 
