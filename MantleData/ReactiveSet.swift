@@ -115,41 +115,40 @@ public struct ReactiveSetChanges {
 	}
 
 	public init(appendingIndex index: Int, changes: ReactiveSetChanges) {
-		self.init(indexPathsOfDeletedRows: changes.indexPathsOfDeletedRows?.appendIndex(index),
-			indexPathsOfInsertedRows: changes.indexPathsOfInsertedRows?.appendIndex(index),
-			indexPathsOfMovedRows: changes.indexPathsOfMovedRows?.appendIndex(index),
-			indexPathsOfUpdatedRows: changes.indexPathsOfUpdatedRows?.appendIndex(index))
+		self.init(indexPathsOfDeletedRows: changes.indexPathsOfDeletedRows?.mapped(prependingIndex: index),
+			indexPathsOfInsertedRows: changes.indexPathsOfInsertedRows?.mapped(prependingIndex: index),
+			indexPathsOfMovedRows: changes.indexPathsOfMovedRows?.mapped(prependingIndex: index),
+			indexPathsOfUpdatedRows: changes.indexPathsOfUpdatedRows?.mapped(prependingIndex: index))
 	}
 }
 
 extension ReactiveSetChanges: CustomStringConvertible {
 	public var description: String {
-		// NOTE: explicitly state type to mitigate slow compile time type inference
 		var strings = [String]()
 		strings.append("ReactiveSetChanges")
 
 		if let indexPaths = indexPathsOfInsertedRows {
-			strings.append("> \(indexPaths.count) row(s) inserted\n\(indexPaths._toString)")
+			strings.append("> \(indexPaths.count) row(s) inserted\n")
 		}
 
 		if let indexPaths = indexPathsOfDeletedRows {
-			strings.append( "> \(indexPaths.count) row(s) deleted\n\(indexPaths._toString)")
+			strings.append( "> \(indexPaths.count) row(s) deleted\n")
 		}
 
 		if let indexPaths = indexPathsOfMovedRows {
-			strings.append( "> \(indexPaths.count) row(s) moved\n\(indexPaths._toString)")
+			strings.append( "> \(indexPaths.count) row(s) moved\n")
 		}
 
 		if let indexPaths = indexPathsOfUpdatedRows {
-			strings.append( "> \(indexPaths.count) row(s) updated\n\(indexPaths._toString)")
+			strings.append( "> \(indexPaths.count) row(s) updated\n")
 		}
 
 		if let indexPaths = indiceOfInsertedSections {
-			strings.append( "> \(indexPaths.count) section(s) inserted\n\(indexPaths._toString)")
+			strings.append( "> \(indexPaths.count) section(s) inserted\n")
 		}
 
 		if let indexPaths = indiceOfDeletedSections {
-			strings.append( "> \(indexPaths.count) section(s) deleted\n\(indexPaths._toString)")
+			strings.append( "> \(indexPaths.count) section(s) deleted\n")
 		}
 
 		return strings.joinWithSeparator("\n")
