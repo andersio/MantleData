@@ -11,17 +11,37 @@ import enum Result.NoError
 public typealias NoError = Result.NoError
 
 public class Base {
-  final private var willDeinitObserver: Signal<(), NoError>.Observer! = nil
-  final private(set) public lazy var willDeinitProducer: SignalProducer<(), NoError> = { [unowned self] in
-    let (p, o) = SignalProducer<(), NoError>.buffer(0)
-    self.willDeinitObserver = o
-    return p
-  }()
+  final private let willDeinitObserver = Atomic<(Signal<(), NoError>, Signal<(), NoError>.Observer)?>(nil)
+  final public var willDeinitProducer: SignalProducer<(), NoError> {
+		return SignalProducer { [weak willDeinitObserver] observer, disposable in
+			guard let willDeinitObserver = willDeinitObserver else {
+				observer.sendInterrupted()
+				return
+			}
+
+			var deinitSignal: Signal<(), NoError>!
+
+			willDeinitObserver.modify { oldValue in
+				if let tuple = oldValue {
+					deinitSignal = tuple.0
+					return tuple
+				} else {
+					let (signal, observer) = Signal<(), NoError>.pipe()
+					deinitSignal = signal
+					return (signal, observer)
+				}
+			}
+
+			disposable += deinitSignal.observe(observer)
+		}
+  }
 
 	public init() {}
-  
+
   deinit {
-    willDeinitObserver?.sendCompleted()
+		willDeinitObserver.withValue { tuple in
+			tuple?.1.sendCompleted()
+		}
   }
 }
 
@@ -32,12 +52,4 @@ extension NSObject {
       .map { _ in }
       .flatMapError { _ in .empty }
   }
-
-	final public func setObject(object: AnyObject, key: UnsafePointer<Void>, weak: Bool = false) {
-		objc_setAssociatedObject(self, key, object, weak ? .OBJC_ASSOCIATION_ASSIGN : .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-	}
-
-	final public func objectFor<U: AnyObject>(key: UnsafePointer<Void>) -> U? {
-		return objc_getAssociatedObject(self, key) as? U
-	}
 }
