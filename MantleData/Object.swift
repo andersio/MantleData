@@ -17,22 +17,22 @@ public class Object: NSManagedObject {
 		super.init(entity: entity, insertIntoManagedObjectContext: context)
 	}
 
-  final public override func awakeFromInsert() {
+  public override func awakeFromInsert() {
     super.awakeFromInsert()
     _isFaulted.value = false
   }
   
-  final public override func awakeFromFetch() {
+  public override func awakeFromFetch() {
     super.awakeFromFetch()
     _isFaulted.value = false
   }
 
-  final public override func prepareForDeletion() {
+  public override func prepareForDeletion() {
     super.prepareForDeletion()
     _isFaulted.value = true
   }
   
-  final public override func willTurnIntoFault() {
+  public override func willTurnIntoFault() {
     super.willTurnIntoFault()
     _isFaulted.value = true
   }
@@ -52,6 +52,7 @@ public class Object: NSManagedObject {
 
 				let disposable = self.isFaulted.producer
 					.filter { $0 }
+					.take(1)
 					.start { _ in
 						observer.sendCompleted()
 						kvoController
