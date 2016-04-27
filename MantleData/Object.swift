@@ -70,14 +70,6 @@ public class Object: NSManagedObject {
 			strongSelf.didAccessValueForKey(nil)
 		}
 	}
-
-	private dynamic var isChanged: Bool {
-		return true
-	}
-
-	var keyPathsForValuesAffectingIsChanged: Set<String> {
-		return Set(entity.attributesByName.keys)
-	}
 }
 
 final private class KVOProxy: NSObject {
