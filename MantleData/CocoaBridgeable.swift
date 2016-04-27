@@ -12,10 +12,13 @@
 	import Cocoa
 #endif
 
-public protocol CocoaBridgeable {
+public protocol _CocoaBridgeable {
+	init(cocoaValue: AnyObject?)
+	var cocoaValue: AnyObject? { get }
+}
+
+public protocol CocoaBridgeable: _CocoaBridgeable {
 	associatedtype Inner
-  init(cocoaValue: AnyObject?)
-  var cocoaValue: AnyObject? { get }
 }
 
 // String
@@ -180,31 +183,21 @@ extension Optional: CocoaBridgeable {
 		guard let value = self else {
 			return nil
 		}
-		switch value {
-		case _ as NSNull: return nil
-		case let value as Int: return value.cocoaValue
-		case let value as String: return value.cocoaValue
-		case let value as Double: return value.cocoaValue
-		case let value as Bool: return value.cocoaValue
-		case let value as Float: return value.cocoaValue
-		case let value as Int64: return value.cocoaValue
-		case let value as Int32: return value.cocoaValue
-		case let value as UInt32: return value.cocoaValue
-		case let value as UInt16: return value.cocoaValue
-		case let value as Int16: return value.cocoaValue
-		case let value as UInt8: return value.cocoaValue
-		case let value as Int8: return value.cocoaValue
-		default: preconditionFailure("Unsupported data type.")
+
+		if case let value as _CocoaBridgeable = value {
+			return value.cocoaValue
 		}
+
+		preconditionFailure("Unsupported data type.")
 	}
 
 	public init(cocoaValue: AnyObject?) {
-		switch cocoaValue {
-		case .None:
+		guard let cocoaValue = cocoaValue else {
 			self = nil
+			return
+		}
 
-		default:
-			switch Wrapped.self {
+		switch Wrapped.self {
 			case is NSNull.Type: self = nil
 			case is Int.Type:		 self = (Int(cocoaValue: cocoaValue) as! Wrapped)
 			case is String.Type: self = (String(cocoaValue: cocoaValue) as! Wrapped)
@@ -219,7 +212,6 @@ extension Optional: CocoaBridgeable {
 			case is UInt8.Type:  self = (UInt8(cocoaValue: cocoaValue) as! Wrapped)
 			case is Int8.Type:   self = (Int8(cocoaValue: cocoaValue) as! Wrapped)
 			default: preconditionFailure("Unsupported data type.")
-			}
 		}
 	}
 }
