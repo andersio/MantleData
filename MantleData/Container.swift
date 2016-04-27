@@ -12,7 +12,12 @@ import CoreData
 
 /// Container manages a Core Data persistent store and coordinates between requested object contexts.
 final public class Container {
-	public let url: NSURL
+	public enum StoreType {
+		case sqlite(NSURL)
+		case memory
+	}
+
+	public let storeType: StoreType
 	public let model: NSManagedObjectModel
 	public let modelConfiguration: String?
 
@@ -30,43 +35,57 @@ final public class Container {
 				.skipRepeats())
 	}()
 
-	public init(url: NSURL, model: NSManagedObjectModel, modelConfiguration: String? = nil) throws {
-		self.url = url
+	public init(storeType: StoreType, model: NSManagedObjectModel, modelConfiguration: String? = nil, conflictResolver resolver: ContainerConflictResolving.Type? = nil) throws {
+		self.storeType = storeType
 		self.model = model
 		self.modelConfiguration = modelConfiguration
 
 		let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
 		self.persistentStoreCoordinator = coordinator
 
-		if url.pathExtension != "mdcontainer" {
-			throw Error.InvalidFileExtension
-		}
-
-		let fileManager = NSFileManager.defaultManager()
-		if !fileManager.fileExistsAtPath(url.path!) {
-			do {
-				try fileManager.createDirectoryAtURL(url, withIntermediateDirectories: false, attributes: nil)
-			} catch let error as NSError {
-				throw Error.CannotCreateContainer(error)
-			}
-		}
-
 		if let modelConfiguration = modelConfiguration where !model.configurations.contains(modelConfiguration) {
 			throw Error.ModelConfigurationNotFound
 		}
 
-		let storeURL = url.URLByAppendingPathComponent("Database.sqlite3")
+		switch storeType {
+		case let .sqlite(url):
+			if url.pathExtension != "mdcontainer" {
+				throw Error.InvalidFileExtension
+			}
 
-		do {
-			try persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType,
-			                                                          configuration: modelConfiguration,
-			                                                          URL: storeURL,
-			                                                          options: nil)
-		} catch let error as NSError {
-			throw Error.CannotAddPersistentStore(error)
+			let fileManager = NSFileManager.defaultManager()
+			if !fileManager.fileExistsAtPath(url.path!) {
+				do {
+					try fileManager.createDirectoryAtURL(url, withIntermediateDirectories: false, attributes: nil)
+				} catch let error as NSError {
+					throw Error.CannotCreateContainer(error)
+				}
+			}
+
+			let storeURL = url.URLByAppendingPathComponent("Database.sqlite3")
+
+
+			do {
+				try persistentStoreCoordinator.addPersistentStoreWithType(NSSQLiteStoreType,
+																																	configuration: modelConfiguration,
+																																	URL: storeURL,
+																																	options: nil)
+			} catch let error as NSError {
+				throw Error.CannotAddPersistentStore(error)
+			}
+
+		case .memory:
+			do {
+				try persistentStoreCoordinator.addPersistentStoreWithType(NSInMemoryStoreType,
+				                                                          configuration: modelConfiguration,
+				                                                          URL: nil,
+				                                                          options: nil)
+			} catch let error as NSError {
+				throw Error.CannotAddPersistentStore(error)
+			}
 		}
 
-		mergePolicy = ObjectMergePolicy.make()
+		mergePolicy = ObjectMergePolicy(resolver: resolver)
 		rootSavingContext = ObjectContext(parent: .PersistentStore(persistentStoreCoordinator),
 		                                  concurrencyType: .PrivateQueueConcurrencyType)
 

@@ -16,72 +16,80 @@ public enum ConflictResolvingPolicy {
 	case throwError
 }
 
-public protocol ConflictResolving: class {
-	/// Resolve the conflict of the supplied object.
-	/// - Parameter object: The object to be resolved.
-	/// - Parameter latestSnapshot: A snapshot of the object at last save or fetch.
-	/// - Parameter cachedSnapshot: A snapshot of the persistence store coordinator version of the object.
+/// A protocol describing the ability of an object to resolve a conflict of itself.
+public protocol ObjectConflictResolving: class {
+	/// Resolve a conflict of `self`.
+	/// - Parameter latestSnapshot: A snapshot of `self` at last save or fetch in its object context.
+	/// - Parameter cachedSnapshot: A persisted snapshot of `self`.
 	/// - Returns: `true` if the conflict is resolved. `false` otherwise.
-	static func resolveConflict(of object: NSManagedObject, with latestSnapshot: [String: AnyObject], against cachedSnapshot: [String: AnyObject]) -> Bool
+	func resolveConflict(with latestSnapshot: [String: AnyObject], against cachedSnapshot: [String: AnyObject]) throws
 }
 
-extension ConflictResolving {
-	public static func resolveConflict(of object: NSManagedObject, with latestSnapshot: [String: AnyObject], against cachedSnapshot: [String: AnyObject], using policy: ConflictResolvingPolicy) -> Bool {
+/// A protocol describing the ability to resolve conflicts in a container.
+public protocol ContainerConflictResolving: class {
+	/// Resolve conflicts for a save request.
+	/// - Parameter list: A list of conflicts.
+	/// - Parameter resolver: A resolver which asks objects to resolve conflicts for themselves.
+	/// - Throws: Unsuccessful attempt of conflict resolution.
+	static func resolveConflicts(list: [NSMergeConflict], @noescape using resolver: [NSMergeConflict] throws -> Void) rethrows
+}
+
+extension Object: ObjectConflictResolving {
+	public class var preferredConflictResolvingPolicy: ConflictResolvingPolicy {
+		return .throwError
+	}
+
+	public func resolveConflict(with latestSnapshot: [String: AnyObject], against cachedSnapshot: [String: AnyObject]) throws {
+		try resolveConflict(with: latestSnapshot, against: cachedSnapshot, using: self.dynamicType.preferredConflictResolvingPolicy)
+	}
+
+	public func resolveConflict(with latestSnapshot: [String: AnyObject], against cachedSnapshot: [String: AnyObject], using policy: ConflictResolvingPolicy) throws {
 		switch policy {
 		case .overwrite:
 			// Overwrite the store with the current values in `object`.
-			return true
+			break
 
 		case .rollback:
 			// Discard the changes.
-			object.managedObjectContext?.refreshObject(object, mergeChanges: false)
-			return true
+			managedObjectContext?.refreshObject(self, mergeChanges: false)
 
 		case .throwError:
-			return false
+			throw NSError(domain: "MantleData.Object.ConflictResolving",
+										code: 0,
+										userInfo: [NSLocalizedDescriptionKey:
+																"Failed to resolve a conflict of an `\(entity.name)` object."])
 
 		case .preferStore:
 			// overwrite the keys with external changes.
 			for (key, value) in latestSnapshot {
 				if let cachedValue = cachedSnapshot[key] where !cachedValue.isEqual(value) {
-					if let latestValue = object.primitiveValueForKey(key) where !cachedValue.isEqual(latestValue) {
-						object.setValue(cachedValue, forKey: key)
+					if let latestValue = primitiveValueForKey(key) where !cachedValue.isEqual(latestValue) {
+						setValue(cachedValue, forKey: key)
 					}
 				}
 			}
 
-			return true
-
 		case .preferObject:
 			// overwrite the keys with external changes only if the key is not changed locally.
-			let changes = object.changedValues()
+			let changes = changedValues()
 
 			for (key, value) in latestSnapshot {
 				if let cachedValue = cachedSnapshot[key] where !cachedValue.isEqual(value) {
 					if !changes.keys.contains(key) {
-						object.setValue(cachedValue, forKey: key)
+						setValue(cachedValue, forKey: key)
 					}
 				}
 			}
-
-			return true
 		}
 	}
 }
 
-extension Object: ConflictResolving {
-	public class var preferredConflictResolvingPolicy: ConflictResolvingPolicy {
-		return .throwError
-	}
-
-	public class func resolveConflict(of object: NSManagedObject, with latestSnapshot: [String: AnyObject], against cachedSnapshot: [String: AnyObject]) -> Bool {
-		return resolveConflict(of: object, with: latestSnapshot, against: cachedSnapshot, using: preferredConflictResolvingPolicy)
-	}
-}
-
 class ObjectMergePolicy: NSMergePolicy {
-	static func make() -> ObjectMergePolicy {
-		return ObjectMergePolicy(mergeType: .MergeByPropertyObjectTrumpMergePolicyType)
+	var resolver: ContainerConflictResolving.Type?
+
+	init(resolver: ContainerConflictResolving.Type?) {
+		self.resolver = resolver ?? ObjectMergePolicy.self
+		super.init(mergeType: .MergeByPropertyObjectTrumpMergePolicyType)
 	}
 
 	override func resolveConflicts(list: [AnyObject]) throws {
@@ -89,24 +97,25 @@ class ObjectMergePolicy: NSMergePolicy {
 
 		let list = list as! [NSMergeConflict]
 
-		for conflict in list {
-			if conflict.persistedSnapshot != nil {
-				preconditionFailure("[UNIMPLEMENTED] Handler for PSC vs Store inconsistency.")
-			} else {
-				if let objectType = conflict.sourceObject.dynamicType as? ConflictResolving.Type {
-					 let resolved = objectType.resolveConflict(of: conflict.sourceObject,
-					                                           with: conflict.objectSnapshot ?? [:],
-					                                           against: conflict.cachedSnapshot ?? [:])
-
-					if !resolved {
-						throw NSError(domain: "MantleData.ConflictResolving",
-						              code: 0,
-						              userInfo: [NSLocalizedDescriptionKey: "Failed to resolve a conflict of an `\(conflict.sourceObject.entity.name)` object."])
-					}
+		try resolver?.resolveConflicts(list) { newList in
+			for conflict in newList {
+				if conflict.persistedSnapshot != nil {
+					preconditionFailure("[UNIMPLEMENTED] Handler for PSC vs Store inconsistency.")
 				} else {
-					preconditionFailure("The runtime class of the object-in-conflict does not conform to the `ConflictResolving` protocol.")
+					if let sourceObject = conflict.sourceObject as? ObjectConflictResolving {
+					 try sourceObject.resolveConflict(with: conflict.objectSnapshot ?? [:],
+					                                             against: conflict.cachedSnapshot ?? [:])
+					} else {
+						preconditionFailure("The runtime class of the object-in-conflict does not conform to the `ConflictResolving` protocol.")
+					}
 				}
 			}
 		}
+	}
+}
+
+extension ObjectMergePolicy: ContainerConflictResolving {
+	static func resolveConflicts(list: [NSMergeConflict], @noescape using resolver: [NSMergeConflict] throws -> Void) rethrows {
+		try resolver(list)
 	}
 }
