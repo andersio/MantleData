@@ -35,8 +35,6 @@ public class Object: NSManagedObject {
 	public override func willTurnIntoFault() {
 		super.willTurnIntoFault()
 		_isFaulted.value = true
-
-		assert(observationInfo == nil, "observers should have been detached at this stage.")
 	}
 
 	/// Return a producer which emits the current and subsequent values for the supplied key path.
@@ -72,28 +70,44 @@ public class Object: NSManagedObject {
 	}
 }
 
+private var kvoProxyContext = UnsafeMutablePointer<Void>.alloc(1)
+
 final private class KVOProxy: NSObject {
 	weak var object: NSObject?
 	let keyPath: String
 	let newValueObserver: AnyObject? -> Void
+	var isAttached: Bool
 
 	init(object: NSObject, keyPath: String, newValueObserver: AnyObject? -> Void) {
 		self.object = object
 		self.keyPath = keyPath
 		self.newValueObserver = newValueObserver
+		self.isAttached = false
 		super.init()
 	}
 
 	func attach() {
-		object?.addObserver(self, forKeyPath: keyPath, options: [.Initial, .New], context: nil)
+		if !isAttached {
+			object?.addObserver(self, forKeyPath: keyPath, options: [.Initial, .New], context: kvoProxyContext)
+			isAttached = true
+		}
 	}
 
 	func detach() {
-		object?.removeObserver(self, forKeyPath: keyPath, context: nil)
+		if isAttached {
+			object?.removeObserver(self, forKeyPath: keyPath, context: kvoProxyContext)
+			isAttached = false
+		}
 	}
 
 	override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
-		newValueObserver(change![NSKeyValueChangeNewKey])
+		if context == kvoProxyContext {
+			newValueObserver(change![NSKeyValueChangeNewKey])
+		}
+	}
+
+	deinit {
+		detach()
 	}
 }
 
