@@ -84,15 +84,15 @@ extension Object: ObjectConflictResolving {
 	}
 }
 
-class ObjectMergePolicy: NSMergePolicy {
+public class ObjectMergePolicy: NSMergePolicy {
 	var resolver: ContainerConflictResolving.Type?
 
-	init(resolver: ContainerConflictResolving.Type?) {
+	public init(resolver: ContainerConflictResolving.Type?) {
 		self.resolver = resolver ?? ObjectMergePolicy.self
 		super.init(mergeType: .MergeByPropertyObjectTrumpMergePolicyType)
 	}
 
-	override func resolveConflicts(list: [AnyObject]) throws {
+	override public func resolveConflicts(list: [AnyObject]) throws {
 		try super.resolveConflicts(list)
 
 		let list = list as! [NSMergeConflict]
@@ -115,7 +115,7 @@ class ObjectMergePolicy: NSMergePolicy {
 }
 
 extension ObjectMergePolicy: ContainerConflictResolving {
-	static func resolveConflicts(list: [NSMergeConflict], @noescape using resolver: [NSMergeConflict] throws -> Void) rethrows {
+	public static func resolveConflicts(list: [NSMergeConflict], @noescape using resolver: [NSMergeConflict] throws -> Void) rethrows {
 		try resolver(list)
 	}
 }
