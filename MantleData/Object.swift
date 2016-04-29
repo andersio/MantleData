@@ -10,36 +10,22 @@ import CoreData
 import ReactiveCocoa
 
 public class Object: NSManagedObject {
-	final private var _isFaulted = MutableProperty<Bool>(true)
-	final private(set) public lazy var isFaulted: AnyProperty<Bool> = AnyProperty(self._isFaulted)
+	private let (deinitSignal, deinitObserver) = Signal<Object, NoError>.pipe()
 
 	required override public init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
 		super.init(entity: entity, insertIntoManagedObjectContext: context)
 	}
 
-	public override func awakeFromInsert() {
-		super.awakeFromInsert()
-		_isFaulted.value = false
-	}
-
-	public override func awakeFromFetch() {
-		super.awakeFromFetch()
-		_isFaulted.value = false
-	}
-
-	public override func prepareForDeletion() {
-		super.prepareForDeletion()
-		_isFaulted.value = true
-	}
-
-	public override func willTurnIntoFault() {
-		super.willTurnIntoFault()
-		_isFaulted.value = true
+	deinit {
+		deinitObserver.sendNext(self)
+		deinitObserver.sendCompleted()
 	}
 
 	/// Return a producer which emits the current and subsequent values for the supplied key path.
 	/// A fault would be fired when the producer is started.
 	/// - Parameter keyPath: The key path to be observed.
+	/// - Important: You should avoid using it in any overrided methods of `Object`
+	///              if the producer might outlive the object.
 	final public func producer<Value: CocoaBridgeable where Value.Inner: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> {
 		return SignalProducer { [weak self] observer, disposable in
 			guard let strongSelf = self else {
@@ -49,23 +35,32 @@ public class Object: NSManagedObject {
 
 			// Fire fault.
 			strongSelf.willAccessValueForKey(nil)
-			let proxy = KVOProxy(object: strongSelf,
-													 keyPath: keyPath,
-													 newValueObserver: { observer.sendNext(Value(cocoaValue: $0)) })
+			defer { strongSelf.didAccessValueForKey(nil) }
 
-			/// Changes are posted via KVO after `awakeFromFetch` has been invoked.
-			///
-			/// The KVO proxy must post the initial value every time the object is awake,
-			/// since Core Data would not post via KVO if the object is turned into fault
-			/// and refetched with new values subsquently. Only merged changes from other
-			/// contexts would be posted automatically.
+			let proxyBox = Atomic<KVOProxy?>(KVOProxy(keyPath: keyPath) { [weak strongSelf] value in
+				if let strongSelf = strongSelf where !strongSelf.fault {
+					observer.sendNext(Value(cocoaValue: value))
+				}
+			})
 
-			disposable += strongSelf._isFaulted.producer
-				.startWithNext { isFaulted in
-					isFaulted ? proxy.detach() : proxy.attach()
+			proxyBox.value!.attach(to: strongSelf)
+
+			func disposeProxy(with referenceToSelf: Object) {
+				if let proxy = proxyBox.swap(nil) {
+					proxy.detach(from: referenceToSelf)
+					observer.sendCompleted()
+				}
+			}
+
+			disposable += strongSelf.deinitSignal.observeNext { deinitializingSelf in
+					disposeProxy(with: deinitializingSelf)
 				}
 
-			strongSelf.didAccessValueForKey(nil)
+			disposable += ActionDisposable { [weak self] in
+				if let strongSelf = self {
+					disposeProxy(with: strongSelf)
+				}
+			}
 		}
 	}
 }
@@ -73,41 +68,27 @@ public class Object: NSManagedObject {
 private var kvoProxyContext = UnsafeMutablePointer<Void>.alloc(1)
 
 final private class KVOProxy: NSObject {
-	weak var object: NSObject?
+	let action: AnyObject? -> Void
 	let keyPath: String
-	let newValueObserver: AnyObject? -> Void
-	var isAttached: Bool
 
-	init(object: NSObject, keyPath: String, newValueObserver: AnyObject? -> Void) {
-		self.object = object
+	init(keyPath: String, action: AnyObject? -> Void) {
+		self.action = action
 		self.keyPath = keyPath
-		self.newValueObserver = newValueObserver
-		self.isAttached = false
 		super.init()
 	}
 
-	func attach() {
-		if !isAttached {
-			object?.addObserver(self, forKeyPath: keyPath, options: [.Initial, .New], context: kvoProxyContext)
-			isAttached = true
-		}
+	func attach(to object: NSObject) {
+		object.addObserver(self, forKeyPath: keyPath, options: [.Initial, .New], context: kvoProxyContext)
 	}
 
-	func detach() {
-		if isAttached {
-			object?.removeObserver(self, forKeyPath: keyPath, context: kvoProxyContext)
-			isAttached = false
-		}
+	func detach(from object: NSObject) {
+		object.removeObserver(self, forKeyPath: keyPath, context: kvoProxyContext)
 	}
 
 	override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
 		if context == kvoProxyContext {
-			newValueObserver(change![NSKeyValueChangeNewKey])
+			action(change![NSKeyValueChangeNewKey])
 		}
-	}
-
-	deinit {
-		detach()
 	}
 }
 
@@ -124,7 +105,7 @@ extension ObjectType where Self: Object {
 	private typealias _Self = Self
 
 	final public func property<Value: CocoaBridgeable where Value.Inner: CocoaBridgeable>(forKeyPath keyPath: String) -> AnyProperty<Value> {
-		return AnyProperty(initialValue: Value(cocoaValue: valueForKeyPath(keyPath)),
+		return AnyProperty<Value>(initialValue: Value(cocoaValue: valueForKeyPath(keyPath)),
 		                   producer: producer(forKeyPath: keyPath))
 	}
 
