@@ -23,15 +23,12 @@
 		9A0D9A8E1C76ABD30013C976 /* ObjectContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ObjectContext.swift */; };
 		9A0D9A8F1C76ABD30013C976 /* ResultProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F11C510BD100801A30 /* ResultProducer.swift */; };
 		9A0D9A901C76ABD30013C976 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* Object.swift */; };
-		9A0D9A921C76ABD30013C976 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6681BC958E100FC86E1 /* Container.swift */; };
-		9A0D9A961C76ABD30013C976 /* NSObject+AssociatedProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */; };
 		9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F71C510BE900801A30 /* Assertions.swift */; };
 		9A0D9A981C76ABD30013C976 /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F81C510BE900801A30 /* Base.swift */; };
 		9A0D9A991C76ABD30013C976 /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F91C510BE900801A30 /* Dispatch.swift */; };
 		9A0D9A9A1C76ABD30013C976 /* Dispatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* Dispatch.m */; };
 		9A0D9A9B1C76ABE00013C976 /* Dispatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A2997FD1C510BF100801A30 /* Dispatch.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A0D9A9C1C76ADA90013C976 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		9A104C3D1C5D26A100746235 /* NSObject+AssociatedProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */; };
 		9A141A3E1C495E500049BEC9 /* ViewModelSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */; };
 		9A2997E61C510BAD00801A30 /* AnyReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */; };
 		9A2997E71C510BAD00801A30 /* AnyReactiveSetBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */; };
@@ -55,14 +52,34 @@
 		9A39A6731BC958E100FC86E1 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A39A6761BC958E100FC86E1 /* ReactiveView-iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */; };
 		9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6661BC958E100FC86E1 /* ObjectSet.swift */; };
-		9A39A67A1BC958E100FC86E1 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6681BC958E100FC86E1 /* Container.swift */; };
 		9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* Dispatch.m */; };
 		9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
 		9A974BB01CC7B88C00395E2D /* UIKitBindings+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A974BAF1CC7B88C00395E2D /* UIKitBindings+iOS.swift */; };
+		9AA736BE1CCE49C600EE2C26 /* ConflictResolving.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA736BD1CCE49C600EE2C26 /* ConflictResolving.swift */; };
+		9AA736C81CD0A0A900EE2C26 /* ConflictResolvingSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA736C71CD0A0A900EE2C26 /* ConflictResolvingSpec.swift */; };
+		9AA736CA1CD0A0A900EE2C26 /* MantleData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */; };
+		9AA736D21CD0A0D200EE2C26 /* TestModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9AA736D01CD0A0D200EE2C26 /* TestModel.xcdatamodeld */; };
+		9AA736D41CD0A12600EE2C26 /* Nimble.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AA736D31CD0A12600EE2C26 /* Nimble.framework */; };
+		9AA736D61CD0A12B00EE2C26 /* Quick.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AA736D51CD0A12B00EE2C26 /* Quick.framework */; };
+		9AA736D81CD0A13300EE2C26 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AA736D71CD0A13300EE2C26 /* ReactiveCocoa.framework */; };
+		9AA736DA1CD0A13900EE2C26 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AA736D91CD0A13900EE2C26 /* Result.framework */; };
+		9AA736DB1CD0A13F00EE2C26 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A39A5A61BC90BB300FC86E1 /* CoreData.framework */; };
+		9AA736DE1CD0A58D00EE2C26 /* TestEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA736DC1CD0A58D00EE2C26 /* TestEntity+CoreDataProperties.swift */; };
+		9AA736DF1CD0A58D00EE2C26 /* TestEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA736DD1CD0A58D00EE2C26 /* TestEntity.swift */; };
 		9AB7ABD51CAE13E700AEC6DB /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AB7ABD41CAE13E700AEC6DB /* Result.framework */; };
 		9AB7ABD71CAE13EF00AEC6DB /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AB7ABD61CAE13EF00AEC6DB /* ReactiveCocoa.framework */; };
 		9AEC56F31C92D735000DF9D6 /* UIKit+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEC56F21C92D735000DF9D6 /* UIKit+Additions.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9AA736CB1CD0A0A900EE2C26 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9AFFA5041BC7CBEC00B63C58 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9AFFA50C1BC7CBEC00B63C58;
+			remoteInfo = "MantleData-iOS";
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		9A0D9A761C76AB9A0013C976 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,7 +87,6 @@
 		9A0D9A7E1C76ABA30013C976 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		9A0D9A801C76ABA80013C976 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../../Library/Developer/Xcode/DerivedData/LockyCenter-cpepxbyuqkwrtdfxxeiedodvbthy/Build/Products/Debug/ReactiveCocoa.framework"; sourceTree = "<group>"; };
 		9A0D9A821C76ABAD0013C976 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../../Library/Developer/Xcode/DerivedData/LockyCenter-cpepxbyuqkwrtdfxxeiedodvbthy/Build/Products/Debug/Result.framework"; sourceTree = "<group>"; };
-		9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSObject+AssociatedProperty.swift"; path = "MantleData/NSObject+AssociatedProperty.swift"; sourceTree = "<group>"; };
 		9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AnyReactiveSet.swift; path = MantleData/AnyReactiveSet.swift; sourceTree = "<group>"; };
 		9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AnyReactiveSetBox.swift; path = MantleData/AnyReactiveSetBox.swift; sourceTree = "<group>"; };
 		9A2997E31C510BAD00801A30 /* ArraySet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ArraySet.swift; path = MantleData/ArraySet.swift; sourceTree = "<group>"; };
@@ -94,10 +110,20 @@
 		9A39A6611BC958E100FC86E1 /* MantleData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MantleData.h; path = MantleData/MantleData.h; sourceTree = "<group>"; };
 		9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveView-iOS.swift"; path = "MantleData/ReactiveView-iOS.swift"; sourceTree = "<group>"; };
 		9A39A6661BC958E100FC86E1 /* ObjectSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSet.swift; path = MantleData/ObjectSet.swift; sourceTree = "<group>"; };
-		9A39A6681BC958E100FC86E1 /* Container.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Container.swift; path = MantleData/Container.swift; sourceTree = "<group>"; };
 		9A39A66A1BC958E100FC86E1 /* ViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModel.swift; path = MantleData/ViewModel.swift; sourceTree = "<group>"; };
 		9A55779F1C1EBC7F00789E02 /* Dispatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Dispatch.m; path = MantleData/Dispatch.m; sourceTree = "<group>"; };
 		9A974BAF1CC7B88C00395E2D /* UIKitBindings+iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKitBindings+iOS.swift"; path = "MantleData/UIKitBindings+iOS.swift"; sourceTree = "<group>"; };
+		9AA736BD1CCE49C600EE2C26 /* ConflictResolving.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ConflictResolving.swift; path = MantleData/ConflictResolving.swift; sourceTree = "<group>"; };
+		9AA736C51CD0A0A900EE2C26 /* MantleDataTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MantleDataTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9AA736C71CD0A0A900EE2C26 /* ConflictResolvingSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictResolvingSpec.swift; sourceTree = "<group>"; };
+		9AA736C91CD0A0A900EE2C26 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9AA736D11CD0A0D200EE2C26 /* TestModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TestModel.xcdatamodel; sourceTree = "<group>"; };
+		9AA736D31CD0A12600EE2C26 /* Nimble.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Nimble.framework; path = "../../../Library/Developer/Xcode/DerivedData/Galleon-gpvpglytbznhyactillkgpzatgeq/Build/Products/Debug-iphonesimulator/Nimble.framework"; sourceTree = "<group>"; };
+		9AA736D51CD0A12B00EE2C26 /* Quick.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quick.framework; path = "../../../Library/Developer/Xcode/DerivedData/Galleon-gpvpglytbznhyactillkgpzatgeq/Build/Products/Debug-iphonesimulator/Quick.framework"; sourceTree = "<group>"; };
+		9AA736D71CD0A13300EE2C26 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../../Library/Developer/Xcode/DerivedData/Galleon-gpvpglytbznhyactillkgpzatgeq/Build/Products/Debug-iphonesimulator/ReactiveCocoa.framework"; sourceTree = "<group>"; };
+		9AA736D91CD0A13900EE2C26 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../../Library/Developer/Xcode/DerivedData/Galleon-gpvpglytbznhyactillkgpzatgeq/Build/Products/Debug-iphonesimulator/Result.framework"; sourceTree = "<group>"; };
+		9AA736DC1CD0A58D00EE2C26 /* TestEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TestEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		9AA736DD1CD0A58D00EE2C26 /* TestEntity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestEntity.swift; sourceTree = "<group>"; };
 		9AB7ABD41CAE13E700AEC6DB /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../../Library/Developer/Xcode/DerivedData/LockySimulator-csxaavtqngvwmagbiyrmpidsixwg/Build/Products/Debug-iphoneos/Result.framework"; sourceTree = "<group>"; };
 		9AB7ABD61CAE13EF00AEC6DB /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../../Library/Developer/Xcode/DerivedData/LockySimulator-csxaavtqngvwmagbiyrmpidsixwg/Build/Products/Debug-iphoneos/ReactiveCocoa.framework"; sourceTree = "<group>"; };
 		9AE9C0EB1C1186A800A3D1F3 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../ReactiveCocoa/ReactiveCocoa/build/Debug-iphoneos/ReactiveCocoa.framework"; sourceTree = "<group>"; };
@@ -114,6 +140,19 @@
 				9A0D9A831C76ABAD0013C976 /* Result.framework in Frameworks */,
 				9A0D9A811C76ABA80013C976 /* ReactiveCocoa.framework in Frameworks */,
 				9A0D9A7F1C76ABA30013C976 /* CoreData.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9AA736C21CD0A0A900EE2C26 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9AA736DB1CD0A13F00EE2C26 /* CoreData.framework in Frameworks */,
+				9AA736DA1CD0A13900EE2C26 /* Result.framework in Frameworks */,
+				9AA736D81CD0A13300EE2C26 /* ReactiveCocoa.framework in Frameworks */,
+				9AA736D61CD0A12B00EE2C26 /* Quick.framework in Frameworks */,
+				9AA736D41CD0A12600EE2C26 /* Nimble.framework in Frameworks */,
+				9AA736CA1CD0A0A900EE2C26 /* MantleData.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -153,6 +192,10 @@
 		9A39A6201BC956BE00FC86E1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9AA736D91CD0A13900EE2C26 /* Result.framework */,
+				9AA736D71CD0A13300EE2C26 /* ReactiveCocoa.framework */,
+				9AA736D51CD0A12B00EE2C26 /* Quick.framework */,
+				9AA736D31CD0A12600EE2C26 /* Nimble.framework */,
 				9AB7ABD61CAE13EF00AEC6DB /* ReactiveCocoa.framework */,
 				9AB7ABD41CAE13E700AEC6DB /* Result.framework */,
 				9A0D9A821C76ABAD0013C976 /* Result.framework */,
@@ -172,7 +215,7 @@
 				9A2997F01C510BD100801A30 /* ObjectContext.swift */,
 				9A2997F11C510BD100801A30 /* ResultProducer.swift */,
 				9A39A65E1BC958E100FC86E1 /* Object.swift */,
-				9A39A6681BC958E100FC86E1 /* Container.swift */,
+				9AA736BD1CCE49C600EE2C26 /* ConflictResolving.swift */,
 			);
 			name = Objects;
 			sourceTree = "<group>";
@@ -180,7 +223,7 @@
 		9A3A776D1BC96AB900ADFFE0 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				9A104C3C1C5D26A100746235 /* NSObject+AssociatedProperty.swift */,
+				9A2997EB1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift */,
 				9A2997F71C510BE900801A30 /* Assertions.swift */,
 				9A2997F81C510BE900801A30 /* Base.swift */,
 				9A2997F91C510BE900801A30 /* Dispatch.swift */,
@@ -223,9 +266,20 @@
 				9A39A6661BC958E100FC86E1 /* ObjectSet.swift */,
 				9A39A66A1BC958E100FC86E1 /* ViewModel.swift */,
 				9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */,
-				9A2997EB1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift */,
 			);
 			name = "Reactive Collections";
+			sourceTree = "<group>";
+		};
+		9AA736C61CD0A0A900EE2C26 /* MantleDataTests */ = {
+			isa = PBXGroup;
+			children = (
+				9AA736DC1CD0A58D00EE2C26 /* TestEntity+CoreDataProperties.swift */,
+				9AA736DD1CD0A58D00EE2C26 /* TestEntity.swift */,
+				9AA736C71CD0A0A900EE2C26 /* ConflictResolvingSpec.swift */,
+				9AA736C91CD0A0A900EE2C26 /* Info.plist */,
+				9AA736D01CD0A0D200EE2C26 /* TestModel.xcdatamodeld */,
+			);
+			path = MantleDataTests;
 			sourceTree = "<group>";
 		};
 		9AFFA5031BC7CBEC00B63C58 = {
@@ -233,6 +287,7 @@
 			children = (
 				9A39A61F1BC956AB00FC86E1 /* MantleData */,
 				9A0D9A771C76AB9A0013C976 /* MantleData-OSX */,
+				9AA736C61CD0A0A900EE2C26 /* MantleDataTests */,
 				9AFFA50E1BC7CBEC00B63C58 /* Products */,
 				9A39A6201BC956BE00FC86E1 /* Frameworks */,
 			);
@@ -243,6 +298,7 @@
 			children = (
 				9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */,
 				9A0D9A761C76AB9A0013C976 /* MantleData.framework */,
+				9AA736C51CD0A0A900EE2C26 /* MantleDataTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -289,6 +345,24 @@
 			productReference = 9A0D9A761C76AB9A0013C976 /* MantleData.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		9AA736C41CD0A0A900EE2C26 /* MantleDataTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9AA736CF1CD0A0A900EE2C26 /* Build configuration list for PBXNativeTarget "MantleDataTests" */;
+			buildPhases = (
+				9AA736C11CD0A0A900EE2C26 /* Sources */,
+				9AA736C21CD0A0A900EE2C26 /* Frameworks */,
+				9AA736C31CD0A0A900EE2C26 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9AA736CC1CD0A0A900EE2C26 /* PBXTargetDependency */,
+			);
+			name = MantleDataTests;
+			productName = MantleDataTests;
+			productReference = 9AA736C51CD0A0A900EE2C26 /* MantleDataTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		9AFFA50C1BC7CBEC00B63C58 /* MantleData-iOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9AFFA5211BC7CBEC00B63C58 /* Build configuration list for PBXNativeTarget "MantleData-iOS" */;
@@ -313,12 +387,16 @@
 		9AFFA5041BC7CBEC00B63C58 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0720;
+				LastSwiftUpdateCheck = 0730;
 				LastUpgradeCheck = 0710;
 				ORGANIZATIONNAME = Anders;
 				TargetAttributes = {
 					9A0D9A751C76AB9A0013C976 = {
 						CreatedOnToolsVersion = 7.3;
+					};
+					9AA736C41CD0A0A900EE2C26 = {
+						CreatedOnToolsVersion = 7.3;
+						DevelopmentTeam = 5FQJ4FWHM9;
 					};
 					9AFFA50C1BC7CBEC00B63C58 = {
 						CreatedOnToolsVersion = 7.1;
@@ -339,12 +417,20 @@
 			targets = (
 				9AFFA50C1BC7CBEC00B63C58 /* MantleData-iOS */,
 				9A0D9A751C76AB9A0013C976 /* MantleData-OSX */,
+				9AA736C41CD0A0A900EE2C26 /* MantleDataTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		9A0D9A741C76AB9A0013C976 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9AA736C31CD0A0A900EE2C26 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -379,12 +465,21 @@
 				9A0D9A8E1C76ABD30013C976 /* ObjectContext.swift in Sources */,
 				9A0D9A8F1C76ABD30013C976 /* ResultProducer.swift in Sources */,
 				9A0D9A901C76ABD30013C976 /* Object.swift in Sources */,
-				9A0D9A921C76ABD30013C976 /* Container.swift in Sources */,
-				9A0D9A961C76ABD30013C976 /* NSObject+AssociatedProperty.swift in Sources */,
 				9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */,
 				9A0D9A981C76ABD30013C976 /* Base.swift in Sources */,
 				9A0D9A991C76ABD30013C976 /* Dispatch.swift in Sources */,
 				9A0D9A9A1C76ABD30013C976 /* Dispatch.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9AA736C11CD0A0A900EE2C26 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9AA736DF1CD0A58D00EE2C26 /* TestEntity.swift in Sources */,
+				9AA736C81CD0A0A900EE2C26 /* ConflictResolvingSpec.swift in Sources */,
+				9AA736DE1CD0A58D00EE2C26 /* TestEntity+CoreDataProperties.swift in Sources */,
+				9AA736D21CD0A0D200EE2C26 /* TestModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -400,13 +495,13 @@
 				9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */,
 				9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */,
 				9A974BB01CC7B88C00395E2D /* UIKitBindings+iOS.swift in Sources */,
+				9AA736BE1CCE49C600EE2C26 /* ConflictResolving.swift in Sources */,
 				9A2997E81C510BAD00801A30 /* ArraySet.swift in Sources */,
 				9A39A6761BC958E100FC86E1 /* ReactiveView-iOS.swift in Sources */,
 				9A2997F31C510BD100801A30 /* ObjectContext.swift in Sources */,
 				9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */,
 				9A141A3E1C495E500049BEC9 /* ViewModelSet.swift in Sources */,
 				9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */,
-				9A39A67A1BC958E100FC86E1 /* Container.swift in Sources */,
 				9A2997F61C510BDB00801A30 /* KeyValueBindings+iOS.swift in Sources */,
 				9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
 				9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */,
@@ -414,13 +509,20 @@
 				9A2997EA1C510BAD00801A30 /* ReactiveSet.swift in Sources */,
 				9A2997FC1C510BE900801A30 /* Dispatch.swift in Sources */,
 				9A2997E91C510BAD00801A30 /* ArraySetSection.swift in Sources */,
-				9A104C3D1C5D26A100746235 /* NSObject+AssociatedProperty.swift in Sources */,
 				9A2997F41C510BD100801A30 /* ResultProducer.swift in Sources */,
 				9A2997E61C510BAD00801A30 /* AnyReactiveSet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9AA736CC1CD0A0A900EE2C26 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9AFFA50C1BC7CBEC00B63C58 /* MantleData-iOS */;
+			targetProxy = 9AA736CB1CD0A0A900EE2C26 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		9A0D9A7B1C76AB9A0013C976 /* Debug */ = {
@@ -462,6 +564,30 @@
 				PRODUCT_NAME = MantleData;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		9AA736CD1CD0A0A900EE2C26 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				INFOPLIST_FILE = MantleDataTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleDataTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		9AA736CE1CD0A0A900EE2C26 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				INFOPLIST_FILE = MantleDataTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleDataTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -611,6 +737,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		9AA736CF1CD0A0A900EE2C26 /* Build configuration list for PBXNativeTarget "MantleDataTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9AA736CD1CD0A0A900EE2C26 /* Debug */,
+				9AA736CE1CD0A0A900EE2C26 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		9AFFA5071BC7CBEC00B63C58 /* Build configuration list for PBXProject "MantleData" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -630,6 +765,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		9AA736D01CD0A0D200EE2C26 /* TestModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				9AA736D11CD0A0D200EE2C26 /* TestModel.xcdatamodel */,
+			);
+			currentVersion = 9AA736D11CD0A0D200EE2C26 /* TestModel.xcdatamodel */;
+			path = TestModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 9AFFA5041BC7CBEC00B63C58 /* Project object */;
 }
