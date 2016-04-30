@@ -34,7 +34,7 @@ public protocol ContainerConflictResolving: class {
 	static func resolveConflicts(list: [NSMergeConflict], @noescape using resolver: [NSMergeConflict] throws -> Void) rethrows
 }
 
-extension Object: ObjectConflictResolving {
+extension NSManagedObject: ObjectConflictResolving {
 	public class var preferredConflictResolvingPolicy: ConflictResolvingPolicy {
 		return .throwError
 	}
@@ -102,12 +102,8 @@ public class ObjectMergePolicy: NSMergePolicy {
 				if conflict.persistedSnapshot != nil {
 					preconditionFailure("[UNIMPLEMENTED] Handler for PSC vs Store inconsistency.")
 				} else {
-					if let sourceObject = conflict.sourceObject as? ObjectConflictResolving {
-					 try sourceObject.resolveConflict(with: conflict.objectSnapshot ?? [:],
+					 try conflict.sourceObject.resolveConflict(with: conflict.objectSnapshot ?? [:],
 					                                             against: conflict.cachedSnapshot ?? [:])
-					} else {
-						preconditionFailure("The runtime class of the object-in-conflict does not conform to the `ConflictResolving` protocol.")
-					}
 				}
 			}
 		}

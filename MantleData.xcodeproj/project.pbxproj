@@ -20,9 +20,9 @@
 		9A0D9A8B1C76ABD30013C976 /* ViewModelSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */; };
 		9A0D9A8C1C76ABD30013C976 /* STLExtensions+FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EB1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift */; };
 		9A0D9A8D1C76ABD30013C976 /* CocoaBridgeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */; };
-		9A0D9A8E1C76ABD30013C976 /* ObjectContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ObjectContext.swift */; };
+		9A0D9A8E1C76ABD30013C976 /* ManagedContext+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ManagedContext+Extension.swift */; };
 		9A0D9A8F1C76ABD30013C976 /* ResultProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F11C510BD100801A30 /* ResultProducer.swift */; };
-		9A0D9A901C76ABD30013C976 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* Object.swift */; };
+		9A0D9A901C76ABD30013C976 /* ManagedObject+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */; };
 		9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F71C510BE900801A30 /* Assertions.swift */; };
 		9A0D9A981C76ABD30013C976 /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F81C510BE900801A30 /* Base.swift */; };
 		9A0D9A991C76ABD30013C976 /* Dispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F91C510BE900801A30 /* Dispatch.swift */; };
@@ -37,7 +37,7 @@
 		9A2997EA1C510BAD00801A30 /* ReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E51C510BAD00801A30 /* ReactiveSet.swift */; };
 		9A2997ED1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EB1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift */; };
 		9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */; };
-		9A2997F31C510BD100801A30 /* ObjectContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ObjectContext.swift */; };
+		9A2997F31C510BD100801A30 /* ManagedContext+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ManagedContext+Extension.swift */; };
 		9A2997F41C510BD100801A30 /* ResultProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F11C510BD100801A30 /* ResultProducer.swift */; };
 		9A2997F61C510BDB00801A30 /* KeyValueBindings+iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F51C510BDB00801A30 /* KeyValueBindings+iOS.swift */; };
 		9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F71C510BE900801A30 /* Assertions.swift */; };
@@ -48,7 +48,7 @@
 		9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */; };
 		9A39A5A71BC90BB300FC86E1 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A39A5A61BC90BB300FC86E1 /* CoreData.framework */; };
 		9A39A66C1BC958E100FC86E1 /* TableViewAdapter-iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */; };
-		9A39A6701BC958E100FC86E1 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* Object.swift */; };
+		9A39A6701BC958E100FC86E1 /* ManagedObject+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */; };
 		9A39A6731BC958E100FC86E1 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A39A6761BC958E100FC86E1 /* ReactiveView-iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */; };
 		9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6661BC958E100FC86E1 /* ObjectSet.swift */; };
@@ -94,7 +94,7 @@
 		9A2997E51C510BAD00801A30 /* ReactiveSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveSet.swift; path = MantleData/ReactiveSet.swift; sourceTree = "<group>"; };
 		9A2997EB1C510BB700801A30 /* STLExtensions+FoundationExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "STLExtensions+FoundationExtensions.swift"; path = "MantleData/STLExtensions+FoundationExtensions.swift"; sourceTree = "<group>"; };
 		9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CocoaBridgeable.swift; path = MantleData/CocoaBridgeable.swift; sourceTree = "<group>"; };
-		9A2997F01C510BD100801A30 /* ObjectContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectContext.swift; path = MantleData/ObjectContext.swift; sourceTree = "<group>"; };
+		9A2997F01C510BD100801A30 /* ManagedContext+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ManagedContext+Extension.swift"; path = "MantleData/ManagedContext+Extension.swift"; sourceTree = "<group>"; };
 		9A2997F11C510BD100801A30 /* ResultProducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ResultProducer.swift; path = MantleData/ResultProducer.swift; sourceTree = "<group>"; };
 		9A2997F51C510BDB00801A30 /* KeyValueBindings+iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "KeyValueBindings+iOS.swift"; path = "MantleData/KeyValueBindings+iOS.swift"; sourceTree = "<group>"; };
 		9A2997F71C510BE900801A30 /* Assertions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Assertions.swift; path = MantleData/Assertions.swift; sourceTree = "<group>"; };
@@ -106,7 +106,7 @@
 		9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelSet.swift; path = MantleData/ViewModelSet.swift; sourceTree = "<group>"; };
 		9A39A65A1BC958E100FC86E1 /* TableViewAdapter-iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "TableViewAdapter-iOS.swift"; path = "MantleData/TableViewAdapter-iOS.swift"; sourceTree = "<group>"; };
 		9A39A65D1BC958E100FC86E1 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MantleData/Info.plist; sourceTree = "<group>"; };
-		9A39A65E1BC958E100FC86E1 /* Object.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Object.swift; path = MantleData/Object.swift; sourceTree = "<group>"; };
+		9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ManagedObject+Extension.swift"; path = "MantleData/ManagedObject+Extension.swift"; sourceTree = "<group>"; };
 		9A39A6611BC958E100FC86E1 /* MantleData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MantleData.h; path = MantleData/MantleData.h; sourceTree = "<group>"; };
 		9A39A6641BC958E100FC86E1 /* ReactiveView-iOS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveView-iOS.swift"; path = "MantleData/ReactiveView-iOS.swift"; sourceTree = "<group>"; };
 		9A39A6661BC958E100FC86E1 /* ObjectSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSet.swift; path = MantleData/ObjectSet.swift; sourceTree = "<group>"; };
@@ -212,9 +212,9 @@
 			isa = PBXGroup;
 			children = (
 				9A2997EF1C510BD100801A30 /* CocoaBridgeable.swift */,
-				9A2997F01C510BD100801A30 /* ObjectContext.swift */,
+				9A2997F01C510BD100801A30 /* ManagedContext+Extension.swift */,
 				9A2997F11C510BD100801A30 /* ResultProducer.swift */,
-				9A39A65E1BC958E100FC86E1 /* Object.swift */,
+				9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */,
 				9AA736BD1CCE49C600EE2C26 /* ConflictResolving.swift */,
 			);
 			name = Objects;
@@ -462,9 +462,9 @@
 				9A0D9A8B1C76ABD30013C976 /* ViewModelSet.swift in Sources */,
 				9A0D9A8C1C76ABD30013C976 /* STLExtensions+FoundationExtensions.swift in Sources */,
 				9A0D9A8D1C76ABD30013C976 /* CocoaBridgeable.swift in Sources */,
-				9A0D9A8E1C76ABD30013C976 /* ObjectContext.swift in Sources */,
+				9A0D9A8E1C76ABD30013C976 /* ManagedContext+Extension.swift in Sources */,
 				9A0D9A8F1C76ABD30013C976 /* ResultProducer.swift in Sources */,
-				9A0D9A901C76ABD30013C976 /* Object.swift in Sources */,
+				9A0D9A901C76ABD30013C976 /* ManagedObject+Extension.swift in Sources */,
 				9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */,
 				9A0D9A981C76ABD30013C976 /* Base.swift in Sources */,
 				9A0D9A991C76ABD30013C976 /* Dispatch.swift in Sources */,
@@ -488,7 +488,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9A39A66C1BC958E100FC86E1 /* TableViewAdapter-iOS.swift in Sources */,
-				9A39A6701BC958E100FC86E1 /* Object.swift in Sources */,
+				9A39A6701BC958E100FC86E1 /* ManagedObject+Extension.swift in Sources */,
 				9A2997FB1C510BE900801A30 /* Base.swift in Sources */,
 				9AEC56F31C92D735000DF9D6 /* UIKit+Additions.swift in Sources */,
 				9A2997E71C510BAD00801A30 /* AnyReactiveSetBox.swift in Sources */,
@@ -498,7 +498,7 @@
 				9AA736BE1CCE49C600EE2C26 /* ConflictResolving.swift in Sources */,
 				9A2997E81C510BAD00801A30 /* ArraySet.swift in Sources */,
 				9A39A6761BC958E100FC86E1 /* ReactiveView-iOS.swift in Sources */,
-				9A2997F31C510BD100801A30 /* ObjectContext.swift in Sources */,
+				9A2997F31C510BD100801A30 /* ManagedContext+Extension.swift in Sources */,
 				9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */,
 				9A141A3E1C495E500049BEC9 /* ViewModelSet.swift in Sources */,
 				9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */,

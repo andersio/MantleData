@@ -14,7 +14,7 @@ import CoreData
 /// A controler that manages results of a Core Data fetch request.
 /// You must use this controller only on the same thread as the associated context.
 ///
-final public class ObjectSet<E: Object>: Base {
+final public class ObjectSet<E: NSManagedObject>: Base {
 	public let fetchRequest: NSFetchRequest
 	public let entity: NSEntityDescription
 
@@ -26,7 +26,7 @@ final public class ObjectSet<E: Object>: Base {
 	public let objectSortDescriptors: [NSSortDescriptor]
 
 	// An ObjectSet retains the managed object context.
-	private(set) public weak var context: ObjectContext!
+	private(set) public weak var context: NSManagedObjectContext!
 
 	private var eventObserver: Observer<ReactiveSetEvent, NoError>?
 
@@ -40,7 +40,7 @@ final public class ObjectSet<E: Object>: Base {
 
 	private(set) public var isFetched: Bool = false
 
-	public init(fetchRequest: NSFetchRequest, context: ObjectContext, sectionNameKeyPath: String? = nil, defaultSectionName: String = "") {
+	public init(fetchRequest: NSFetchRequest, context: NSManagedObjectContext, sectionNameKeyPath: String? = nil, defaultSectionName: String = "") {
 		self.context = context
 		self.fetchRequest = fetchRequest
 		self.entity = fetchRequest.entity!
@@ -445,7 +445,7 @@ extension ObjectSet: ReactiveSet {
 	}
 }
 
-private struct ExternalChanges<E: Object> {
+private struct ExternalChanges<E: NSManagedObject> {
 	var insertedObjects: [ReactiveSetSectionName: Set<E>] = [:]
 	var deletedObjects: [ReactiveSetSectionName: Set<Int>] = [:]
 	var movedObjects: [ReactiveSetSectionName: Set<E>] = [:]
@@ -461,7 +461,7 @@ private struct ExternalChanges<E: Object> {
 	}
 }
 
-public struct ObjectSetSection<E: Object> {
+public struct ObjectSetSection<E: NSManagedObject> {
 	public let name: ReactiveSetSectionName
 	private var storage: ContiguousArray<E>
 
