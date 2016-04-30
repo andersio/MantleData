@@ -14,3 +14,10 @@ extension PropertyType {
 		                   producer: producer.map(transform))
 	}
 }
+
+extension Observer {
+	public func sendCompleted(withFinalValue value: Value) {
+		sendNext(value)
+		sendCompleted()
+	}
+}

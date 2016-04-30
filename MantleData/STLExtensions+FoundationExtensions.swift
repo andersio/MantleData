@@ -72,7 +72,7 @@ extension Dictionary where Value: protocol<ArrayLiteralConvertible, RangeReplace
 	}
 }
 
-extension MutableCollectionType where Index: RandomAccessIndexType, Generator.Element: Object {
+extension MutableCollectionType where Index: RandomAccessIndexType, Generator.Element: NSManagedObject {
 	internal mutating func sort(with sortDescriptors: [NSSortDescriptor]) {
 		if sortDescriptors.count == 0 {
 			return

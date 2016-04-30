@@ -22,7 +22,7 @@ public struct FetchRequestBuilder {
 		}
 	}
 
-  private let context: ObjectContext
+  private let context: NSManagedObjectContext
   private let entityName: String
 
 	private var predicate: NSPredicate?
@@ -48,7 +48,7 @@ public struct FetchRequestBuilder {
 		return request
 	}
 
-	internal init(entity name: String, in context: ObjectContext) {
+	internal init(entity name: String, in context: NSManagedObjectContext) {
     self.entityName = name
 		self.context = context
   }
@@ -81,7 +81,7 @@ public struct FetchRequestBuilder {
 	}
 }
 
-public struct ResultProducer<Entity: Object> {
+public struct ResultProducer<Entity: NSManagedObject> {
 	private let builder: FetchRequestBuilder
 
 	internal init(builder: FetchRequestBuilder) {
