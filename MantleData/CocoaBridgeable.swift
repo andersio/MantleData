@@ -13,18 +13,21 @@
 #endif
 
 public protocol _CocoaBridgeable {
+	/// Unconditionally bridge the supplied value to `Self`.
 	init(cocoaValue: AnyObject?)
+
+	/// Bridge `self` to an Objective-C type.
 	var cocoaValue: AnyObject? { get }
 }
 
 public protocol CocoaBridgeable: _CocoaBridgeable {
-	associatedtype Inner
+	associatedtype _Inner
 }
 
 // String
 
 extension String: CocoaBridgeable {
-	public typealias Inner = String
+	public typealias _Inner = String
 
   public var cocoaValue: AnyObject? {
     return self
@@ -38,7 +41,7 @@ extension String: CocoaBridgeable {
 // Bool
 
 extension Bool: CocoaBridgeable {
-	public typealias Inner = Bool
+	public typealias _Inner = Bool
 
   public var cocoaValue: AnyObject? {
     return NSNumber(bool: self)
@@ -52,7 +55,7 @@ extension Bool: CocoaBridgeable {
 // Signed Integers
 
 extension Int16: CocoaBridgeable {
-	public typealias Inner = Int16
+	public typealias _Inner = Int16
 
   public var cocoaValue: AnyObject? {
     return NSNumber(short: self)
@@ -64,7 +67,7 @@ extension Int16: CocoaBridgeable {
 }
 
 extension Int32: CocoaBridgeable {
-	public typealias Inner = Int32
+	public typealias _Inner = Int32
 
   public var cocoaValue: AnyObject? {
     return NSNumber(int: self)
@@ -76,7 +79,7 @@ extension Int32: CocoaBridgeable {
 }
 
 extension Int64: CocoaBridgeable {
-	public typealias Inner = Int64
+	public typealias _Inner = Int64
 
   public var cocoaValue: AnyObject? {
     return NSNumber(longLong: self)
@@ -88,7 +91,7 @@ extension Int64: CocoaBridgeable {
 }
 
 extension Int: CocoaBridgeable {
-	public typealias Inner = Int
+	public typealias _Inner = Int
 
   public var cocoaValue: AnyObject? {
     return NSNumber(integer: self)
@@ -103,7 +106,7 @@ extension Int: CocoaBridgeable {
 // UInt and UInt64 are excluded.
 
 extension UInt16: CocoaBridgeable {
-	public typealias Inner = UInt16
+	public typealias _Inner = UInt16
 
   public var cocoaValue: AnyObject? {
     return NSNumber(unsignedShort: self)
@@ -115,7 +118,7 @@ extension UInt16: CocoaBridgeable {
 }
 
 extension UInt32: CocoaBridgeable {
-	public typealias Inner = UInt32
+	public typealias _Inner = UInt32
 
   public var cocoaValue: AnyObject? {
     return NSNumber(unsignedInt: self)
@@ -127,7 +130,7 @@ extension UInt32: CocoaBridgeable {
 }
 
 extension Int8: CocoaBridgeable {
-	public typealias Inner = Int8
+	public typealias _Inner = Int8
 
 	public var cocoaValue: AnyObject? {
 		return NSNumber(char: self)
@@ -139,7 +142,7 @@ extension Int8: CocoaBridgeable {
 }
 
 extension UInt8: CocoaBridgeable {
-	public typealias Inner = UInt8
+	public typealias _Inner = UInt8
 
 	public var cocoaValue: AnyObject? {
 		return NSNumber(unsignedChar: self)
@@ -153,7 +156,7 @@ extension UInt8: CocoaBridgeable {
 // Floating Points
 
 extension Float: CocoaBridgeable {
-	public typealias Inner = Float
+	public typealias _Inner = Float
 
   public var cocoaValue: AnyObject? {
     return NSNumber(float: self)
@@ -165,7 +168,7 @@ extension Float: CocoaBridgeable {
 }
 
 extension Double: CocoaBridgeable {
-	public typealias Inner = Double
+	public typealias _Inner = Double
 
   public var cocoaValue: AnyObject? {
     return NSNumber(double: self)
@@ -177,7 +180,7 @@ extension Double: CocoaBridgeable {
 }
 
 extension Optional: CocoaBridgeable {
-	public typealias Inner = Wrapped
+	public typealias _Inner = Wrapped
 
 	public var cocoaValue: AnyObject? {
 		guard let value = self else {
@@ -219,7 +222,7 @@ extension Optional: CocoaBridgeable {
 // Special Data Types
 
 extension CGFloat: CocoaBridgeable {
-	public typealias Inner = CGFloat
+	public typealias _Inner = CGFloat
 
   public var cocoaValue: AnyObject? {
     #if CGFLOAT_IS_DOUBLE

@@ -26,7 +26,7 @@ public class Object: NSManagedObject {
 	/// - Parameter keyPath: The key path to be observed.
 	/// - Important: You should avoid using it in any overrided methods of `Object`
 	///              if the producer might outlive the object.
-	final public func producer<Value: CocoaBridgeable where Value.Inner: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> {
+	final public func producer<Value: CocoaBridgeable where Value._Inner: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> {
 		return SignalProducer { [weak self] observer, disposable in
 			guard let strongSelf = self else {
 				observer.sendInterrupted()
@@ -104,7 +104,7 @@ extension Object: ObjectType { }
 extension ObjectType where Self: Object {
 	private typealias _Self = Self
 
-	final public func property<Value: CocoaBridgeable where Value.Inner: CocoaBridgeable>(forKeyPath keyPath: String) -> AnyProperty<Value> {
+	final public func property<Value: CocoaBridgeable where Value._Inner: CocoaBridgeable>(forKeyPath keyPath: String) -> AnyProperty<Value> {
 		return AnyProperty<Value>(initialValue: Value(cocoaValue: valueForKeyPath(keyPath)),
 		                   producer: producer(forKeyPath: keyPath))
 	}
