@@ -8,73 +8,44 @@
 
 import ReactiveCocoa
 
-final public class Queue {
-	public static let mainQueue = Queue()
+public typealias Queue = dispatch_queue_t
+public var mainQueue = dispatch_get_main_queue()
 
-	private(set) public var underlyingQueue: dispatch_queue_t
-	public let isMainQueue: Bool
-
-	public init(concurrency: Concurrency, name: String = "") {
-		underlyingQueue = dispatch_queue_create(name, concurrency.libdispatchValue)
-		dispatch_queue_set_specific(underlyingQueue, &underlyingQueue, &underlyingQueue, nil)
-		isMainQueue = false
-	}
-
-	internal init() {
-		underlyingQueue = dispatch_get_main_queue()
-		isMainQueue = true
-	}
-
-	public func acquire(@noescape action: () -> Void) {
-		if isMainQueue {
-			if NSThread.isMainThread() {
-				action()
-				return
-			}
-		} else {
-			if nil != dispatch_get_specific(&underlyingQueue) {
-				action()
-				return
-			}
+extension dispatch_queue_t {
+	public func perform<Result>(@noescape action: () -> Result) -> Result {
+		var result: Result!
+		_mantleData_dispatch_sync(self) {
+			result = action()
 		}
-
-		_mantleData_dispatch_sync(underlyingQueue, action)
+		return result
 	}
 
-	public func acquiringFenceWith(@noescape action: () -> Void) {
-		_mantleData_dispatch_barrier_sync(underlyingQueue, action)
+	public func performWithBarrier<Result>(@noescape blockingAction: () -> Result) -> Result {
+		var result: Result!
+		_mantleData_dispatch_barrier_sync(self) {
+			result = blockingAction()
+		}
+		return result
 	}
 
-	public func append(action: () -> Void) {
-		dispatch_async(underlyingQueue, action)
+	public func schedule(action: () -> Void) {
+		dispatch_async(self, action)
 	}
 
-	public func appendFenceWith(action: () -> Void) {
-		dispatch_barrier_async(underlyingQueue, action)
+	public func scheduleWithBarrier(blockingAction: () -> Void) {
+		dispatch_barrier_async(self, blockingAction)
 	}
 
-	public func appendAfter(time: Double, action: () -> Void) {
-		let time = dispatch_time(DISPATCH_TIME_NOW, Int64(time * Double(NSEC_PER_SEC)))
-		dispatch_after(time, underlyingQueue, action)
+	public func schedule(after second: NSTimeInterval, action: () -> Void) {
+		let time = dispatch_time(DISPATCH_TIME_NOW, Int64(second * Double(NSEC_PER_SEC)))
+		dispatch_after(time, self, action)
 	}
 
 	public func suspend() {
-		dispatch_suspend(underlyingQueue)
+		dispatch_suspend(self)
 	}
 
 	public func resume() {
-		dispatch_resume(underlyingQueue)
-	}
-
-	public enum Concurrency {
-		case Concurrent
-		case Serial
-
-		var libdispatchValue: dispatch_queue_attr_t {
-			switch self {
-			case .Concurrent: return DISPATCH_QUEUE_CONCURRENT
-			case .Serial: return DISPATCH_QUEUE_SERIAL
-			}
-		}
+		dispatch_resume(self)
 	}
 }
