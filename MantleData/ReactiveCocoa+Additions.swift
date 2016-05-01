@@ -16,8 +16,8 @@ extension PropertyType {
 }
 
 extension Observer {
-	public func sendCompleted(withFinalValue value: Value) {
-		sendNext(value)
+	public func sendCompleted(with finalValue: Value) {
+		sendNext(finalValue)
 		sendCompleted()
 	}
 }
