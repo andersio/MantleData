@@ -29,6 +29,52 @@ extension CollectionType where Generator.Element: ReactiveSetSection {
 	}
 }
 
+private enum BinarySearchResult<Index> {
+	case found(at: Index)
+	case notFound(next: Index)
+}
+
+extension CollectionType where Generator.Element: NSManagedObject, Index == Int {
+	public func index(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) -> Index? {
+		if case let .found(index) = binarySearch(of: element, using: sortDescriptors) {
+			return index
+		}
+
+		return nil
+	}
+
+	private func binarySearch(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) -> BinarySearchResult<Index> {
+		var low = startIndex
+		var high = endIndex - 1
+
+		while low <= high {
+			var mid = (high + low) / 2
+
+			if self[mid] == element {
+				return .found(at: mid)
+			} else if sortDescriptors.reduce(true, combine: { $0 && $1.compareObject(element, toObject: self[mid]) == .OrderedAscending }) {
+				high = mid - 1
+			} else {
+				low = mid + 1
+			}
+		}
+
+		return .notFound(next: high + 1)
+	}
+}
+
+extension RangeReplaceableCollectionType where Generator.Element: NSManagedObject, Index == Int {
+	public mutating func insert(element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) {
+		switch binarySearch(of: element, using: sortDescriptors) {
+		case .found:
+			return
+
+		case let .notFound(insertingIndex):
+			insert(element, atIndex: insertingIndex)
+		}
+	}
+}
+
 extension RangeReplaceableCollectionType where Generator.Element: ReactiveSetSection {
 	internal mutating func insert(section: Generator.Element, name: ReactiveSetSectionName, ordering: NSComparisonResult) -> Index {
 		let position: Index
