@@ -19,10 +19,6 @@ final public class AnyReactiveSet<E> {
 		return set.eventProducer
 	}
 
-	public var isFetched: Bool {
-		return set.isFetched
-	}
-
 	public func fetch() throws {
 		try set.fetch()
 	}

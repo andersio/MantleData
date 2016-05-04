@@ -20,8 +20,6 @@ final public class ArraySetSection<E>: ReactiveSetSection {
 
 	public var name: ReactiveSetSectionName
 
-	public let isFetched: Bool = true
-
 	public init(name: ReactiveSetSectionName, values: [E]) {
 		self.name = name
 		self.storage = values
@@ -29,6 +27,7 @@ final public class ArraySetSection<E>: ReactiveSetSection {
 	}
 
 	public func fetch() throws {
+		eventObserver.sendNext(.Reloaded)
 	}
 
 	public func modify(@noescape action: () throws -> Void) rethrows {
