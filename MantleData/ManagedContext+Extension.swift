@@ -9,6 +9,12 @@
 import Foundation
 import CoreData
 
+/// `objectContextWillMergeChangesNotification` provides an opportunity to compute changes
+/// for updated or deleted remote objects.
+public let objectContextWillMergeChangesNotification = "MDContextWillMergeChangesNotification"
+public let updatedRemoteObjectsKey = "updated"
+public let deletedRemoteObjectsKey = "deleted"
+
 private let didBatchUpdateNotification = "MDDidBatchUpdate"
 private let didBatchDeleteNotification = "MDDidBatchDelete"
 private let batchRequestResultIDArrayKey = "MDResultIDs"
@@ -163,6 +169,39 @@ extension NSManagedObjectContext {
 		stalenessInterval = previousInterval
 	}
 
+	private func isSourcedFromIdenticalPersistentStoreCoordinator(as other: NSManagedObjectContext, inout localCoordinator: NSPersistentStoreCoordinator?) -> Bool {
+		guard other !== self else {
+			return true
+		}
+
+		var _selfCoordinator = persistentStoreCoordinator
+		var iterator = Optional(self)
+
+		while _selfCoordinator == nil && iterator?.parentContext != nil {
+			iterator = iterator!.parentContext
+			_selfCoordinator = iterator?.persistentStoreCoordinator
+		}
+
+		guard let selfCoordinator = _selfCoordinator else {
+			preconditionFailure("The tree of contexts have no persistent store coordinator presented at the root.")
+		}
+
+		var _remoteCoordinator = persistentStoreCoordinator
+		iterator = Optional(other)
+
+		while _remoteCoordinator == nil && iterator?.parentContext != nil {
+			iterator = iterator!.parentContext
+			_remoteCoordinator = iterator?.persistentStoreCoordinator
+		}
+
+		guard let remoteCoordinator = _remoteCoordinator else {
+			preconditionFailure("The tree of contexts have no persistent store coordinator presented at the root.")
+		}
+
+		localCoordinator = selfCoordinator
+		return remoteCoordinator === selfCoordinator
+	}
+
 	private func isSiblingOf(other: NSManagedObjectContext) -> Bool {
 		if other !== self {
 			// Fast Paths
@@ -200,9 +239,47 @@ extension NSManagedObjectContext {
 	}
 
 	@objc public func handleExternalChanges(notification: NSNotification) {
-		if let context = notification.object as? NSManagedObjectContext where self.isSiblingOf(context) {
-			performBlock {
-				self.mergeChangesFromContextDidSaveNotification(notification)
+		if let context = notification.object as? NSManagedObjectContext {
+			var localCoordinator: NSPersistentStoreCoordinator?
+			let hasIdenticalSource = isSourcedFromIdenticalPersistentStoreCoordinator(as: context, localCoordinator: &localCoordinator)
+			perform {
+				var dictionary = [String: AnyObject]()
+
+				guard let userInfo = notification.userInfo else {
+					return
+				}
+
+				func extract(set: Set<NSManagedObject>, forKey key: String) {
+					if hasIdenticalSource {
+						dictionary[key] = set.map { objectWithID($0.objectID) }
+					} else {
+						let objectArray = Set(set
+							.flatMap { localCoordinator!.managedObjectIDForURIRepresentation($0.objectID.URIRepresentation()) }
+							.flatMap { objectWithID($0) })
+
+						dictionary[key] = objectArray
+					}
+				}
+
+				if let updatedRemoteObjects = userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject> {
+					extract(updatedRemoteObjects, forKey: updatedRemoteObjectsKey)
+				}
+
+				if let deletedRemoteObjects = userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject> {
+					extract(deletedRemoteObjects, forKey: deletedRemoteObjectsKey)
+				}
+
+				NSNotificationCenter.defaultCenter()
+					.postNotificationName(objectContextWillMergeChangesNotification,
+						object: self,
+						userInfo: dictionary)
+
+				if hasIdenticalSource {
+					mergeChangesFromContextDidSaveNotification(notification)
+				} else {
+					NSManagedObjectContext.mergeChangesFromRemoteContextSave(userInfo,
+						intoContexts: [self])
+				}
 			}
 		}
 	}
