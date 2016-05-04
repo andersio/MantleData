@@ -54,18 +54,10 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		tableView.dataSource = self
 		set.eventProducer
 			.takeUntil(willDeinitProducer)
-			.observeOn(UIScheduler())
 			.startWithNext { [unowned self, weak tableView] in
 				switch($0) {
 				case .Reloaded:
 					tableView?.reloadData()
-					if self.set.numberOfObjects == 0 {
-						self.isEmpty = true
-						self.configuration.emptySetHandler?(true)
-					} else if self.isEmpty {
-						self.isEmpty = false
-						self.configuration.emptySetHandler?(false)
-					}
 					
 				case .Updated(let changes):
 					tableView?.beginUpdates()
@@ -101,14 +93,14 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					}
 
 					tableView?.endUpdates()
+				}
 
-					if self.set.numberOfObjects == 0 {
-						self.isEmpty = true
-						self.configuration.emptySetHandler?(true)
-					} else if self.isEmpty {
-						self.isEmpty = false
-						self.configuration.emptySetHandler?(false)
-					}
+				if !self.isEmpty && self.set.numberOfObjects == 0 {
+					self.isEmpty = true
+					self.configuration.emptySetHandler?(true)
+				} else if self.isEmpty {
+					self.isEmpty = false
+					self.configuration.emptySetHandler?(false)
 				}
 		}
 		try! set.fetch()
