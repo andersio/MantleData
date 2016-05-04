@@ -229,8 +229,26 @@ public struct AnyReactiveSetIndex: ReactiveSetIndex {
 public struct ReactiveSetSectionName: Hashable {
 	public let value: String?
 
-	public init(_ value: String?) {
-		self.value = value
+	public init() {
+		self.value = nil
+	}
+
+	public init(exact string: String) {
+		self.value = string
+	}
+
+	public init(converting object: AnyObject?) {
+		switch object {
+			case let name as String:
+			self = ReactiveSetSectionName(exact: name)
+			case let name as NSNumber:
+			self = ReactiveSetSectionName(exact: name.stringValue)
+			case is NSNull:
+			self = ReactiveSetSectionName()
+		default:
+			assertionFailure("Expected NSNumber or NSString for ReactiveSetSectionName.")
+			self = ReactiveSetSectionName()
+		}
 	}
 
 	public var hashValue: Int {

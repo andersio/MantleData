@@ -97,7 +97,7 @@ extension ArraySetSection: MutableCollectionType {
 
 extension ArraySetSection: RangeReplaceableCollectionType {
 	public convenience init() {
-		self.init(name: ReactiveSetSectionName(nil), values: [])
+		self.init(name: ReactiveSetSectionName(), values: [])
 	}
 
 	public func append(newElement: Generator.Element) {

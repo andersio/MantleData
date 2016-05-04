@@ -25,7 +25,7 @@ final public class ArraySet<E> {
 		(eventProducer, eventObserver) = SignalProducer.buffer(0)
 
 		appendContentsOf((0 ..< sectionCount)
-			.map { _ in ArraySetSection(name: ReactiveSetSectionName(nil),
+			.map { _ in ArraySetSection(name: ReactiveSetSectionName(),
 				values: []) })
 	}
 
