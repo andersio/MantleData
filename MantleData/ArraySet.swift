@@ -16,7 +16,6 @@ final public class ArraySet<E> {
 
 	private var storage: [ArraySetSection<E>] = []
 	private var bufferingChanges: [ReactiveSetChanges]?
-	public var isFetched: Bool = false
 
 	public required convenience init() {
 		self.init(sectionCount: 0)
@@ -74,10 +73,7 @@ extension ArraySet: ReactiveSet {
 	public typealias Generator = AnyReactiveSetIterator<ArraySetSection<E>>
 
 	public func fetch() throws {
-		if !isFetched {
-			eventObserver.sendNext(.Reloaded)
-			isFetched = true
-		}
+		eventObserver.sendNext(.Reloaded)
 	}
 
 	public var startIndex: Int {

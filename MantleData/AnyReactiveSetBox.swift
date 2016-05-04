@@ -19,10 +19,6 @@ final internal class _AnyReactiveSetBoxBase<R: ReactiveSet>: _AnyReactiveSetBox<
 		return set.eventProducer
 	}
 
-	override var isFetched: Bool {
-		return set.isFetched
-	}
-
 	override func fetch() throws {
 		try set.fetch()
 	}
@@ -65,10 +61,6 @@ internal class _AnyReactiveSetBox<E>: ReactiveSet {
 	typealias SubSequence = AnyReactiveSetSlice<E>
 
 	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
-		_abstractMethod_subclassMustImplement()
-	}
-
-	var isFetched: Bool {
 		_abstractMethod_subclassMustImplement()
 	}
 

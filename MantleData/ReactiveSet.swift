@@ -33,7 +33,6 @@ public protocol ReactiveSet: class, CollectionType {
 	associatedtype Index: ReactiveSetIndex
 
 	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> { get }
-	var isFetched: Bool { get }
 
 	func fetch() throws
 }

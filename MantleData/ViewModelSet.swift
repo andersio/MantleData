@@ -25,10 +25,6 @@ public final class ViewModelSet<U: ViewModel>: Base {
     super.init()
 	}
 
-	public var isFetched: Bool {
-		return set.isFetched
-	}
-
 	public var numberOfObjects: Int {
 		return set.reduce(0, combine: { $0 + Int($1.count) })
 	}
