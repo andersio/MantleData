@@ -68,34 +68,27 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 		}
 	}
 
-	public static var entityName: String {
-		return String(Self)
-	}
-
-	final public static func with(context: NSManagedObjectContext,
-	                              @noescape action: (inout using: FetchRequestBuilder) throws -> Void) rethrows -> ResultProducer<Self> {
-		var builder = FetchRequestBuilder(entity: entityName, in: context)
-		try action(using: &builder)
-		return ResultProducer(builder: builder)
+	final public static func collection(in context: NSManagedObjectContext) -> LazyObjectCollection<Self> {
+		return LazyObjectCollection(in: context)
 	}
 
 	final public static func make(in context: NSManagedObjectContext) -> Self {
-		guard let entityDescription = NSEntityDescription.entityForName(entityName, inManagedObjectContext: context) else {
-			preconditionFailure("Failed to create entity description of entity `\(entityName)`.")
+		guard let entityDescription = NSEntityDescription.entityForName(String(Self), inManagedObjectContext: context) else {
+			preconditionFailure("Failed to create entity description of entity `\(String(Self))`.")
 		}
 		return Self(entity: entityDescription, insertIntoManagedObjectContext: context)
 	}
 
-	public func finding(for ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
-		assert(ID.entity.name == Self.entityName, "Entity does not match with the ID.")
-		return try! context.existingObjectWithID(ID) as! Self
+	public func finding(ID ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
+		assert(ID.entity.name == String(Self), "Entity does not match with the ID.")
+		return context.objectWithID(ID) as! Self
 	}
 
-	public func finding(for IDs: [NSManagedObjectID], in context: NSManagedObjectContext) -> [Self] {
+	public func finding(IDs IDs: [NSManagedObjectID], in context: NSManagedObjectContext) -> [Self] {
 		var objects = [Self]()
 		for ID in IDs {
-			assert(ID.entity.name == Self.entityName, "Entity does not match with the ID.")
-			objects.append(try! context.existingObjectWithID(ID) as! Self)
+			assert(ID.entity.name == String(Self), "Entity does not match with the ID.")
+			objects.append(context.objectWithID(ID) as! Self)
 		}
 		return objects
 	}
