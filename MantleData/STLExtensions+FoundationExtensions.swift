@@ -34,6 +34,20 @@ public enum BinarySearchResult<Index> {
 	case notFound(next: Index)
 }
 
+extension CollectionType where Generator.Element == NSSortDescriptor {
+	public func compare<E: AnyObject>(element: E, to anotherElement: E) -> NSComparisonResult {
+		for descriptor in self {
+			let order = descriptor.compareObject(element, toObject: anotherElement)
+
+			if order != .OrderedSame {
+				return order
+			}
+		}
+
+		return .OrderedSame
+	}
+}
+
 extension CollectionType where Generator.Element: NSManagedObject, Index == Int {
 	public func index(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) -> Index? {
 		if case let .found(index) = binarySearch(of: element, using: sortDescriptors) {
@@ -44,21 +58,9 @@ extension CollectionType where Generator.Element: NSManagedObject, Index == Int 
 	}
 
 	public func binarySearch(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) -> BinarySearchResult<Index> {
-		func compare(element: Generator.Element, to anotherElement: Generator.Element) -> NSComparisonResult {
-			for descriptor in sortDescriptors {
-				let order = descriptor.compareObject(element, toObject: anotherElement)
-
-				if order != .OrderedSame {
-					return order
-				}
-			}
-
-			return .OrderedSame
-		}
-
 		func bidirectionalSearch(center index: Int, using sortDescriptors: [NSSortDescriptor]) -> BinarySearchResult<Index> {
 			var leftIndex = index - 1
-			while leftIndex >= startIndex && compare(self[leftIndex], to: element) == .OrderedSame {
+			while leftIndex >= startIndex && sortDescriptors.compare(self[leftIndex], to: element) == .OrderedSame {
 				if self[leftIndex] == element {
 					return .found(at: leftIndex)
 				}
@@ -66,7 +68,7 @@ extension CollectionType where Generator.Element: NSManagedObject, Index == Int 
 			}
 
 			var rightIndex = index + 1
-			while rightIndex < endIndex && compare(self[rightIndex], to: element) == .OrderedSame {
+			while rightIndex < endIndex && sortDescriptors.compare(self[rightIndex], to: element) == .OrderedSame {
 				if self[rightIndex] == element {
 					return .found(at: rightIndex)
 				}
@@ -85,7 +87,7 @@ extension CollectionType where Generator.Element: NSManagedObject, Index == Int 
 			if self[mid] == element {
 				return .found(at: mid)
 			} else {
-				switch compare(element, to: self[mid]) {
+				switch sortDescriptors.compare(element, to: self[mid]) {
 				case .OrderedAscending:
 					high = mid - 1
 

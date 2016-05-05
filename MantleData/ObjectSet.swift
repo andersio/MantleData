@@ -13,13 +13,9 @@ import CoreData
 /// A controller which manages and tracks a reactive collection of `E`,
 /// constrained by the supplied NSFetchRequest.
 ///
-/// The change management of `ObjectSet` relies on the **infinite staleness** of the
-/// persistence store row cache. Therefore, `ObjectSet` may not work with non-SQLite stores,
-/// and the context associated must have a negative `stalenessInterval`.
-///
-/// Moreover, you **must** merge changes from other contexts through the MantleData extension
+/// You **must** merge changes from other contexts through the MantleData extension
 /// to `NSManagedObjectContext`, since it relies on a custom notification posted before
-/// the context merging remote changes to compute changes correctly and efficiently.
+/// the context merging remote changes to compute changes correctly.
 ///
 /// On the other hand, `ObjectSet` **does not support** sorting or section name on key paths that
 /// are deeper than one level of one-to-one relationships.
@@ -99,7 +95,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 	private var sections: [ObjectSetSection<E>] = []
 
-	private var remoteChanges: RemoteChanges<E>?
+	private var isMergingRemoteChanges: Bool = false
 
 	public init(for request: NSFetchRequest, in context: NSManagedObjectContext, sectionNameKeyPath: String? = nil, defaultSectionName: String = "", excludeUpdatedRowsInEvents: Bool = true) {
 		self.context = context
@@ -112,15 +108,16 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		self.sectionNameKeyPath = sectionNameKeyPath
 		self._sectionNameKeyPath = sectionNameKeyPath?.componentsSeparatedByString(".")
 
-		precondition(request.sortDescriptors != nil, "ObjectSet requires sort descriptors to work.")
-		precondition(context.stalenessInterval < 0, "ObjectSet only works with contexts allowing infinite staleness.")
+		precondition(request.sortDescriptors != nil,
+		             "ObjectSet requires sort descriptors to work.")
+		precondition(context.stalenessInterval < 0,
+		             "ObjectSet only works with contexts allowing infinite staleness.")
 		precondition(request.sortDescriptors!.reduce(true) { reducedValue, descriptor in
 			return reducedValue && descriptor.key!.componentsSeparatedByString(".").count <= 2
 		}, "ObjectSet does not support sorting on to-one key paths deeper than 1 level.")
 
-		if let keyPath = sectionNameKeyPath {
+		if sectionNameKeyPath != nil {
 			precondition(request.sortDescriptors!.count >= 2, "Unsufficient number of sort descriptors.")
-			self.fetchRequest.relationshipKeyPathsForPrefetching = [keyPath]
 			self.sectionNameOrdering = fetchRequest.sortDescriptors!.first!.ascending ? .OrderedAscending : .OrderedDescending
 			self.objectSortDescriptors = Array(fetchRequest.sortDescriptors!.dropFirst())
 		} else {
@@ -132,9 +129,20 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		sortKeysInSections = Array(sortKeys.dropFirst())
 		sortKeyComponents = sortKeys.map { ($0, $0.componentsSeparatedByString(".")) }
 
+		self.fetchRequest.relationshipKeyPathsForPrefetching = sortKeyComponents.flatMap { $0.1.count > 1 ? $0.1[0] : nil }
+
 		super.init()
 
 		self.fetchRequest.resultType = .ManagedObjectResultType
+	}
+
+	deinit {
+		for section in sections {
+			for object in section {
+				context.refreshObject(object, mergeChanges: false)
+			}
+		}
+		eventObserver?.sendCompleted()
 	}
 
 	public func fetch() throws {
@@ -144,10 +152,10 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		}
 
 		context.performBlock {
-			let asyncRequest = NSAsynchronousFetchRequest(fetchRequest: self.fetchRequest, completionBlock: completionBlock)
-
 			do {
-				try self.context.executeRequest(asyncRequest)
+				let result = try self.context.executeFetchRequest(self.fetchRequest)
+				self.sectionize(using: result as! [E])
+				self.eventObserver?.sendNext(.Reloaded)
 			} catch let error as NSError {
 				fatalError("\(error.description)")
 			}
@@ -169,7 +177,16 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 			// Objects are sorted wrt to sections already.
 			for position in fetchedObjects.startIndex ..< fetchedObjects.endIndex {
+				/// Core Data does not fault in relationships even through it is prefetched
+				/// and accessible via KVC. This would cause any future preprocessing
+				///	before merging remote changes in `preprocessRemoteOriginatedChanges`
+				///	to fail.
+				///
+				/// Therefore, the sort/section name affecting relationships must be
+				/// explicitly retained.
+
 				let sectionName = ReactiveSetSectionName(converting: fetchedObjects[position].valueForKeyPath(keyPath))
+
 				if ranges.isEmpty || ranges.last?.name != sectionName {
 					ranges.append((range: position ..< position + 1, name: sectionName))
 				} else {
@@ -208,61 +225,15 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	}
 
 	@objc private func preprocessRemoteOriginatedChanges(from notification: NSNotification) {
-		guard let userInfo = notification.userInfo else {
-			return
-		}
-
-		func extract(array: [E]) -> [E: [String: AnyObject]] {
-			/// Find only objects qualified for the predicate.
-			var changes = [E: [String: AnyObject]](minimumCapacity: array.count)
-
-			array.forEach { object in
-				var dictionary = [String: AnyObject]()
-				sortKeys.forEach { keyPath in
-					dictionary[keyPath] = object.valueForKeyPath(keyPath) as? NSObject
-				}
-				changes[object] = dictionary
-			}
-
-			return changes
-		}
-
-		var updatedUnqualifyingObjects = Set<NSManagedObject>()
-		var previousValuesForUpdatedQualifyingObjects: [E: [String: AnyObject]]?
-		var previousValuesForDeletedQualifyingObjects: [E: [String: AnyObject]]?
-
-		if let updatedObjects = userInfo[updatedRemoteObjectsKey] as? Set<NSManagedObject> {
-			/// Since the object is in its old state at this time, relative to the to-be-merged
-			/// version, the key paths can be evaulated for the ObjectSet's predicate, and
-			/// extracted as usual.
-			var filteredObjects = [E]()
-			filteredObjects.reserveCapacity(updatedObjects.underestimateCount())
-			updatedUnqualifyingObjects = Set(minimumCapacity: filteredObjects.underestimateCount())
-
-			for object in updatedObjects {
-				if let object = qualifyingObject(object) {
-					filteredObjects.append(object)
-				} else {
-					updatedUnqualifyingObjects.insert(object)
-				}
-			}
-
-			previousValuesForUpdatedQualifyingObjects = extract(filteredObjects)
-		}
-
-		if let deletedObjects = userInfo[deletedRemoteObjectsKey] as? Set<NSManagedObject> {
-			previousValuesForDeletedQualifyingObjects = extract(deletedObjects.flatMap { qualifyingObject($0) })
-		}
-
-		if updatedUnqualifyingObjects.count > 0 || previousValuesForUpdatedQualifyingObjects != nil || previousValuesForDeletedQualifyingObjects != nil {
-			remoteChanges = RemoteChanges(updatedUnqualifyingObjects: updatedUnqualifyingObjects,
-			                              previousValuesForUpdatedQualifyingObjects: previousValuesForUpdatedQualifyingObjects,
-			                              previousValuesForDeletedQualifyingObjects: previousValuesForDeletedQualifyingObjects)
-		}
+		isMergingRemoteChanges = true
 	}
 
 	/// Merge changes since last posting of NSManagedContextObjectsDidChangeNotification.
 	@objc private func mergeChanges(from notification: NSNotification) {
+		defer {
+			isMergingRemoteChanges = false
+		}
+
 		guard let eventObserver = eventObserver else {
 			return
 		}
@@ -290,42 +261,35 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		var sortOrderAffectingObjects = sectionSnapshots.indices.map { _ in Set<E>() }
 
 		func processDeletedObjects(set: Set<NSManagedObject>, isInvalidating: Bool) {
-			var filteredCollection = [E: [String: AnyObject]]()
+			/// Object invalidation always originates from the local context.
+			if !isInvalidating && isMergingRemoteChanges {
+				/// Must compare the object pointer, since no sufficient information is available for
+				/// remotely deleted objects.
 
-			for object in set {
-				guard let object = object as? E else {
-					continue
-				}
-
-				filteredCollection[object] = computeSnapshot(for: object)
-			}
-
-			for (object, snapshot) in filteredCollection {
-				/// Object invalidation always originates from the local context.
-
-				if !isInvalidating, let index = remoteChanges?.previousValuesForDeletedQualifyingObjects?.indexForKey(object) {
-					/// If it is a qualified but remotely deleted object since the last event,
-					/// the previous values dictionary should be used for the binary search and
-					/// the section name retrieval, since the relationships the sorting keys and
-					/// the section name relying on are no longer available at this time.
-
-					let sectionName: ReactiveSetSectionName
-
-					if let sectionNameKeyPath = sectionNameKeyPath {
-						sectionName = ReactiveSetSectionName(converting: remoteChanges!.previousValuesForDeletedQualifyingObjects![index].1[sectionNameKeyPath])
-					} else {
-						sectionName = ReactiveSetSectionName()
+				for object in set {
+					guard let object = object as? E else {
+						continue
 					}
 
-					if let index = sections.index(forName: sectionName) {
-						/// Use binary search, but compare against the previous values dictionary.
-						if let objectIndex = sections[index].index(of: object,
-						                                     using: objectSortDescriptors,
-						                                     with: remoteChanges!.previousValuesForDeletedQualifyingObjects!) {
-							deletedObjects.orderedInsert(objectIndex, toCollectionAt: index)
+					for sectionIndex in sections.indices {
+						if let objectIndex = sections[sectionIndex].indexOf(object) {
+							deletedObjects.orderedInsert(objectIndex, toCollectionAt: sectionIndex)
 						}
 					}
-				} else {
+				}
+			} else {
+				var filteredCollection = [E: [String: AnyObject]]()
+
+				for object in set {
+					guard let object = object as? E else {
+						continue
+					}
+
+					filteredCollection[object] = computeSnapshot(for: object)
+				}
+
+				for (object, snapshot) in filteredCollection {
+
 					/// If it is locally deleted or invalidated object, the relationships are still available
 					/// at this time. So KVC can be used as usual.
 
@@ -340,8 +304,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 						if let index = sections.index(forName: sectionName) {
 							if let objectIndex = sections[index].index(of: object,
-																									 using: objectSortDescriptors,
-																									 with: filteredCollection) {
+							                                           using: objectSortDescriptors,
+							                                           with: filteredCollection) {
 								deletedObjects.orderedInsert(objectIndex, toCollectionAt: index)
 							}
 						}
@@ -399,41 +363,36 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 				/// `previousValuesForUpdatedQualifyingObjects` contains only remotely updated objects that were
 				/// ONCE QUALIFIED for `self` at its pre-merge state.
-				if let index = remoteChanges?.previousValuesForUpdatedQualifyingObjects?.indexForKey(object) {
+				if isMergingRemoteChanges {
+					/// Must compare the object pointer to obtain the index for any remotely refresh object,
+					/// since no sufficient information is available for remotely deleted objects.
+
+					var indexPath: (Int, Int)?
+
+					for sectionIndex in sections.indices {
+						/// Use binary search, but compare against the previous values dictionary.
+						if let objectIndex = sections[sectionIndex].indexOf(object) {
+							indexPath = (sectionIndex, objectIndex)
+						}
+					}
+
+					guard let (foundSectionIndex, foundObjectIndex) = indexPath else {
+						continue
+					}
+
 					if !predicateMatching(object) {
 						/// The object no longer qualifies. Delete it from the ObjectSet.
-						let sectionName: ReactiveSetSectionName
-
-						if let sectionNameKeyPath = sectionNameKeyPath {
-							sectionName = ReactiveSetSectionName(converting: remoteChanges!.previousValuesForUpdatedQualifyingObjects![index].1[sectionNameKeyPath])
-						} else {
-							sectionName = ReactiveSetSectionName()
-						}
-
-						if let index = sections.index(forName: sectionName) {
-							/// Use binary search, but compare against the previous values dictionary.
-							if let objectIndex = sections[index].index(of: object,
-							                                           using: objectSortDescriptors,
-							                                           with: remoteChanges!.previousValuesForUpdatedQualifyingObjects!) {
-								deletedObjects.orderedInsert(objectIndex, toCollectionAt: index)
-								continue
-							}
-						}
+						deletedObjects.orderedInsert(foundObjectIndex, toCollectionAt: foundSectionIndex)
+						continue
 					} else {
 						/// The object still qualifies. Does it have any change affecting the sort order?
-						var previousValues = remoteChanges!.previousValuesForUpdatedQualifyingObjects![index].1
 						let currentSectionName: ReactiveSetSectionName
 
 						if let sectionNameKeyPath = sectionNameKeyPath {
-							let previousSectionName = ReactiveSetSectionName(converting: previousValues[sectionNameKeyPath])
 							currentSectionName = sectionName(from: object)
 
-							guard previousSectionName == currentSectionName else {
-								guard let previousSectionIndex = sectionSnapshots.index(forName: currentSectionName) else {
-									preconditionFailure("current section name is supposed to exist, but not found.")
-								}
-
-								sectionChangedObjects.insert(object, intoSetAt: previousSectionIndex)
+							guard sections[foundSectionIndex].name == currentSectionName else {
+								sectionChangedObjects.insert(object, intoSetAt: foundSectionIndex)
 								continue
 							}
 						} else {
@@ -444,7 +403,17 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 							preconditionFailure("current section name is supposed to exist, but not found.")
 						}
 
-						guard !sortOrderIsAffected(by: object, against: previousValues) else {
+						let isLeftOrderChanged = foundObjectIndex > sections[foundSectionIndex].startIndex
+							? objectSortDescriptors.compare(sections[foundSectionIndex][foundObjectIndex - 1],
+							                                to: sections[foundSectionIndex][foundObjectIndex]) == .OrderedDescending
+							: false
+
+						let isRightOrderChanged = foundObjectIndex < sections[foundSectionIndex].endIndex - 1
+							? objectSortDescriptors.compare(sections[foundSectionIndex][foundObjectIndex],
+							                                to: sections[foundSectionIndex][foundObjectIndex + 1]) == .OrderedDescending
+							: false
+
+						guard !isLeftOrderChanged && !isRightOrderChanged else {
 							sortOrderAffectingObjects.insert(object, intoSetAt: currentSectionIndex)
 							continue
 						}
@@ -461,14 +430,6 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 					/// Ignore objects that do not match the predicate.
 					if predicateMatching(object) {
-						/// Remotely Updated Objects would match the predicate. So we need to check if it was
-						/// an previously unqualified but remotely updated to be qualified before the merge.
-						if let remoteChanges = remoteChanges where remoteChanges.updatedUnqualifyingObjects.contains(object) {
-							let currentSectionName = sectionName(from: object)
-							insertedObjects.insert(object, intoSetOfKey: currentSectionName)
-							continue
-						}
-
 						// check if object was in the objectset before.
 						var previousValues = computeSnapshot(for: object)
 						let currentSectionName: ReactiveSetSectionName
@@ -704,8 +665,6 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			}
 		}
 
-		remoteChanges = nil
-
 		let resultSetChanges = ReactiveSetChanges(indexPathsOfDeletedRows: indexPathsOfDeletedRows,
 		                                          indexPathsOfInsertedRows: indexPathsOfInsertedRows,
 		                                          indexPathsOfMovedRows: indexPathsOfMovedRows,
@@ -714,10 +673,6 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		                                          indiceOfDeletedSections: indiceOfDeletedSections)
 
 		eventObserver.sendNext(.Updated(resultSetChanges))
-	}
-
-	deinit {
-		eventObserver?.sendCompleted()
 	}
 }
 
