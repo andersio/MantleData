@@ -10,49 +10,116 @@ import Foundation
 import ReactiveCocoa
 import CoreData
 
+/// A controller which manages and tracks a reactive collection of `E`,
+/// constrained by the supplied NSFetchRequest.
 ///
-/// A controler that manages results of a Core Data fetch request.
-/// You must use this controller only on the same thread as the associated context.
+/// The change management of `ObjectSet` relies on the **infinite staleness** of the
+/// persistence store row cache. Therefore, `ObjectSet` may not work with non-SQLite stores,
+/// and the context associated must have a negative `stalenessInterval`.
 ///
+/// Moreover, you **must** merge changes from other contexts through the MantleData extension
+/// to `NSManagedObjectContext`, since it relies on a custom notification posted before
+/// the context merging remote changes to compute changes correctly and efficiently.
+///
+/// On the other hand, `ObjectSet` **does not support** sorting or section name on key paths that
+/// are deeper than one level of one-to-one relationships.
+///
+/// As for observing changes of individual objects, `ObjectSet` by default does not emit any
+/// index paths for updated rows based on the assumed use of KVO-based bindings. You may override
+/// this behavior by setting `excludeUpdatedRowsInEvents` in the initialiser as `false`.
+///
+/// - Warning:	 This class is not thread-safe. Use it only in the associated NSManagedObjectContext.
 final public class ObjectSet<E: NSManagedObject>: Base {
 	public let fetchRequest: NSFetchRequest
 	public let entity: NSEntityDescription
 
+	public let shouldExcludeUpdatedRows: Bool
+
 	public let sectionNameKeyPath: String?
-	public let _sectionNameKeyPath: [String]?
+	private let _sectionNameKeyPath: [String]?
 	public let defaultSectionName: String
 
 	public let sectionNameOrdering: NSComparisonResult
 	public let objectSortDescriptors: [NSSortDescriptor]
+	public let sortKeys: [String]
+	public let sortKeyComponents: [(String, [String])]
+	public let sortKeysInSections: [String]
 
 	// An ObjectSet retains the managed object context.
 	private(set) public weak var context: NSManagedObjectContext!
 
-	private var eventObserver: Observer<ReactiveSetEvent, NoError>?
+	private var eventSignal = Atomic<Signal<ReactiveSetEvent, NoError>?>(nil)
+	private var eventObserver: Observer<ReactiveSetEvent, NoError>? = nil {
+		willSet {
+			if eventObserver == nil && newValue != nil {
+				NSNotificationCenter.defaultCenter().addObserver(self,
+				                                                 selector: #selector(ObjectSet.preprocessRemoteOriginatedChanges(from:)),
+				                                                 name: MantleData.objectContextWillMergeChangesNotification,
+				                                                 object: context)
+				NSNotificationCenter.defaultCenter().addObserver(self,
+				                                                 selector: #selector(ObjectSet.mergeChanges(from:)),
+				                                                 name: NSManagedObjectContextObjectsDidChangeNotification,
+				                                                 object: context)
 
-	private(set) public lazy var eventProducer: SignalProducer<ReactiveSetEvent, NoError> = { [unowned self] in
-		let (producer, observer) = SignalProducer<ReactiveSetEvent, NoError>.buffer(0)
-		self.eventObserver = observer
-		return producer
-		}()
+				context.willDeinitProducer
+					.takeUntil(willDeinitProducer)
+					.startWithCompleted { [weak self] in
+						if let strongSelf = self {
+							NSNotificationCenter.defaultCenter().removeObserver(strongSelf,
+																																	name: objectContextWillMergeChangesNotification,
+																																	object: strongSelf.context)
+							NSNotificationCenter.defaultCenter().removeObserver(strongSelf,
+																																	name: NSManagedObjectContextObjectsDidChangeNotification,
+																																	object: strongSelf.context)
+						}
+				}
+			}
+		}
+	}
+
+	public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
+		return SignalProducer { observer, disposable in
+			var _signal: Signal<ReactiveSetEvent, NoError>!
+
+			self.eventSignal.modify { oldValue in
+				if let oldValue = oldValue {
+					_signal = oldValue
+					return oldValue
+				} else {
+					let (signal, observer) = Signal<ReactiveSetEvent, NoError>.pipe()
+					self.eventObserver = observer
+					_signal = signal
+					return signal
+				}
+			}
+
+			disposable += _signal.observe(observer)
+		}
+	}
 
 	private var sections: [ObjectSetSection<E>] = []
 
-	private(set) public var isFetched: Bool = false
+	private var remoteChanges: RemoteChanges<E>?
 
-	public init(fetchRequest: NSFetchRequest, context: NSManagedObjectContext, sectionNameKeyPath: String? = nil, defaultSectionName: String = "") {
+	public init(for request: NSFetchRequest, in context: NSManagedObjectContext, sectionNameKeyPath: String? = nil, defaultSectionName: String = "", excludeUpdatedRowsInEvents: Bool = true) {
 		self.context = context
-		self.fetchRequest = fetchRequest
-		self.entity = fetchRequest.entity!
+		self.fetchRequest = request.copy() as! NSFetchRequest
+		self.entity = self.fetchRequest.entity!
+
+		self.shouldExcludeUpdatedRows = excludeUpdatedRowsInEvents
 
 		self.defaultSectionName = defaultSectionName
 		self.sectionNameKeyPath = sectionNameKeyPath
 		self._sectionNameKeyPath = sectionNameKeyPath?.componentsSeparatedByString(".")
 
-		precondition(fetchRequest.sortDescriptors != nil, "ObjectSet requires sort descriptors to work.")
+		precondition(request.sortDescriptors != nil, "ObjectSet requires sort descriptors to work.")
+		precondition(context.stalenessInterval < 0, "ObjectSet only works with contexts allowing infinite staleness.")
+		precondition(request.sortDescriptors!.reduce(true) { reducedValue, descriptor in
+			return reducedValue && descriptor.key!.componentsSeparatedByString(".").count <= 2
+		}, "ObjectSet does not support sorting on to-one key paths deeper than 1 level.")
 
 		if let keyPath = sectionNameKeyPath {
-			precondition(fetchRequest.sortDescriptors!.count >= 2, "Unsufficient number of sort descriptors.")
+			precondition(request.sortDescriptors!.count >= 2, "Unsufficient number of sort descriptors.")
 			self.fetchRequest.relationshipKeyPathsForPrefetching = [keyPath]
 			self.sectionNameOrdering = fetchRequest.sortDescriptors!.first!.ascending ? .OrderedAscending : .OrderedDescending
 			self.objectSortDescriptors = Array(fetchRequest.sortDescriptors!.dropFirst())
@@ -61,35 +128,19 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			self.objectSortDescriptors = fetchRequest.sortDescriptors ?? []
 		}
 
+		sortKeys = fetchRequest.sortDescriptors!.map { $0.key! }
+		sortKeysInSections = Array(sortKeys.dropFirst())
+		sortKeyComponents = sortKeys.map { ($0, $0.componentsSeparatedByString(".")) }
+
 		super.init()
 
-		precondition(self._sectionNameKeyPath?.count ?? 0 <= 2, "ObjectSet supports only direct relationship on the key path for section name.")
 		self.fetchRequest.resultType = .ManagedObjectResultType
 	}
 
 	public func fetch() throws {
-		if isFetched {
-			return
-		}
-
 		func completionBlock(result: NSAsynchronousFetchResult) {
 			self.sectionize(using: result.finalResult as? [E] ?? [])
 			eventObserver?.sendNext(.Reloaded)
-
-			NSNotificationCenter.defaultCenter().addObserver(self,
-			                                                 selector: #selector(ObjectSet.mergeChangesFrom(_:)),
-			                                                 name: NSManagedObjectContextObjectsDidChangeNotification,
-			                                                 object: self.context)
-
-			self.context.willDeinitProducer
-				.takeUntil(self.willDeinitProducer)
-				.startWithCompleted { [weak self] in
-					if let self_ = self {
-						NSNotificationCenter.defaultCenter().removeObserver(self_,
-							name: NSManagedObjectContextObjectsDidChangeNotification,
-							object: self_.context)
-					}
-			}
 		}
 
 		context.performBlock {
@@ -105,28 +156,20 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 	private func sectionize(using fetchedObjects: [E]) {
 		guard let keyPath = sectionNameKeyPath else {
-			sections = [ObjectSetSection(name: ReactiveSetSectionName(nil),
+			sections = [ObjectSetSection(name: ReactiveSetSectionName(),
 				array: ContiguousArray(fetchedObjects))]
 
 			return
 		}
+
+		sections = []
 
 		if !fetchedObjects.isEmpty {
 			var ranges: [(range: Range<Int>, name: ReactiveSetSectionName)] = []
 
 			// Objects are sorted wrt to sections already.
 			for position in fetchedObjects.startIndex ..< fetchedObjects.endIndex {
-				let sectionName: ReactiveSetSectionName
-
-				switch fetchedObjects[position].valueForKeyPath(keyPath) {
-				case let name as String:
-					sectionName = ReactiveSetSectionName(name)
-				case let name as NSNumber:
-					sectionName = ReactiveSetSectionName(name.stringValue)
-				default:
-					sectionName = ReactiveSetSectionName(nil)
-				}
-
+				let sectionName = ReactiveSetSectionName(converting: fetchedObjects[position].valueForKeyPath(keyPath))
 				if ranges.isEmpty || ranges.last?.name != sectionName {
 					ranges.append((range: position ..< position + 1, name: sectionName))
 				} else {
@@ -141,104 +184,354 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 				sections.append(section)
 			}
 		}
-
-		isFetched = true
 	}
 
 	private func sectionName(from object: E) -> ReactiveSetSectionName {
 		if let keyPath = self.sectionNameKeyPath {
-			switch object.valueForKeyPath(keyPath) {
-			case let name as String:
-				return ReactiveSetSectionName(name)
-			case let name as NSNumber:
-				return ReactiveSetSectionName(name.stringValue)
-			default:
-				return ReactiveSetSectionName(nil)
-			}
+			return ReactiveSetSectionName(converting: object.valueForKeyPath(keyPath))
 		}
-		return ReactiveSetSectionName(nil)
+		return ReactiveSetSectionName()
 	}
 
-	private func isInclusiveOf(object: NSManagedObject) -> E? {
+	private func predicateMatching(object: NSObject) -> Bool {
+		return fetchRequest.predicate?.evaluateWithObject(object) ?? true
+	}
+
+	/// - Returns: A qualifying object for `self`. `nil` if the object is not qualified.
+	private func qualifyingObject(object: NSManagedObject) -> E? {
 		if let object = object as? E {
-			if fetchRequest.predicate?.evaluateWithObject(object) ?? true {
+			if predicateMatching(object) {
 				return object
 			}
 		}
 		return nil
 	}
 
-	private func hasObject(object: E) -> (sectionName: ReactiveSetSectionName, index: Int)? {
-		for section in sections {
-			if let index = section.indexOf(object) {
-				return (sectionName: section.name, index: index)
-			}
-		}
-
-		return nil
-	}
-
-	/// Merge changes since last posting of NSManagedContextObjectsDidChangeNotification.
-	@objc private func mergeChangesFrom(notification: NSNotification) {
+	@objc private func preprocessRemoteOriginatedChanges(from notification: NSNotification) {
 		guard let userInfo = notification.userInfo else {
 			return
 		}
 
-		var externalChanges = ExternalChanges<E>()
+		func extract(array: [E]) -> [E: [String: AnyObject]] {
+			/// Find only objects qualified for the predicate.
+			var changes = [E: [String: AnyObject]](minimumCapacity: array.count)
 
-		if let insertedObjects = userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject> {
-			for object in insertedObjects {
-				if let object = isInclusiveOf(object) {
+			array.forEach { object in
+				var dictionary = [String: AnyObject]()
+				sortKeys.forEach { keyPath in
+					dictionary[keyPath] = object.valueForKeyPath(keyPath) as? NSObject
+				}
+				changes[object] = dictionary
+			}
+
+			return changes
+		}
+
+		var updatedUnqualifyingObjects = Set<NSManagedObject>()
+		var previousValuesForUpdatedQualifyingObjects: [E: [String: AnyObject]]?
+		var previousValuesForDeletedQualifyingObjects: [E: [String: AnyObject]]?
+
+		if let updatedObjects = userInfo[updatedRemoteObjectsKey] as? Set<NSManagedObject> {
+			/// Since the object is in its old state at this time, relative to the to-be-merged
+			/// version, the key paths can be evaulated for the ObjectSet's predicate, and
+			/// extracted as usual.
+			var filteredObjects = [E]()
+			filteredObjects.reserveCapacity(updatedObjects.underestimateCount())
+			updatedUnqualifyingObjects = Set(minimumCapacity: filteredObjects.underestimateCount())
+
+			for object in updatedObjects {
+				if let object = qualifyingObject(object) {
+					filteredObjects.append(object)
+				} else {
+					updatedUnqualifyingObjects.insert(object)
+				}
+			}
+
+			previousValuesForUpdatedQualifyingObjects = extract(filteredObjects)
+		}
+
+		if let deletedObjects = userInfo[deletedRemoteObjectsKey] as? Set<NSManagedObject> {
+			previousValuesForDeletedQualifyingObjects = extract(deletedObjects.flatMap { qualifyingObject($0) })
+		}
+
+		if updatedUnqualifyingObjects.count > 0 || previousValuesForUpdatedQualifyingObjects != nil || previousValuesForDeletedQualifyingObjects != nil {
+			remoteChanges = RemoteChanges(updatedUnqualifyingObjects: updatedUnqualifyingObjects,
+			                              previousValuesForUpdatedQualifyingObjects: previousValuesForUpdatedQualifyingObjects,
+			                              previousValuesForDeletedQualifyingObjects: previousValuesForDeletedQualifyingObjects)
+		}
+	}
+
+	/// Merge changes since last posting of NSManagedContextObjectsDidChangeNotification.
+	@objc private func mergeChanges(from notification: NSNotification) {
+		guard let eventObserver = eventObserver else {
+			return
+		}
+
+		guard let userInfo = notification.userInfo else {
+			return
+		}
+
+		/// If all objects are invalidated. We perform a refetch instead.
+		guard !userInfo.keys.contains(NSInvalidatedAllObjectsKey) else {
+			try! fetch()
+			return
+		}
+
+		/// Process deletions first, and buffer moves and insertions.
+		let sectionSnapshots = sections
+
+		/// Reference sections by name, since these objects may lead to creating a new section.
+		var insertedObjects = [ReactiveSetSectionName: Set<E>]()
+
+		/// Referencing sections by the index in snapshot.
+		var sectionChangedObjects = sectionSnapshots.indices.map { _ in Set<E>() }
+		var deletedObjects = sectionSnapshots.indices.map { _ in [Int]() }
+		var updatedObjects = sectionSnapshots.indices.map { _ in Set<E>() }
+		var sortOrderAffectingObjects = sectionSnapshots.indices.map { _ in Set<E>() }
+
+		func processDeletedObjects(set: Set<NSManagedObject>, isInvalidating: Bool) {
+			var filteredCollection = [E: [String: AnyObject]]()
+
+			for object in set {
+				guard let object = object as? E else {
+					continue
+				}
+
+				filteredCollection[object] = computeSnapshot(for: object)
+			}
+
+			for (object, snapshot) in filteredCollection {
+				/// Object invalidation always originates from the local context.
+
+				if !isInvalidating, let index = remoteChanges?.previousValuesForDeletedQualifyingObjects?.indexForKey(object) {
+					/// If it is a qualified but remotely deleted object since the last event,
+					/// the previous values dictionary should be used for the binary search and
+					/// the section name retrieval, since the relationships the sorting keys and
+					/// the section name relying on are no longer available at this time.
+
+					let sectionName: ReactiveSetSectionName
+
+					if let sectionNameKeyPath = sectionNameKeyPath {
+						sectionName = ReactiveSetSectionName(converting: remoteChanges!.previousValuesForDeletedQualifyingObjects![index].1[sectionNameKeyPath])
+					} else {
+						sectionName = ReactiveSetSectionName()
+					}
+
+					if let index = sections.index(forName: sectionName) {
+						/// Use binary search, but compare against the previous values dictionary.
+						if let objectIndex = sections[index].index(of: object,
+						                                     using: objectSortDescriptors,
+						                                     with: remoteChanges!.previousValuesForDeletedQualifyingObjects!) {
+							deletedObjects.orderedInsert(objectIndex, toCollectionAt: index)
+						}
+					}
+				} else {
+					/// If it is locally deleted or invalidated object, the relationships are still available
+					/// at this time. So KVC can be used as usual.
+
+					if predicateMatching(snapshot) {
+						let sectionName: ReactiveSetSectionName
+
+						if let sectionNameKeyPath = sectionNameKeyPath {
+							sectionName = ReactiveSetSectionName(converting: snapshot[sectionNameKeyPath])
+						} else {
+							sectionName = ReactiveSetSectionName()
+						}
+
+						if let index = sections.index(forName: sectionName) {
+							if let objectIndex = sections[index].index(of: object,
+																									 using: objectSortDescriptors,
+																									 with: filteredCollection) {
+								deletedObjects.orderedInsert(objectIndex, toCollectionAt: index)
+							}
+						}
+					}
+				}
+			}
+		}
+
+		func computeSnapshot(for object: E) -> [String: AnyObject] {
+			/// Assume only having one level deep relationship for the key paths.
+			var values = object.committedValuesForKeys(nil)
+			for (key, value) in object.changedValuesForCurrentEvent() {
+				values[key] = value
+			}
+
+			for (keyPath, keyPathComponents) in sortKeyComponents {
+				switch keyPathComponents.count {
+				case 1:
+					break
+
+				case 2:
+					let relatedObject = values[keyPathComponents[0]] as! NSManagedObject
+					let changes = relatedObject.changedValuesForCurrentEvent()
+					if let index = changes.indexForKey(keyPathComponents[1]) {
+						values[keyPath] = changes[index].1
+					} else {
+						values[keyPath] = relatedObject.valueForKeyPath(keyPathComponents[1])
+					}
+
+				default:
+					preconditionFailure("unexpected key path component count.")
+				}
+			}
+
+			return values
+		}
+
+		func sortOrderIsAffected(by object: E, against snapshot: [String: AnyObject]) -> Bool {
+			for key in sortKeysInSections {
+				if let index = snapshot.indexForKey(key) {
+					if !object.valueForKeyPath(key)!.isEqual(snapshot[index].1) {
+						return true
+					}
+				}
+			}
+
+			return false
+		}
+
+		func processUpdatedObjects(set: Set<NSManagedObject>, isRefreshing: Bool) {
+			for object in set {
+				guard let object = object as? E else {
+					continue
+				}
+
+				/// `previousValuesForUpdatedQualifyingObjects` contains only remotely updated objects that were
+				/// ONCE QUALIFIED for `self` at its pre-merge state.
+				if let index = remoteChanges?.previousValuesForUpdatedQualifyingObjects?.indexForKey(object) {
+					if !predicateMatching(object) {
+						/// The object no longer qualifies. Delete it from the ObjectSet.
+						let sectionName: ReactiveSetSectionName
+
+						if let sectionNameKeyPath = sectionNameKeyPath {
+							sectionName = ReactiveSetSectionName(converting: remoteChanges!.previousValuesForUpdatedQualifyingObjects![index].1[sectionNameKeyPath])
+						} else {
+							sectionName = ReactiveSetSectionName()
+						}
+
+						if let index = sections.index(forName: sectionName) {
+							/// Use binary search, but compare against the previous values dictionary.
+							if let objectIndex = sections[index].index(of: object,
+							                                           using: objectSortDescriptors,
+							                                           with: remoteChanges!.previousValuesForUpdatedQualifyingObjects!) {
+								deletedObjects.orderedInsert(objectIndex, toCollectionAt: index)
+								continue
+							}
+						}
+					} else {
+						/// The object still qualifies. Does it have any change affecting the sort order?
+						var previousValues = remoteChanges!.previousValuesForUpdatedQualifyingObjects![index].1
+						let currentSectionName: ReactiveSetSectionName
+
+						if let sectionNameKeyPath = sectionNameKeyPath {
+							let previousSectionName = ReactiveSetSectionName(converting: previousValues[sectionNameKeyPath])
+							currentSectionName = sectionName(from: object)
+
+							guard previousSectionName == currentSectionName else {
+								guard let previousSectionIndex = sectionSnapshots.index(forName: currentSectionName) else {
+									preconditionFailure("current section name is supposed to exist, but not found.")
+								}
+
+								sectionChangedObjects.insert(object, intoSetAt: previousSectionIndex)
+								continue
+							}
+						} else {
+							currentSectionName = ReactiveSetSectionName()
+						}
+
+						guard let currentSectionIndex = sections.index(forName: currentSectionName) else {
+							preconditionFailure("current section name is supposed to exist, but not found.")
+						}
+
+						guard !sortOrderIsAffected(by: object, against: previousValues) else {
+							sortOrderAffectingObjects.insert(object, intoSetAt: currentSectionIndex)
+							continue
+						}
+
+						if !shouldExcludeUpdatedRows {
+							updatedObjects.insert(object, intoSetAt: currentSectionIndex)
+						}
+					}
+				} else if !isRefreshing {
+					/// Based on the guarantee of infinite staleness, locally refreshed objects can be
+					/// assumed to never change, thus ignored by the ObjectSet change tracking. In other
+					/// words, if the object is refreshed but not captured by `remoteChanges`, it can be
+					/// gracefully ignored.
+
+					/// Ignore objects that do not match the predicate.
+					if predicateMatching(object) {
+						/// Remotely Updated Objects would match the predicate. So we need to check if it was
+						/// an previously unqualified but remotely updated to be qualified before the merge.
+						if let remoteChanges = remoteChanges where remoteChanges.updatedUnqualifyingObjects.contains(object) {
+							let currentSectionName = sectionName(from: object)
+							insertedObjects.insert(object, intoSetOfKey: currentSectionName)
+							continue
+						}
+
+						// check if object was in the objectset before.
+						var previousValues = computeSnapshot(for: object)
+						let currentSectionName: ReactiveSetSectionName
+						let previousSectionName: ReactiveSetSectionName
+
+						if let sectionNameKeyPath = sectionNameKeyPath {
+							if let rawSectionName = previousValues[sectionNameKeyPath] {
+								previousSectionName = ReactiveSetSectionName(converting: rawSectionName)
+							} else {
+								previousSectionName = ReactiveSetSectionName()
+							}
+							currentSectionName = sectionName(from: object)
+						} else {
+							currentSectionName = ReactiveSetSectionName()
+							previousSectionName = ReactiveSetSectionName()
+						}
+
+						guard predicateMatching(previousValues) else {
+							insertedObjects.insert(object, intoSetOfKey: currentSectionName)
+							continue
+						}
+
+						guard previousSectionName == currentSectionName else {
+							guard let previousSectionIndex = sections.index(forName: previousSectionName) else {
+							      preconditionFailure("previous section name is supposed to exist, but not found.")
+							}
+
+							sectionChangedObjects.insert(object, intoSetAt: previousSectionIndex)
+							continue
+						}
+
+						guard let currentSectionIndex = sections.index(forName: currentSectionName) else {
+							preconditionFailure("current section name is supposed to exist, but not found.")
+						}
+
+						guard !sortOrderIsAffected(by: object, against: previousValues) else {
+							sortOrderAffectingObjects.insert(object, intoSetAt: currentSectionIndex)
+							continue
+						}
+
+						if !shouldExcludeUpdatedRows {
+							updatedObjects.insert(object, intoSetAt: currentSectionIndex)
+						}
+					}
+				}
+			}
+		}
+
+		if let _insertedObjects = userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject> {
+			for object in _insertedObjects {
+				if let object = qualifyingObject(object) {
 					let name = sectionName(from: object)
-					externalChanges.insertedObjects.insert(object, intoSetOfKey: name)
-					externalChanges.insertedObjectsCount = externalChanges.insertedObjectsCount + 1
+					insertedObjects.insert(object, intoSetOfKey: name)
 				}
 			}
 		}
 
 		if let deletedObjects = userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject> {
-			for object in deletedObjects {
-				guard let object = object as? E else {
-					continue
-				}
-
-				if let (sectionName, index) = hasObject(object) {
-					externalChanges.deletedObjects.insert(index, intoSetOfKey: sectionName)
-					externalChanges.deletedObjectsCount = externalChanges.deletedObjectsCount + 1
-				}
-			}
+			processDeletedObjects(deletedObjects, isInvalidating: false)
 		}
 
-		func processUpdatedObjects(set: Set<NSManagedObject>, isRefreshing: Bool) {
-			for object in set {
-				if let object = isInclusiveOf(object) {
-					let name: ReactiveSetSectionName
-
-					if sectionNameKeyPath != nil {
-						let __object: NSManagedObject = _sectionNameKeyPath!.count > 1
-							? object.valueForKeyPath(_sectionNameKeyPath!.first!) as! NSManagedObject
-							: object
-
-						name = sectionName(from: object)
-
-						let changedDict = __object.changedValuesForCurrentEvent()
-						if changedDict.keys.contains(_sectionNameKeyPath!.last!) {
-							let oldSectionName = ReactiveSetSectionName(changedDict[_sectionNameKeyPath!.last!] as? String)
-							if oldSectionName != name {
-								externalChanges.sectionChangedObjects.insert(object, intoSetOfKey: oldSectionName)
-								externalChanges.sectionChangedObjectsCount = externalChanges.sectionChangedObjectsCount + 1
-
-								continue
-							}
-						}
-					} else {
-						name = ReactiveSetSectionName(nil)
-					}
-
-					externalChanges.updatedObjects.insert(object, intoSetOfKey: name)
-					externalChanges.updatedObjectsCount = externalChanges.updatedObjectsCount + 1
-				}
-			}
+		if let invalidatedObjects = userInfo[NSInvalidatedObjectsKey] as? Set<NSManagedObject> {
+			processDeletedObjects(invalidatedObjects, isInvalidating: true)
 		}
 
 		if let updatedObjects = userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject> {
@@ -249,54 +542,49 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			processUpdatedObjects(refreshedObjects, isRefreshing: true)
 		}
 
-		guard externalChanges.hasChanges else {
-			return
-		}
-
-		let oldSections = sections
-		var updatedSections = sections
+		let insertedObjectsCount = insertedObjects.reduce(0) { $0 + $1.1.count }
+		let deletedObjectsCount = deletedObjects.reduce(0) { $0 + $1.count }
+		let sectionChangedObjectsCount = sectionChangedObjects.reduce(0) { $0 + $1.count }
+		let updatedObjectsCount = updatedObjects.reduce(0) { $0 + $1.count }
+		let sortOrderAffectingObjectsCount = sortOrderAffectingObjects.reduce(0) { $0 + $1.count }
 
 		var inboundObjects = [ReactiveSetSectionName: Set<E>]()
-		var originOfSectionChangedObjects = [E: NSIndexPath](minimumCapacity: externalChanges.sectionChangedObjectsCount)
+		var inPlaceMovingObjects = sectionSnapshots.indices.map { _ in Set<E>() }
+		var deletingIndexPaths = (0 ..< sectionSnapshots.count).map { _ in [Int]() }
+
+		var originOfSectionChangedObjects = [E: NSIndexPath](minimumCapacity: sectionChangedObjectsCount)
+		var originOfMovedObjects = [E: NSIndexPath](minimumCapacity: sortOrderAffectingObjectsCount)
 
 		var indexPathsOfInsertedRows = [NSIndexPath]()
-		var indexPathsOfDeletedRows = [NSIndexPath]()
 		var indexPathsOfUpdatedRows = [NSIndexPath]()
 		var indexPathsOfMovedRows = [(NSIndexPath, NSIndexPath)]()
 
 		let indiceOfDeletedSections = NSMutableIndexSet()
 		let indiceOfInsertedSections = NSMutableIndexSet()
 
-		indexPathsOfInsertedRows.reserveCapacity(externalChanges.insertedObjectsCount)
-		indexPathsOfDeletedRows.reserveCapacity(externalChanges.deletedObjectsCount)
-		indexPathsOfUpdatedRows.reserveCapacity(externalChanges.updatedObjectsCount)
-		indexPathsOfMovedRows.reserveCapacity(externalChanges.sectionChangedObjectsCount)
+		indexPathsOfInsertedRows.reserveCapacity(insertedObjectsCount)
+		indexPathsOfUpdatedRows.reserveCapacity(updatedObjectsCount)
+		indexPathsOfMovedRows.reserveCapacity(sectionChangedObjectsCount + sortOrderAffectingObjectsCount)
 
-		for (sectionName, objectIndice) in externalChanges.deletedObjects {
-			guard let sectionIndex = oldSections.index(forName: sectionName) else {
-				assertionFailure("Section `\(sectionName)` should be in the result set, but it cannot be found.")
-				continue
-			}
+		/// MARK: Handle deletions.
 
-			for objectIndex in objectIndice {
-				let indexPath = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
-				indexPathsOfDeletedRows.append(indexPath)
+		var indexPathsOfDeletedRows = deletedObjects.enumerate().flatMap { (sectionIndex, indice) in
+			return indice.map { objectIndex -> NSIndexPath in
+				deletingIndexPaths.orderedInsert(objectIndex, toCollectionAt: sectionIndex, ascending: false)
+				return NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
 			}
 		}
 
-		for (oldSectionName, objects) in externalChanges.sectionChangedObjects {
-			guard let oldSectionIndex = oldSections.index(forName: oldSectionName) else {
-				assertionFailure("Section `\(oldSectionName)` should be in the result set, but cannot be found.")
-				continue
-			}
-
+		for (previousSectionIndex, objects) in sectionChangedObjects.enumerate() {
 			for object in objects {
-				guard let rowIndex = oldSections[oldSectionIndex].indexOf(object) else {
-					assertionFailure("Object `\(object)` should be in the section `\(oldSectionName)`, but it cannot be found.")
+				guard let objectIndex = sectionSnapshots[previousSectionIndex].indexOf(object) else {
+					assertionFailure("Object `\(object)` should be in section \(previousSectionIndex), but it cannot be found.")
 					continue
 				}
 
-				let indexPath = NSIndexPath(forRow: rowIndex, inSection: oldSectionIndex)
+				deletingIndexPaths.orderedInsert(objectIndex, toCollectionAt: previousSectionIndex, ascending: false)
+
+				let indexPath = NSIndexPath(forRow: objectIndex, inSection: previousSectionIndex)
 				originOfSectionChangedObjects[object] = indexPath
 
 				let newSectionName = sectionName(from: object)
@@ -304,103 +592,119 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			}
 		}
 
-		var pendingDelete = ContiguousArray<NSIndexPath>()
-		pendingDelete.appendContentsOf(originOfSectionChangedObjects.values)
-		pendingDelete.appendContentsOf(indexPathsOfDeletedRows)
-		pendingDelete.sortInPlace { $0.row > $1.row }
+		for (previousSectionIndex, objects) in sortOrderAffectingObjects.enumerate() {
+			for object in objects {
+				guard let objectIndex = sectionSnapshots[previousSectionIndex].indexOf(object) else {
+					assertionFailure("Object `\(object)` should be in section \(previousSectionIndex), but it cannot be found.")
+					continue
+				}
 
-		for indexPath in pendingDelete {
-			updatedSections[indexPath.section].removeAtIndex(indexPath.row)
-		}
+				deletingIndexPaths.orderedInsert(objectIndex, toCollectionAt: previousSectionIndex, ascending: false)
 
-		for sectionIndex in updatedSections.indices {
-			if updatedSections[sectionIndex].count == 0 {
-				indiceOfDeletedSections.addIndex(sectionIndex)
+				let indexPath = NSIndexPath(forRow: objectIndex, inSection: previousSectionIndex)
+				originOfMovedObjects[object] = indexPath
+
+				inPlaceMovingObjects.insert(object, intoSetAt: previousSectionIndex)
 			}
 		}
 
-		for sectionIndex in indiceOfDeletedSections.reverse() {
-			updatedSections.removeAtIndex(sectionIndex)
+		for sectionIndex in deletingIndexPaths.indices {
+			deletingIndexPaths[sectionIndex].forEach {
+				sections[sectionIndex].removeAtIndex($0)
+			}
 		}
 
-		for (sectionName, objects) in externalChanges.insertedObjects {
-			if let sectionIndex = updatedSections.index(forName: sectionName) {
+		for index in sections.indices.reverse() {
+			if sections[index].count == 0 && inPlaceMovingObjects[index].count == 0 {
+				sections.removeAtIndex(index)
+				indiceOfDeletedSections.addIndex(index)
+			}
+		}
+
+		/// MARK: Handle insertions.
+
+		func insert(objects: Set<E>, intoSectionFor name: ReactiveSetSectionName) {
+			if let sectionIndex = sections.index(forName: name) {
 				for object in objects {
-					updatedSections[sectionIndex].insert(object, using: objectSortDescriptors)
+					sections[sectionIndex].insert(object, using: objectSortDescriptors)
 				}
 			} else {
-				let index = updatedSections.insert(ObjectSetSection(name: sectionName,
-																														array: ContiguousArray(objects)),
-				                                   name: sectionName,
-				                                   ordering: sectionNameOrdering)
+				let index = sections.insert(ObjectSetSection(name: name,
+					array: ContiguousArray(objects)),
+				                            name: name,
+				                            ordering: sectionNameOrdering)
 
 				indiceOfInsertedSections.addIndex(index)
 			}
+		}
+
+		for (sectionName, objects) in insertedObjects {
+			insert(objects, intoSectionFor: sectionName)
 		}
 
 		for (sectionName, objects) in inboundObjects {
-			if let sectionIndex = updatedSections.index(forName: sectionName) {
-				for object in objects {
-					updatedSections[sectionIndex].insert(object, using: objectSortDescriptors)
-				}
-			} else {
-				let index = updatedSections.insert(ObjectSetSection(name: sectionName,
-																														array: ContiguousArray(objects)),
-				                                   name: sectionName,
-				                                   ordering: sectionNameOrdering)
-
-				indiceOfInsertedSections.addIndex(index)
-			}
+			insert(objects, intoSectionFor: sectionName)
 		}
 
-		for sectionIndex in updatedSections.indices {
-			let sectionName = updatedSections[sectionIndex].name
-			let oldSectionIndex = oldSections.index(forName: sectionName)
+		/// MARK: Index generating full pass.
 
-			updatedSections[sectionIndex].sort(with: objectSortDescriptors)
+		for sectionIndex in sections.indices {
+			let sectionName = sections[sectionIndex].name
+			let previousSectionIndex = sectionSnapshots.index(forName: sectionName)
 
-			for (objectIndex, object) in updatedSections[sectionIndex].enumerate() {
-				if let oldSectionIndex = oldSectionIndex {
-					if objectIndex < oldSections[oldSectionIndex].count && object == oldSections[oldSectionIndex][objectIndex] {
-						if let isUpdated = externalChanges.updatedObjects[sectionName]?.contains(object) where isUpdated {
-							let indexPath = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
-							indexPathsOfUpdatedRows.append(indexPath)
-						}
-						continue
-					}
-
-					if let oldIndex = oldSections[oldSectionIndex].indexOf(object) {
-						let from = NSIndexPath(forRow: oldIndex, inSection: sectionIndex)
-						let to = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
-						indexPathsOfMovedRows.append((from, to))
-						continue
-					}
+			if let previousSectionIndex = previousSectionIndex {
+				for object in inPlaceMovingObjects[previousSectionIndex] {
+					sections[sectionIndex].insert(object, using: objectSortDescriptors)
 				}
+			}
 
-				if let isInserted = externalChanges.insertedObjects[sectionName]?.contains(object) where isInserted {
-					indexPathsOfInsertedRows.append(NSIndexPath(forRow: objectIndex, inSection: sectionIndex))
+			let insertedObjects = insertedObjects[sectionName] ?? []
+			let inboundObjects = inboundObjects[sectionName] ?? []
+
+			for (objectIndex, object) in sections[sectionIndex].enumerate() {
+				if !shouldExcludeUpdatedRows, let oldSectionIndex = previousSectionIndex where updatedObjects[oldSectionIndex].contains(object) {
+					let indexPath = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
+					indexPathsOfUpdatedRows.append(indexPath)
 					continue
 				}
 
-				if let inboundIndex = inboundObjects[sectionName]?.contains(object) {
-					if indiceOfDeletedSections.contains(originOfSectionChangedObjects[object]!.section) {
+				if insertedObjects.contains(object) {
+					let indexPath = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
+					indexPathsOfInsertedRows.append(indexPath)
+					continue
+				}
+
+				if let indexPath = originOfMovedObjects[object] {
+					let from = indexPath
+					let to = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
+					indexPathsOfMovedRows.append((from, to))
+
+					continue
+				}
+
+				if inboundObjects.contains(object) {
+					let origin = originOfSectionChangedObjects[object]!
+
+					if indiceOfDeletedSections.contains(origin.section) {
+						/// The originated section no longer exists, treat it as an inserted row.
 						let indexPath = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
 						indexPathsOfInsertedRows.append(indexPath)
-					} else if indiceOfInsertedSections.contains(sectionIndex) {
-						let indexPath = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
-						indexPathsOfDeletedRows.append(originOfSectionChangedObjects[object]!)
-						indexPathsOfInsertedRows.append(indexPath)
-					} else {
-						let from = originOfSectionChangedObjects[object]!
-						let to = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
-						indexPathsOfMovedRows.append((from, to))
+						continue
 					}
+
+					if indiceOfInsertedSections.contains(sectionIndex) {
+						/// The target section is newly created.
+						continue
+					}
+
+					let to = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
+					indexPathsOfMovedRows.append((origin, to))
 					continue
 				}
 			}
 		}
 
-		sections = updatedSections
+		remoteChanges = nil
 
 		let resultSetChanges = ReactiveSetChanges(indexPathsOfDeletedRows: indexPathsOfDeletedRows,
 		                                          indexPathsOfInsertedRows: indexPathsOfInsertedRows,
@@ -409,7 +713,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		                                          indiceOfInsertedSections: indiceOfInsertedSections,
 		                                          indiceOfDeletedSections: indiceOfDeletedSections)
 
-		eventObserver?.sendNext(.Updated(resultSetChanges))
+		eventObserver.sendNext(.Updated(resultSetChanges))
 	}
 
 	deinit {
@@ -457,19 +761,15 @@ extension ObjectSet: ReactiveSet {
 	}
 }
 
-private struct ExternalChanges<E: NSManagedObject> {
-	var insertedObjects: [ReactiveSetSectionName: Set<E>] = [:]
-	var deletedObjects: [ReactiveSetSectionName: Set<Int>] = [:]
-	var sectionChangedObjects: [ReactiveSetSectionName: Set<E>] = [:]
-	var updatedObjects: [ReactiveSetSectionName: Set<E>] = [:]
+private class RemoteChanges<E: NSManagedObject> {
+	var updatedUnqualifyingObjects: Set<NSManagedObject>
+	var previousValuesForUpdatedQualifyingObjects: [E: [String: AnyObject]]?
+	var previousValuesForDeletedQualifyingObjects: [E: [String: AnyObject]]?
 
-	var insertedObjectsCount: Int = 0
-	var deletedObjectsCount: Int = 0
-	var sectionChangedObjectsCount: Int = 0
-	var updatedObjectsCount: Int = 0
-
-	var hasChanges: Bool {
-		return insertedObjectsCount > 0 || deletedObjectsCount > 0 || sectionChangedObjectsCount > 0 || updatedObjectsCount > 0
+	init(updatedUnqualifyingObjects: Set<NSManagedObject>, previousValuesForUpdatedQualifyingObjects: [E: [String: AnyObject]]?, previousValuesForDeletedQualifyingObjects: [E: [String: AnyObject]]?) {
+		self.previousValuesForDeletedQualifyingObjects = previousValuesForDeletedQualifyingObjects
+		self.previousValuesForUpdatedQualifyingObjects = previousValuesForUpdatedQualifyingObjects
+		self.updatedUnqualifyingObjects = updatedUnqualifyingObjects
 	}
 }
 
@@ -484,8 +784,6 @@ public struct ObjectSetSection<E: NSManagedObject> {
 }
 
 extension ObjectSetSection: ReactiveSetSection {
-	// Indexable
-
 	public var startIndex: Int {
 		return storage.startIndex
 	}
@@ -497,12 +795,6 @@ extension ObjectSetSection: ReactiveSetSection {
 	public subscript(index: Int) -> E {
 		get { return storage[index] }
 		set { storage[index] = newValue }
-	}
-
-	// SequenceType
-
-	public func generate() -> IndexingGenerator<ContiguousArray<E>> {
-		return IndexingGenerator(storage)
 	}
 }
 

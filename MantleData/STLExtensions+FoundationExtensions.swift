@@ -29,7 +29,7 @@ extension CollectionType where Generator.Element: ReactiveSetSection {
 	}
 }
 
-private enum BinarySearchResult<Index> {
+public enum BinarySearchResult<Index> {
 	case found(at: Index)
 	case notFound(next: Index)
 }
@@ -43,19 +43,124 @@ extension CollectionType where Generator.Element: NSManagedObject, Index == Int 
 		return nil
 	}
 
-	private func binarySearch(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) -> BinarySearchResult<Index> {
+	public func binarySearch(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) -> BinarySearchResult<Index> {
+		func compare(element: Generator.Element, to anotherElement: Generator.Element) -> NSComparisonResult {
+			for descriptor in sortDescriptors {
+				let order = descriptor.compareObject(element, toObject: anotherElement)
+
+				if order != .OrderedSame {
+					return order
+				}
+			}
+
+			return .OrderedSame
+		}
+
+		func bidirectionalSearch(center index: Int, using sortDescriptors: [NSSortDescriptor]) -> BinarySearchResult<Index> {
+			var leftIndex = index - 1
+			while leftIndex >= startIndex && compare(self[leftIndex], to: element) == .OrderedSame {
+				if self[leftIndex] == element {
+					return .found(at: leftIndex)
+				}
+				leftIndex -= 1
+			}
+
+			var rightIndex = index + 1
+			while rightIndex < endIndex && compare(self[rightIndex], to: element) == .OrderedSame {
+				if self[rightIndex] == element {
+					return .found(at: rightIndex)
+				}
+				rightIndex += 1
+			}
+
+			return .notFound(next: leftIndex + 1)
+		}
+
 		var low = startIndex
 		var high = endIndex - 1
 
 		while low <= high {
-			var mid = (high + low) / 2
+			let mid = (high + low) / 2
 
 			if self[mid] == element {
 				return .found(at: mid)
-			} else if sortDescriptors.reduce(true, combine: { $0 && $1.compareObject(element, toObject: self[mid]) == .OrderedAscending }) {
-				high = mid - 1
 			} else {
-				low = mid + 1
+				switch compare(element, to: self[mid]) {
+				case .OrderedAscending:
+					high = mid - 1
+
+				case .OrderedDescending:
+					low = mid + 1
+
+				case .OrderedSame:
+					return bidirectionalSearch(center: mid, using: sortDescriptors)
+				}
+			}
+		}
+
+		return .notFound(next: high + 1)
+	}
+
+	public func index(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor], with substitution: [Generator.Element: [String: AnyObject]]) -> Index? {
+		if case let .found(index) = binarySearch(of: element, using: sortDescriptors, with: substitution) {
+			return index
+		}
+
+		return nil
+	}
+
+	func compare(element: NSObject, to anotherElement: NSObject, using descriptors: [NSSortDescriptor]) -> NSComparisonResult {
+		for descriptor in descriptors {
+			let order = descriptor.compareObject(element, toObject: anotherElement)
+
+			if order != .OrderedSame {
+				return order
+			}
+		}
+
+		return .OrderedSame
+	}
+
+	func bidirectionalSearch(at center: Int, for element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) -> BinarySearchResult<Index> {
+		var leftIndex = center - 1
+		while leftIndex >= startIndex && compare(self[leftIndex], to: element, using: sortDescriptors) == .OrderedSame {
+			if self[leftIndex] == element {
+				return .found(at: leftIndex)
+			}
+			leftIndex -= 1
+		}
+
+		var rightIndex = center + 1
+		while rightIndex < endIndex && compare(self[rightIndex], to: element, using: sortDescriptors) == .OrderedSame {
+			if self[rightIndex] == element {
+				return .found(at: rightIndex)
+			}
+			rightIndex += 1
+		}
+
+		return .notFound(next: leftIndex + 1)
+	}
+
+	public func binarySearch(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor], with substitution: [Generator.Element: [String: AnyObject]]) -> BinarySearchResult<Index> {
+		var low = startIndex
+		var high = endIndex - 1
+
+		while low <= high {
+			let mid = (high + low) / 2
+
+			if self[mid] == element {
+				return .found(at: mid)
+			} else {
+				switch compare(element, to: self[mid], using: sortDescriptors) {
+				case .OrderedAscending:
+					high = mid - 1
+
+				case .OrderedDescending:
+					low = mid + 1
+
+				case .OrderedSame:
+					return bidirectionalSearch(at: mid, for: element, using: sortDescriptors)
+				}
 			}
 		}
 
@@ -91,6 +196,27 @@ extension RangeReplaceableCollectionType where Generator.Element: ReactiveSetSec
 
 /// Generic additions:
 
+extension CollectionType where Generator.Element: Comparable, Index == Int {
+	internal func binarySearch(element: Generator.Element, ascending: Bool) -> BinarySearchResult<Index> {
+		var low = startIndex
+		var high = endIndex - 1
+
+		while low <= high {
+			let mid = (high + low) / 2
+
+			if self[mid] == element {
+				return .found(at: mid)
+			} else if (ascending ? self[mid] > element : self[mid] < element) {
+				high = mid - 1
+			} else {
+				low = mid + 1
+			}
+		}
+
+		return .notFound(next: high + 1)
+	}
+}
+
 public protocol SetType {
 	associatedtype Element: Hashable
 	init()
@@ -99,6 +225,19 @@ public protocol SetType {
 }
 
 extension Set: SetType { }
+
+extension MutableCollectionType where Generator.Element: protocol<MutableCollectionType, RangeReplaceableCollectionType>, Generator.Element.Generator.Element: Comparable, Generator.Element.Index == Int {
+	internal mutating func orderedInsert(value: Generator.Element.Generator.Element, toCollectionAt index: Index, ascending: Bool = true) {
+		if case let .notFound(insertionPoint) = self[index].binarySearch(value, ascending: ascending) {
+			self[index].insert(value, atIndex: insertionPoint)
+		}
+	}
+}
+extension Array where Element: SetType {
+	internal mutating func insert(value: Element.Element, intoSetAt index: Index) {
+		self[index].insert(value)
+	}
+}
 
 extension Dictionary where Value: SetType {
 	internal mutating func insert(value: Value.Element, intoSetOfKey key: Key) {
