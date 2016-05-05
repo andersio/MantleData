@@ -145,10 +145,10 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		}
 
 		context.performBlock {
+			let asyncRequest = NSAsynchronousFetchRequest(fetchRequest: self.fetchRequest, completionBlock: completionBlock)
+
 			do {
-				let result = try self.context.executeFetchRequest(self.fetchRequest)
-				self.sectionize(using: result as! [E])
-				self.eventObserver?.sendNext(.Reloaded)
+				try self.context.executeRequest(asyncRequest)
 			} catch let error as NSError {
 				fatalError("\(error.description)")
 			}
