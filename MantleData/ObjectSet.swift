@@ -13,11 +13,7 @@ import CoreData
 /// A controller which manages and tracks a reactive collection of `E`,
 /// constrained by the supplied NSFetchRequest.
 ///
-/// You **must** merge changes from other contexts through the MantleData extension
-/// to `NSManagedObjectContext`, since it relies on a custom notification posted before
-/// the context merging remote changes to compute changes correctly and efficiently.
-///
-/// On the other hand, `ObjectSet` **does not support** sorting or section name on key paths that
+/// `ObjectSet` **does not support** sorting or section name on key paths that
 /// are deeper than one level of one-to-one relationships.
 ///
 /// As for observing changes of individual objects, `ObjectSet` by default does not emit any
@@ -103,8 +99,6 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 		precondition(request.sortDescriptors != nil,
 		             "ObjectSet requires sort descriptors to work.")
-		precondition(context.stalenessInterval < 0,
-		             "ObjectSet only works with contexts allowing infinite staleness.")
 		precondition(request.sortDescriptors!.reduce(true) { reducedValue, descriptor in
 			return reducedValue && descriptor.key!.componentsSeparatedByString(".").count <= 2
 		}, "ObjectSet does not support sorting on to-one key paths deeper than 1 level.")
