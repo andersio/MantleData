@@ -103,8 +103,9 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			return reducedValue && descriptor.key!.componentsSeparatedByString(".").count <= 2
 		}, "ObjectSet does not support sorting on to-one key paths deeper than 1 level.")
 
-		if sectionNameKeyPath != nil {
+		if let keyPath = sectionNameKeyPath {
 			precondition(request.sortDescriptors!.count >= 2, "Unsufficient number of sort descriptors.")
+			self.fetchRequest.relationshipKeyPathsForPrefetching = [keyPath]
 			self.sectionNameOrdering = fetchRequest.sortDescriptors!.first!.ascending ? .OrderedAscending : .OrderedDescending
 			self.objectSortDescriptors = Array(fetchRequest.sortDescriptors!.dropFirst())
 		} else {
@@ -116,20 +117,9 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		sortKeysInSections = Array(sortKeys.dropFirst())
 		sortKeyComponents = sortKeys.map { ($0, $0.componentsSeparatedByString(".")) }
 
-		self.fetchRequest.relationshipKeyPathsForPrefetching = sortKeyComponents.flatMap { $0.1.count > 1 ? $0.1[0] : nil }
-
 		super.init()
 
 		self.fetchRequest.resultType = .ManagedObjectResultType
-	}
-
-	deinit {
-		for section in sections {
-			for object in section {
-				context.refreshObject(object, mergeChanges: false)
-			}
-		}
-		eventObserver?.sendCompleted()
 	}
 
 	public func fetch() throws {
@@ -557,6 +547,10 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		                                          indiceOfDeletedSections: indiceOfDeletedSections)
 
 		eventObserver.sendNext(.Updated(resultSetChanges))
+	}
+
+	deinit {
+		eventObserver?.sendCompleted()
 	}
 }
 
