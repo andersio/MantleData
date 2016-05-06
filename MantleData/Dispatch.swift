@@ -1,5 +1,5 @@
 //
-//  RAC+Extensions.swift
+//  Dispatch.swift
 //  MantleData
 //
 //  Created by Anders on 14/12/2015.
