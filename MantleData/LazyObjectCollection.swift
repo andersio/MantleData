@@ -7,6 +7,7 @@
 //
 
 import CoreData
+import ReactiveCocoa
 
 public enum SortingOrder {
 	case ascending
@@ -57,6 +58,28 @@ public class LazyObjectCollection<Entity: NSManagedObject> {
 
 		self.context = context
 		self.fetchRequest = fetchRequest
+	}
+
+	public func fetchInBackground() -> SignalProducer<LazyObjectCollection, NSError> {
+		return SignalProducer { observer, disposable in
+			if self.isFault {
+				self.fetchRequest.resultType = .ManagedObjectResultType
+
+				let asyncFetchRequest = NSAsynchronousFetchRequest(fetchRequest: self.fetchRequest) { fetchResult in
+					self.storage = fetchResult.finalResult as? [Entity] ?? []
+					self.isFault = false
+					observer.sendCompleted(with: self)
+				}
+
+				do {
+					_ = try self.context.executeRequest(asyncFetchRequest)
+				} catch let error as NSError {
+					observer.sendFailed(error)
+				}
+			} else {
+				observer.sendInterrupted()
+			}
+		}
 	}
 
 	private init(using fetchRequest: NSFetchRequest, in context: NSManagedObjectContext) {
