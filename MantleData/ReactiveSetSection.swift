@@ -25,17 +25,6 @@ public func == <S: ReactiveSetSection>(left: S, right: S) -> Bool {
 	return left.name == right.name
 }
 
-extension ReactiveSetSection where Index: ReactiveSetIndex {
-	public subscript(index: Int) -> Generator.Element {
-		return self[Index(converting: index)]
-	}
-
-	public subscript(index: AnyReactiveSetIndex) -> Generator.Element {
-		return self[Index(converting: index)]
-	}
-}
-
-
 public struct AnyReactiveSetSectionIterator<E: Equatable>: ReactiveSetSectionGenerator {
 	public typealias Element = E
 
