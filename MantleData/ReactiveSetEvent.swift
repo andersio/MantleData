@@ -10,89 +10,79 @@ import Foundation
 
 /// Events of ReactiveSet
 
-public enum ReactiveSetEvent {
-	case Reloaded
-	case Updated(Changes)
+public enum ReactiveSetEvent<SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex> {
+	case reloaded
+	case updated(ReactiveSetChanges<SectionIndex, RowIndex>)
+}
+
+/// Change Descriptor of ReactiveSet
+
+public struct ReactiveSetChanges<SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex> {
+	public var deletedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]?
+	public var insertedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]?
+	public var movedRows: [(from: ReactiveSetIndexPath<SectionIndex, RowIndex>, to: ReactiveSetIndexPath<SectionIndex, RowIndex>)]?
+	public var updatedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]?
+
+	public var insertedSections: [SectionIndex]?
+	public var deletedSections: [SectionIndex]?
+	public var reloadedSections: [SectionIndex]?
+
+	public init(insertedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]? = nil,
+	            deletedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]? = nil,
+	            movedRows: [(from: ReactiveSetIndexPath<SectionIndex, RowIndex>, to: ReactiveSetIndexPath<SectionIndex, RowIndex>)]? = nil,
+	            updatedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]? = nil,
+	            insertedSections: [SectionIndex]? = nil,
+	            deletedSections: [SectionIndex]? = nil,
+	            reloadedSections: [SectionIndex]? = nil) {
+		self.insertedRows = insertedRows
+		self.deletedRows = deletedRows
+		self.movedRows = movedRows
+		self.updatedRows = updatedRows
+
+		self.insertedSections = insertedSections
+		self.deletedSections = deletedSections
+		self.reloadedSections = reloadedSections
+	}
 }
 
 extension ReactiveSetEvent: CustomStringConvertible {
 	public var description: String {
 		switch self {
-		case .Reloaded:
+		case .reloaded:
 			return "ReactiveSetEvent.Reloaded"
 
-		case let .Updated(changes):
+		case let .updated(changes):
 			return "ReactiveSetEvent.Updated [BEGIN]\n\(changes)\n[END]"
 		}
 	}
 }
 
-/// Change Descriptor of ReactiveSet
-
-extension ReactiveSetEvent {
-	public struct Changes {
-		public let indexPathsOfDeletedRows: [NSIndexPath]?
-		public let indexPathsOfInsertedRows: [NSIndexPath]?
-		public let indexPathsOfMovedRows: [(NSIndexPath, NSIndexPath)]?
-		public let indexPathsOfUpdatedRows: [NSIndexPath]?
-
-		public let indiceOfInsertedSections: NSIndexSet?
-		public let indiceOfDeletedSections: NSIndexSet?
-		public let indiceOfReloadedSections: NSIndexSet?
-
-		public init(indexPathsOfDeletedRows: [NSIndexPath]? = nil, indexPathsOfInsertedRows: [NSIndexPath]? = nil, indexPathsOfMovedRows: [(NSIndexPath, NSIndexPath)]? = nil, indexPathsOfUpdatedRows: [NSIndexPath]? = nil, indiceOfInsertedSections: NSIndexSet? = nil, indiceOfDeletedSections: NSIndexSet? = nil, indiceOfReloadedSections: NSIndexSet? = nil) {
-			func makeImmutable(indexSet: NSIndexSet?) -> NSIndexSet? {
-				if let indexSet = indexSet {
-					return indexSet is NSMutableIndexSet ? NSIndexSet(indexSet: indexSet) : indexSet
-				} else {
-					return nil
-				}
-			}
-
-			self.indexPathsOfInsertedRows = indexPathsOfInsertedRows
-			self.indexPathsOfDeletedRows = indexPathsOfDeletedRows
-			self.indexPathsOfMovedRows = indexPathsOfMovedRows
-			self.indexPathsOfUpdatedRows = indexPathsOfUpdatedRows
-			self.indiceOfDeletedSections = makeImmutable(indiceOfDeletedSections)
-			self.indiceOfInsertedSections = makeImmutable(indiceOfInsertedSections)
-			self.indiceOfReloadedSections = makeImmutable(indiceOfReloadedSections)
-		}
-
-		public init(appendingIndex index: Int, changes: Changes) {
-			self.init(indexPathsOfDeletedRows: changes.indexPathsOfDeletedRows?.mapped(prependingIndex: index),
-			          indexPathsOfInsertedRows: changes.indexPathsOfInsertedRows?.mapped(prependingIndex: index),
-			          indexPathsOfMovedRows: changes.indexPathsOfMovedRows?.mapped(prependingIndex: index),
-			          indexPathsOfUpdatedRows: changes.indexPathsOfUpdatedRows?.mapped(prependingIndex: index))
-		}
-	}
-}
-
-extension ReactiveSetEvent.Changes: CustomStringConvertible {
+extension ReactiveSetChanges: CustomStringConvertible {
 	public var description: String {
 		var strings = [String]()
 		strings.append("ReactiveSetChanges")
 
-		if let indexPaths = indexPathsOfInsertedRows {
+		if let indexPaths = insertedRows {
 			strings.append("> \(indexPaths.count) row(s) inserted\n")
 		}
 
-		if let indexPaths = indexPathsOfDeletedRows {
+		if let indexPaths = deletedRows {
 			strings.append( "> \(indexPaths.count) row(s) deleted\n")
 		}
 
-		if let indexPaths = indexPathsOfMovedRows {
+		if let indexPaths = movedRows {
 			strings.append( "> \(indexPaths.count) row(s) moved\n")
 		}
 
-		if let indexPaths = indexPathsOfUpdatedRows {
+		if let indexPaths = updatedRows {
 			strings.append( "> \(indexPaths.count) row(s) updated\n")
 		}
 
-		if let indexPaths = indiceOfInsertedSections {
+		if let indexPaths = insertedSections {
 			strings.append( "> \(indexPaths.count) section(s) inserted\n")
 		}
 
-		if let indexPaths = indiceOfDeletedSections {
+		if let indexPaths = deletedSections {
 			strings.append( "> \(indexPaths.count) section(s) deleted\n")
 		}
 		

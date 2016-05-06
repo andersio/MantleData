@@ -8,9 +8,29 @@
 
 import Foundation
 
-public struct IndexPath<SectionIndex: ReactiveSetIndex, ObjectIndex: ReactiveSetIndex> {
-	let section: SectionIndex
-	let row: ObjectIndex
+public struct ReactiveSetIndexPath<SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>: Comparable {
+	public let section: SectionIndex
+	public let row: RowIndex
+
+	public func typeErased() -> ReactiveSetIndexPath<AnyReactiveSetIndex, AnyReactiveSetIndex> {
+		return ReactiveSetIndexPath<AnyReactiveSetIndex, AnyReactiveSetIndex>(section: AnyReactiveSetIndex(converting: section),
+		                                                           row: AnyReactiveSetIndex(converting: row))
+	}
+}
+
+public func == <SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>
+	(left: ReactiveSetIndexPath<SectionIndex, RowIndex>, right: ReactiveSetIndexPath<SectionIndex, RowIndex>) -> Bool {
+	return left.section == right.section && left.row == right.row
+}
+
+public func >= <SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>
+	(left: ReactiveSetIndexPath<SectionIndex, RowIndex>, right: ReactiveSetIndexPath<SectionIndex, RowIndex>) -> Bool {
+	return left.section > right.section || (left.section == right.section && left.row >= right.row)
+}
+
+public func < <SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>
+	(left: ReactiveSetIndexPath<SectionIndex, RowIndex>, right: ReactiveSetIndexPath<SectionIndex, RowIndex>) -> Bool {
+	return left.section < right.section || (left.section == right.section && left.row < right.row)
 }
 
 /// Index of ReactiveSet

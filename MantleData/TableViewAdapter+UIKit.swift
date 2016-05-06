@@ -53,46 +53,54 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	public func bind(tableView: UITableView) {
 		tableView.dataSource = self
 		set.eventProducer
+			.takeUntil(tableView.willDeinitProducer)
 			.takeUntil(willDeinitProducer)
-			.startWithNext { [unowned self, weak tableView] in
+			.startWithNext { [unowned self, unowned tableView] in
 				switch($0) {
-				case .Reloaded:
-					tableView?.reloadData()
+				case .reloaded:
+					tableView.reloadData()
 					
-				case .Updated(let changes):
-					tableView?.beginUpdates()
+				case .updated(let changes):
+					tableView.beginUpdates()
 
-					if let indexSet = changes.indiceOfDeletedSections {
-						tableView?.deleteSections(indexSet, withRowAnimation: self.configuration.rowAnimation)
+					if let indexSet = changes.deletedSections {
+						tableView.deleteSections(NSMutableIndexSet(converting: indexSet),
+							withRowAnimation: self.configuration.rowAnimation)
 					}
 
-					if let indexSet = changes.indiceOfReloadedSections {
-						tableView?.reloadSections(indexSet, withRowAnimation: self.configuration.rowAnimation)
+					if let indexSet = changes.reloadedSections {
+						tableView.reloadSections(NSMutableIndexSet(converting: indexSet),
+							withRowAnimation: self.configuration.rowAnimation)
 					}
 
-					if let indexPaths = changes.indexPathsOfDeletedRows {
-						tableView?.deleteRowsAtIndexPaths(indexPaths, withRowAnimation: self.configuration.rowAnimation)
+					if let indexPaths = changes.deletedRows {
+						tableView.deleteRowsAtIndexPaths(indexPaths.map { NSIndexPath(converting: $0) },
+							withRowAnimation: self.configuration.rowAnimation)
 					}
 
-					if self.configuration.shouldReloadRowsForUpdatedObjects, let indexPaths = changes.indexPathsOfUpdatedRows {
-						tableView?.reloadRowsAtIndexPaths(indexPaths, withRowAnimation: self.configuration.rowAnimation)
+					if self.configuration.shouldReloadRowsForUpdatedObjects, let indexPaths = changes.updatedRows {
+						tableView.reloadRowsAtIndexPaths(indexPaths.map { NSIndexPath(converting: $0) },
+							withRowAnimation: self.configuration.rowAnimation)
 					}
 
-					if let indexSet = changes.indiceOfInsertedSections {
-						tableView?.insertSections(indexSet, withRowAnimation: self.configuration.rowAnimation)
+					if let indexSet = changes.insertedSections {
+						tableView.insertSections(NSMutableIndexSet(converting: indexSet),
+							withRowAnimation: self.configuration.rowAnimation)
 					}
 
-					if let indexPathPairs = changes.indexPathsOfMovedRows {
+					if let indexPathPairs = changes.movedRows {
 						for (from, to) in indexPathPairs {
-							tableView?.moveRowAtIndexPath(from, toIndexPath: to)
+							tableView.moveRowAtIndexPath(NSIndexPath(converting: from),
+								toIndexPath: NSIndexPath(converting: to))
 						}
 					}
 
-					if let indexPaths = changes.indexPathsOfInsertedRows {
-						tableView?.insertRowsAtIndexPaths(indexPaths, withRowAnimation: self.configuration.rowAnimation)
+					if let indexPaths = changes.insertedRows {
+						tableView.insertRowsAtIndexPaths(indexPaths.map { NSIndexPath(converting: $0) },
+							withRowAnimation: self.configuration.rowAnimation)
 					}
 
-					tableView?.endUpdates()
+					tableView.endUpdates()
 				}
 
 				if !self.isEmpty && self.set.numberOfObjects == 0 {

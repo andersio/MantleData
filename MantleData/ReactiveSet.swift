@@ -32,7 +32,7 @@ public protocol ReactiveSet: class, CollectionType {
 	associatedtype Generator: ReactiveSetGenerator
 	associatedtype Index: ReactiveSetIndex
 
-	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> { get }
+	var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> { get }
 
 	func fetch() throws
 	func sectionName(of object: Object) -> ReactiveSetSectionName?
@@ -40,15 +40,6 @@ public protocol ReactiveSet: class, CollectionType {
 
 extension ReactiveSet {
 	public typealias Object = Generator.Element.Generator.Element
-	public typealias IndexPath = MantleData.IndexPath<Index, Generator.Element.Index>
-
-	public var eventSignal: Signal<ReactiveSetEvent, NoError> {
-		var extractedSignal: Signal<ReactiveSetEvent, NoError>!
-		eventProducer.startWithSignal { signal, _ in
-			extractedSignal = signal
-		}
-		return extractedSignal
-	}
 
 	public subscript(index: AnyReactiveSetIndex) -> Generator.Element {
 		return self[Index(converting: index)]
@@ -62,16 +53,19 @@ extension ReactiveSet {
 		return nil
 	}
 
-	public subscript(indexPath: NSIndexPath) -> Generator.Element.Generator.Element {
-		let section = self[Index(converting: indexPath.section)]
-		return section[Generator.Element.Index(converting: indexPath.row)]
+	public subscript(indexPath: ReactiveSetIndexPath<Index, Generator.Element.Index>) -> Generator.Element.Generator.Element {
+		return self[indexPath.section][indexPath.row]
 	}
 
-	public func indexPath(of element: Object) -> IndexPath? {
+	public subscript(sectionIndex: Index, row rowIndex: Generator.Element.Index) -> Generator.Element.Generator.Element {
+		return self[sectionIndex][rowIndex]
+	}
+
+	public func indexPath(of element: Object) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
 		if let name = sectionName(of: element),
 					 sectionIndex = indexOfSection(with: name),
 					 objectIndex = self[sectionIndex].indexOf(element) {
-			return IndexPath(section: sectionIndex, row: objectIndex)
+			return ReactiveSetIndexPath(section: sectionIndex, row: objectIndex)
 		}
 
 		return nil

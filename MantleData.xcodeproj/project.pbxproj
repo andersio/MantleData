@@ -73,8 +73,8 @@
 		9ACB1FAC1CDC69720010555B /* ReactiveSetEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FA91CDC69720010555B /* ReactiveSetEvent.swift */; };
 		9ACB1FAD1CDC69720010555B /* ReactiveSetIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAA1CDC69720010555B /* ReactiveSetIndex.swift */; };
 		9ACB1FAE1CDC69720010555B /* ReactiveSetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAB1CDC69720010555B /* ReactiveSetSection.swift */; };
-		9ACB1FB11CDC698A0010555B /* NSIndexPath+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAF1CDC698A0010555B /* NSIndexPath+Extension.swift */; };
-		9ACB1FB21CDC698A0010555B /* NSIndexPath+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAF1CDC698A0010555B /* NSIndexPath+Extension.swift */; };
+		9ACB1FB11CDC698A0010555B /* Foundation+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */; };
+		9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */; };
 		9ACB1FB31CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */; };
 		9ACB1FB41CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */; };
 		9ACB1FB51CDC69A20010555B /* ReactiveSetEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FA91CDC69720010555B /* ReactiveSetEvent.swift */; };
@@ -144,7 +144,7 @@
 		9ACB1FA91CDC69720010555B /* ReactiveSetEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveSetEvent.swift; path = MantleData/ReactiveSetEvent.swift; sourceTree = "<group>"; };
 		9ACB1FAA1CDC69720010555B /* ReactiveSetIndex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveSetIndex.swift; path = MantleData/ReactiveSetIndex.swift; sourceTree = "<group>"; };
 		9ACB1FAB1CDC69720010555B /* ReactiveSetSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveSetSection.swift; path = MantleData/ReactiveSetSection.swift; sourceTree = "<group>"; };
-		9ACB1FAF1CDC698A0010555B /* NSIndexPath+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSIndexPath+Extension.swift"; path = "MantleData/NSIndexPath+Extension.swift"; sourceTree = "<group>"; };
+		9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Foundation+Extension.swift"; path = "MantleData/Foundation+Extension.swift"; sourceTree = "<group>"; };
 		9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "StdlibCollections+Extension.swift"; path = "MantleData/StdlibCollections+Extension.swift"; sourceTree = "<group>"; };
 		9AE9C0EB1C1186A800A3D1F3 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../ReactiveCocoa/ReactiveCocoa/build/Debug-iphoneos/ReactiveCocoa.framework"; sourceTree = "<group>"; };
 		9AE9C0ED1C1186AF00A3D1F3 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../ReactiveCocoa/ReactiveCocoa/Carthage/Checkouts/Result/build/Debug-iphoneos/Result.framework"; sourceTree = "<group>"; };
@@ -203,7 +203,6 @@
 				9A6F328D1C468BE700F31983 /* Reactive Collection Protocols */,
 				9ACB1FA41CDC645F0010555B /* Reactive Collection Types */,
 				9A3A776C1BC96A1700ADFFE0 /* Objects */,
-				9A3A77701BC96B6C00ADFFE0 /* UIKit Additions */,
 				9A3A776D1BC96AB900ADFFE0 /* Utilities */,
 				9A3A77711BC96BD200ADFFE0 /* Supporting FIles */,
 			);
@@ -244,8 +243,13 @@
 		9A3A776D1BC96AB900ADFFE0 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				9A2997F51C510BDB00801A30 /* NSObject+Bindings.swift */,
+				9A974BAF1CC7B88C00395E2D /* UIKit+Bindings.swift */,
+				9A39A6641BC958E100FC86E1 /* ReactiveView+UIKit.swift */,
+				9A39A65A1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift */,
+				9AEC56F21C92D735000DF9D6 /* UIKit+Additions.swift */,
+				9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */,
 				9A2997EB1C510BB700801A30 /* StdlibCollections+PrivateExtension.swift */,
-				9ACB1FAF1CDC698A0010555B /* NSIndexPath+Extension.swift */,
 				9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */,
 				9A2997F71C510BE900801A30 /* Assertions.swift */,
 				9A2997F81C510BE900801A30 /* Base.swift */,
@@ -254,18 +258,6 @@
 				9A999FD91CD64E3A009AA161 /* PropertyEditor.swift */,
 			);
 			name = Utilities;
-			sourceTree = "<group>";
-		};
-		9A3A77701BC96B6C00ADFFE0 /* UIKit Additions */ = {
-			isa = PBXGroup;
-			children = (
-				9A2997F51C510BDB00801A30 /* NSObject+Bindings.swift */,
-				9A974BAF1CC7B88C00395E2D /* UIKit+Bindings.swift */,
-				9A39A6641BC958E100FC86E1 /* ReactiveView+UIKit.swift */,
-				9A39A65A1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift */,
-				9AEC56F21C92D735000DF9D6 /* UIKit+Additions.swift */,
-			);
-			name = "UIKit Additions";
 			sourceTree = "<group>";
 		};
 		9A3A77711BC96BD200ADFFE0 /* Supporting FIles */ = {
@@ -494,7 +486,7 @@
 				9A0D9A851C76ABD30013C976 /* AnyReactiveSetBox.swift in Sources */,
 				9A0D9A861C76ABD30013C976 /* ArraySet.swift in Sources */,
 				9A0D9A871C76ABD30013C976 /* ArraySetSection.swift in Sources */,
-				9ACB1FB21CDC698A0010555B /* NSIndexPath+Extension.swift in Sources */,
+				9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */,
 				9A0D9A881C76ABD30013C976 /* ReactiveSet.swift in Sources */,
 				9A0D9A891C76ABD30013C976 /* ObjectSet.swift in Sources */,
 				9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
@@ -533,7 +525,7 @@
 				9ACB1FAE1CDC69720010555B /* ReactiveSetSection.swift in Sources */,
 				9A39A6701BC958E100FC86E1 /* ManagedObject+Extension.swift in Sources */,
 				9A2997FB1C510BE900801A30 /* Base.swift in Sources */,
-				9ACB1FB11CDC698A0010555B /* NSIndexPath+Extension.swift in Sources */,
+				9ACB1FB11CDC698A0010555B /* Foundation+Extension.swift in Sources */,
 				9AEC56F31C92D735000DF9D6 /* UIKit+Additions.swift in Sources */,
 				9A2997E71C510BAD00801A30 /* AnyReactiveSetBox.swift in Sources */,
 				9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */,
