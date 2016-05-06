@@ -18,17 +18,6 @@ extension Range where Element: CocoaBridgeable, Element: ForwardIndexType, Eleme
 	}
 }
 
-extension CollectionType where Generator.Element: ReactiveSetSection {
-	internal func index(forName name: ReactiveSetSectionName) -> Index? {
-		for i in indices {
-			if self[i].name == name {
-				return i
-			}
-		}
-		return nil
-	}
-}
-
 public enum BinarySearchResult<Index> {
 	case found(at: Index)
 	case notFound(next: Index)

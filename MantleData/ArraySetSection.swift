@@ -9,12 +9,12 @@
 import Foundation
 import ReactiveCocoa
 
-final public class ArraySetSection<E>: ReactiveSetSection {
+final public class ArraySetSection<E: Equatable> {
 	private var storage: Array<E>
 
 	private let eventObserver: Observer<ReactiveSetEvent, NoError>
 	public let eventProducer: SignalProducer<ReactiveSetEvent, NoError>
-	private var bufferingChanges: [ReactiveSetChanges]?
+	private var bufferingChanges: [ReactiveSetEvent.Changes]?
 
 	internal var disposable: Disposable?
 
@@ -35,7 +35,7 @@ final public class ArraySetSection<E>: ReactiveSetSection {
 		try action()
 
 		if !bufferingChanges!.isEmpty {
-			let changes = ReactiveSetChanges(indexPathsOfDeletedRows: bufferingChanges!.flatMap { $0.indexPathsOfDeletedRows ?? [] },
+			let changes = ReactiveSetEvent.Changes(indexPathsOfDeletedRows: bufferingChanges!.flatMap { $0.indexPathsOfDeletedRows ?? [] },
 				indexPathsOfInsertedRows: bufferingChanges!.flatMap { $0.indexPathsOfInsertedRows ?? [] },
 				indexPathsOfMovedRows: bufferingChanges!.flatMap { $0.indexPathsOfMovedRows ?? [] },
 				indexPathsOfUpdatedRows: bufferingChanges!.flatMap { $0.indexPathsOfUpdatedRows ?? [] })
@@ -46,7 +46,7 @@ final public class ArraySetSection<E>: ReactiveSetSection {
 		bufferingChanges = nil
 	}
 
-	public func pushChanges(changes: ReactiveSetChanges) {
+	public func pushChanges(changes: ReactiveSetEvent.Changes) {
 		if bufferingChanges != nil {
 			bufferingChanges!.append(changes)
 		} else {
@@ -59,9 +59,9 @@ final public class ArraySetSection<E>: ReactiveSetSection {
 	}
 }
 
-extension ArraySetSection: MutableCollectionType {
+extension ArraySetSection: ReactiveSetSection, MutableCollectionType {
 	public typealias Index = Int
-	public typealias Generator = IndexingGenerator<Array<E>>
+	public typealias Generator = AnyReactiveSetSectionIterator<E>
 
 	public var startIndex: Int {
 		return storage.startIndex
@@ -71,8 +71,14 @@ extension ArraySetSection: MutableCollectionType {
 		return storage.endIndex
 	}
 
-	public func generate() -> IndexingGenerator<Array<E>> {
-		return IndexingGenerator(storage)
+	public func generate() -> AnyReactiveSetSectionIterator<E> {
+		var index = storage.startIndex
+		let limit = storage.endIndex
+
+		return AnyReactiveSetSectionIterator {
+			defer { index = index.successor() }
+			return index < limit ? self.storage[index] : nil
+		}
 	}
 
 	public subscript(position: Int) -> E {
@@ -81,7 +87,7 @@ extension ArraySetSection: MutableCollectionType {
 		}
 		set(newValue) {
 			storage[position] = newValue
-			pushChanges(ReactiveSetChanges(indexPathsOfUpdatedRows: [NSIndexPath(index: position)]))
+			pushChanges(ReactiveSetEvent.Changes(indexPathsOfUpdatedRows: [NSIndexPath(index: position)]))
 		}
 	}
 
@@ -157,7 +163,7 @@ extension ArraySetSection: RangeReplaceableCollectionType {
 			let indexPaths = (subRange.startIndex ..< newEndIndex).map {
 				NSIndexPath(index: $0)
 			}
-			let changes = ReactiveSetChanges(indexPathsOfInsertedRows: indexPaths)
+			let changes = ReactiveSetEvent.Changes(indexPathsOfInsertedRows: indexPaths)
 			pushChanges(changes)
 		} else {
 			let replacingEndIndex = min(newEndIndex, subRange.endIndex)
@@ -180,7 +186,7 @@ extension ArraySetSection: RangeReplaceableCollectionType {
 				}
 			}
 
-			let changes = ReactiveSetChanges(indexPathsOfDeletedRows: deletedRows ?? [],
+			let changes = ReactiveSetEvent.Changes(indexPathsOfDeletedRows: deletedRows ?? [],
 				indexPathsOfInsertedRows: insertedRows ?? [],
 				indexPathsOfUpdatedRows: updatedRows)
 

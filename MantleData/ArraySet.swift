@@ -10,12 +10,12 @@ import Foundation
 import ReactiveCocoa
 
 // Root
-final public class ArraySet<E> {
+final public class ArraySet<E: Equatable> {
 	public let eventProducer: SignalProducer<ReactiveSetEvent, NoError>
 	private let eventObserver: Observer<ReactiveSetEvent, NoError>
 
 	private var storage: [ArraySetSection<E>] = []
-	private var bufferingChanges: [ReactiveSetChanges]?
+	private var bufferingChanges: [ReactiveSetEvent.Changes]?
 
 	public required convenience init() {
 		self.init(sectionCount: 0)
@@ -34,7 +34,7 @@ final public class ArraySet<E> {
 		try action()
 
 		if !bufferingChanges!.isEmpty {
-			let changes = ReactiveSetChanges(indexPathsOfDeletedRows: bufferingChanges!.flatMap { $0.indexPathsOfDeletedRows ?? [] },
+			let changes = ReactiveSetEvent.Changes(indexPathsOfDeletedRows: bufferingChanges!.flatMap { $0.indexPathsOfDeletedRows ?? [] },
 				indexPathsOfInsertedRows: bufferingChanges!.flatMap { $0.indexPathsOfInsertedRows ?? [] },
 				indexPathsOfMovedRows: bufferingChanges!.flatMap { $0.indexPathsOfMovedRows ?? [] },
 				indexPathsOfUpdatedRows: bufferingChanges!.flatMap { $0.indexPathsOfUpdatedRows ?? [] },
@@ -47,12 +47,12 @@ final public class ArraySet<E> {
 		bufferingChanges = nil
 	}
 
-	public func pushChanges(changes: ReactiveSetChanges, from section: ArraySetSection<E>? = nil) {
+	public func pushChanges(changes: ReactiveSetEvent.Changes, from section: ArraySetSection<E>? = nil) {
 		var changes = changes
 
 		if let section = section {
 			let index = storage.indexOf(section)!
-			changes = ReactiveSetChanges(appendingIndex: index, changes: changes)
+			changes = ReactiveSetEvent.Changes(appendingIndex: index, changes: changes)
 		}
 
 		if bufferingChanges != nil {
@@ -107,6 +107,16 @@ extension ArraySet: ReactiveSet {
 		set {
 			replaceRange(bounds, with: newValue)
 		}
+	}
+
+	public func sectionName(of object: E) -> ReactiveSetSectionName? {
+		for index in storage.indices {
+			if storage[index].contains(object) {
+				return storage[index].name
+			}
+		}
+
+		return nil
 	}
 }
 
@@ -201,14 +211,14 @@ extension ArraySet: RangeReplaceableCollectionType {
 		register(newElements[newElementsRange], from: replacedSections.startIndex)
 		insertedSections.addIndexesInRange(replacedSections.cocoaValue)
 
-		let changes: ReactiveSetChanges
+		let changes: ReactiveSetEvent.Changes
 
 		if newEndIndex > subRange.endIndex {
 			// Appending after replaced items
 			let rangeForAppendedItems = subRange.endIndex ..< newEndIndex
 
 			insertedSections.addIndexesInRange(rangeForAppendedItems.cocoaValue)
-			changes = ReactiveSetChanges(indiceOfDeletedSections: deletedSections,
+			changes = ReactiveSetEvent.Changes(indiceOfDeletedSections: deletedSections,
 				indiceOfInsertedSections: insertedSections)
 
 			let newElementsRange = newElementsRange.endIndex ..< newElements.endIndex
@@ -218,7 +228,7 @@ extension ArraySet: RangeReplaceableCollectionType {
 			let removingRange = newEndIndex ..< subRange.endIndex
 
 			deletedSections.addIndexesInRange(removingRange.cocoaValue)
-			changes = ReactiveSetChanges(indiceOfDeletedSections: deletedSections,
+			changes = ReactiveSetEvent.Changes(indiceOfDeletedSections: deletedSections,
 				indiceOfInsertedSections: insertedSections)
 
 			dispose(removingRange)

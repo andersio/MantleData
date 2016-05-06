@@ -8,19 +8,11 @@
 
 import ReactiveCocoa
 
-final public class AnyReactiveSet<E> {
+final public class AnyReactiveSet<E: Equatable> {
 	private let set: _AnyReactiveSetBox<E>
 
 	public init<R: ReactiveSet where R.Generator.Element.Generator.Element == E>(_ set: R) {
 		self.set = _AnyReactiveSetBoxBase(set)
-	}
-
-	public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
-		return set.eventProducer
-	}
-
-	public func fetch() throws {
-		try set.fetch()
 	}
 }
 
@@ -56,9 +48,23 @@ extension AnyReactiveSet: ReactiveSet {
 	public subscript(bounds: Range<Index>) -> SubSequence {
 		return set[bounds]
 	}
+
+	// ReactiveSet
+
+	public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
+		return set.eventProducer
+	}
+
+	public func fetch() throws {
+		try set.fetch()
+	}
+
+	public func sectionName(of object: E) -> ReactiveSetSectionName? {
+		return set.sectionName(of: object)
+	}
 }
 
-public struct AnyReactiveSetSection<E> {
+public struct AnyReactiveSetSection<E: Equatable> {
 	public let name: ReactiveSetSectionName
 	private let storage: _AnyReactiveSetSectionBox<E>
 
@@ -70,7 +76,7 @@ public struct AnyReactiveSetSection<E> {
 
 extension AnyReactiveSetSection: ReactiveSetSection {
 	public typealias Index = AnyReactiveSetIndex
-	public typealias Generator = AnyGenerator<E>
+	public typealias Generator = AnyReactiveSetSectionIterator<E>
 	public typealias SubSequence = AnyReactiveSetSectionSlice<E>
 
 	// Indexable
@@ -104,7 +110,7 @@ public func == <Entity>(left: AnyReactiveSetSection<Entity>, right: AnyReactiveS
 	return left.name == right.name
 }
 
-public struct AnyReactiveSetSlice<E>: CollectionType {
+public struct AnyReactiveSetSlice<E: Equatable>: CollectionType {
 	public typealias _Element = AnyReactiveSetSection<E>
 
 	public typealias Index = AnyReactiveSetIndex
@@ -151,7 +157,7 @@ public struct AnyReactiveSetSlice<E>: CollectionType {
 }
 
 
-public struct AnyReactiveSetSectionSlice<E>: CollectionType {
+public struct AnyReactiveSetSectionSlice<E: Equatable>: CollectionType {
 	public typealias Index = AnyReactiveSetIndex
 	public typealias Generator = AnyGenerator<E>
 	public typealias SubSequence = AnyReactiveSetSectionSlice<E>
