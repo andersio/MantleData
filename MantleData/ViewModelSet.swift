@@ -14,7 +14,7 @@ public final class ViewModelSet<U: ViewModel>: Base {
   private let set: _AnyReactiveSetBox<U.MappingObject>
 	private let factory: U.MappingObject -> U
   
-  public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
+  public var eventProducer: SignalProducer<ReactiveSetEvent<AnyReactiveSetIndex, AnyReactiveSetIndex>, NoError> {
 		return set.eventProducer
   }
 
@@ -49,7 +49,7 @@ public final class ViewModelSet<U: ViewModel>: Base {
   }
 
 	public subscript(indexPath: NSIndexPath) -> U {
-    let model = set[indexPath]
+		let model = set[AnyReactiveSetIndex(converting: indexPath.section), row: AnyReactiveSetIndex(converting: indexPath.row)]
     let viewModel = factory(model)
     return viewModel
   }

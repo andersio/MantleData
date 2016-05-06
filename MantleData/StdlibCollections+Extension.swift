@@ -21,23 +21,6 @@ extension CollectionType where Generator.Element: OptionalType, Generator.Elemen
 	}
 }
 
-extension CollectionType where Generator.Element == NSIndexPath {
-	public func mapped(prependingIndex index: Int) -> [Generator.Element] {
-		return map {
-			NSIndexPath($0, prepending: index)
-		}
-	}
-}
-
-extension CollectionType where Generator.Element == (NSIndexPath, NSIndexPath) {
-	public func mapped(prependingIndex index: Int) -> [Generator.Element] {
-		return map {
-			(NSIndexPath($0.0, prepending: index), NSIndexPath($0.1, prepending: index))
-		}
-	}
-}
-
-
 extension Range where Element: CocoaBridgeable, Element: ForwardIndexType, Element.Distance: CocoaBridgeable {
 	public var cocoaValue: NSRange {
 		return NSRange(location: Int(cocoaValue: startIndex.cocoaValue),

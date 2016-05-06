@@ -15,8 +15,34 @@ final internal class _AnyReactiveSetBoxBase<R: ReactiveSet>: _AnyReactiveSetBox<
 		self.set = set
 	}
 
-	override var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
-		return set.eventProducer
+	override var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
+		return set.eventProducer.map { event in
+			switch event {
+			case .reloaded:
+				return .reloaded
+
+			case let .updated(changes):
+				let insertedRows: [ReactiveSetIndexPath<AnyReactiveSetIndex, AnyReactiveSetIndex>]? = changes.insertedRows?.map { $0.typeErased() }
+				let deletedRows = changes.deletedRows?.map { $0.typeErased() }
+				let movedRows = changes.movedRows?.map { (from: $0.0.typeErased(), to: $0.1.typeErased()) }
+				let updatedRows = changes.updatedRows?.map { $0.typeErased() }
+				let insertedSections = changes.insertedSections?.map { AnyReactiveSetIndex(converting: $0) }
+				let deletedSections = changes.deletedSections?.map { AnyReactiveSetIndex(converting: $0) }
+				let reloadedSections = changes.reloadedSections?.map { AnyReactiveSetIndex(converting: $0) }
+
+				let mappedChanges: ReactiveSetChanges<AnyReactiveSetIndex, AnyReactiveSetIndex>
+
+				mappedChanges = ReactiveSetChanges(insertedRows: insertedRows,
+					deletedRows: deletedRows,
+					movedRows: movedRows,
+					updatedRows: updatedRows,
+					insertedSections: insertedSections,
+					deletedSections: deletedSections,
+					reloadedSections: reloadedSections)
+
+				return ReactiveSetEvent.updated(mappedChanges)
+			}
+		}
 	}
 
 	override func fetch() throws {
@@ -86,7 +112,7 @@ internal class _AnyReactiveSetBox<E: Equatable>: ReactiveSet {
 
 	// ReactiveSet
 
-	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
+	var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
 		_abstractMethod_subclassMustImplement()
 	}
 

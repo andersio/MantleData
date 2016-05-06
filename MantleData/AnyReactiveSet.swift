@@ -51,7 +51,7 @@ extension AnyReactiveSet: ReactiveSet {
 
 	// ReactiveSet
 
-	public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
+	public var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
 		return set.eventProducer
 	}
 

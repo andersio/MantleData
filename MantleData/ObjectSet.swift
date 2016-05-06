@@ -22,6 +22,8 @@ import CoreData
 ///
 /// - Warning:	 This class is not thread-safe. Use it only in the associated NSManagedObjectContext.
 final public class ObjectSet<E: NSManagedObject>: Base {
+	private typealias _IndexPath = ReactiveSetIndexPath<Index, Generator.Element.Index>
+
 	public let fetchRequest: NSFetchRequest
 	public let entity: NSEntityDescription
 
@@ -43,8 +45,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	// An ObjectSet retains the managed object context.
 	private(set) public weak var context: NSManagedObjectContext!
 
-	private var eventSignal = Atomic<Signal<ReactiveSetEvent, NoError>?>(nil)
-	private var eventObserver: Observer<ReactiveSetEvent, NoError>? = nil {
+	private var eventSignal = Atomic<Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>?>(nil)
+	private var eventObserver: Observer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>? = nil {
 		willSet {
 			if eventObserver == nil && newValue != nil {
 				NSNotificationCenter.defaultCenter().addObserver(self,
@@ -65,16 +67,16 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		}
 	}
 
-	public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
+	public var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
 		return SignalProducer { observer, disposable in
-			var _signal: Signal<ReactiveSetEvent, NoError>!
+			var _signal: Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>!
 
 			self.eventSignal.modify { oldValue in
 				if let oldValue = oldValue {
 					_signal = oldValue
 					return oldValue
 				} else {
-					let (signal, observer) = Signal<ReactiveSetEvent, NoError>.pipe()
+					let (signal, observer) = Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>.pipe()
 					self.eventObserver = observer
 					_signal = signal
 					return signal
@@ -125,7 +127,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	public func fetch() throws {
 		func completionBlock(result: NSAsynchronousFetchResult) {
 			self.sectionize(using: result.finalResult as? [E] ?? [])
-			eventObserver?.sendNext(.Reloaded)
+			eventObserver?.sendNext(.reloaded)
 		}
 
 		context.performBlock {
@@ -388,15 +390,15 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		var inPlaceMovingObjects = sectionSnapshots.indices.map { _ in Set<E>() }
 		var deletingIndexPaths = (0 ..< sectionSnapshots.count).map { _ in [Int]() }
 
-		var originOfSectionChangedObjects = [E: NSIndexPath](minimumCapacity: sectionChangedObjectsCount)
-		var originOfMovedObjects = [E: NSIndexPath](minimumCapacity: sortOrderAffectingObjectsCount)
+		var originOfSectionChangedObjects = [E: _IndexPath](minimumCapacity: sectionChangedObjectsCount)
+		var originOfMovedObjects = [E: _IndexPath](minimumCapacity: sortOrderAffectingObjectsCount)
 
-		var indexPathsOfInsertedRows = [NSIndexPath]()
-		var indexPathsOfUpdatedRows = [NSIndexPath]()
-		var indexPathsOfMovedRows = [(NSIndexPath, NSIndexPath)]()
+		var indexPathsOfInsertedRows = [_IndexPath]()
+		var indexPathsOfUpdatedRows = [_IndexPath]()
+		var indexPathsOfMovedRows = [(from: _IndexPath, to: _IndexPath)]()
 
-		let indiceOfDeletedSections = NSMutableIndexSet()
-		let indiceOfInsertedSections = NSMutableIndexSet()
+		var indiceOfDeletedSections = [Index]()
+		var indiceOfInsertedSections = [Index]()
 
 		indexPathsOfInsertedRows.reserveCapacity(insertedObjectsCount)
 		indexPathsOfUpdatedRows.reserveCapacity(updatedObjectsCount)
@@ -405,9 +407,9 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		/// MARK: Handle deletions.
 
 		var indexPathsOfDeletedRows = deletedObjects.enumerate().flatMap { (sectionIndex, indice) in
-			return indice.map { objectIndex -> NSIndexPath in
+			return indice.map { objectIndex -> _IndexPath in
 				deletingIndexPaths.orderedInsert(objectIndex, toCollectionAt: sectionIndex, ascending: false)
-				return NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
+				return _IndexPath(section: sectionIndex, row: objectIndex)
 			}
 		}
 
@@ -420,7 +422,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 				deletingIndexPaths.orderedInsert(objectIndex, toCollectionAt: previousSectionIndex, ascending: false)
 
-				let indexPath = NSIndexPath(forRow: objectIndex, inSection: previousSectionIndex)
+				let indexPath = ReactiveSetIndexPath(section: previousSectionIndex, row: objectIndex)
 				originOfSectionChangedObjects[object] = indexPath
 
 				let newSectionName = _sectionName(of: object)
@@ -437,7 +439,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 				deletingIndexPaths.orderedInsert(objectIndex, toCollectionAt: previousSectionIndex, ascending: false)
 
-				let indexPath = NSIndexPath(forRow: objectIndex, inSection: previousSectionIndex)
+				let indexPath = ReactiveSetIndexPath(section: previousSectionIndex, row: objectIndex)
 				originOfMovedObjects[object] = indexPath
 
 				inPlaceMovingObjects.insert(object, intoSetAt: previousSectionIndex)
@@ -453,7 +455,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		for index in sections.indices.reverse() {
 			if sections[index].count == 0 && inPlaceMovingObjects[index].count == 0 {
 				sections.removeAtIndex(index)
-				indiceOfDeletedSections.addIndex(index)
+				indiceOfDeletedSections.append(index)
 			}
 		}
 
@@ -470,7 +472,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 				                            name: name,
 				                            ordering: sectionNameOrdering)
 
-				indiceOfInsertedSections.addIndex(index)
+				indiceOfInsertedSections.append(index)
 			}
 		}
 
@@ -499,20 +501,20 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 			for (objectIndex, object) in sections[sectionIndex].enumerate() {
 				if !shouldExcludeUpdatedRows, let oldSectionIndex = previousSectionIndex where updatedObjects[oldSectionIndex].contains(object) {
-					let indexPath = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
+					let indexPath = _IndexPath(section: sectionIndex, row: objectIndex)
 					indexPathsOfUpdatedRows.append(indexPath)
 					continue
 				}
 
 				if insertedObjects.contains(object) {
-					let indexPath = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
+					let indexPath = _IndexPath(section: sectionIndex, row: objectIndex)
 					indexPathsOfInsertedRows.append(indexPath)
 					continue
 				}
 
 				if let indexPath = originOfMovedObjects[object] {
 					let from = indexPath
-					let to = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
+					let to = _IndexPath(section: sectionIndex, row: objectIndex)
 					indexPathsOfMovedRows.append((from, to))
 
 					continue
@@ -523,7 +525,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 					if indiceOfDeletedSections.contains(origin.section) {
 						/// The originated section no longer exists, treat it as an inserted row.
-						let indexPath = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
+						let indexPath = _IndexPath(section: sectionIndex, row: objectIndex)
 						indexPathsOfInsertedRows.append(indexPath)
 						continue
 					}
@@ -533,21 +535,22 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 						continue
 					}
 
-					let to = NSIndexPath(forRow: objectIndex, inSection: sectionIndex)
+					let to = _IndexPath(section: sectionIndex, row: objectIndex)
 					indexPathsOfMovedRows.append((origin, to))
 					continue
 				}
 			}
 		}
 
-		let resultSetChanges = ReactiveSetEvent.Changes(indexPathsOfDeletedRows: indexPathsOfDeletedRows,
-		                                                indexPathsOfInsertedRows: indexPathsOfInsertedRows,
-		                                                indexPathsOfMovedRows: indexPathsOfMovedRows,
-		                                                indexPathsOfUpdatedRows: indexPathsOfUpdatedRows,
-		                                                indiceOfInsertedSections: indiceOfInsertedSections,
-		                                                indiceOfDeletedSections: indiceOfDeletedSections)
+		let resultSetChanges: ReactiveSetChanges<Index, Generator.Element.Index>
+		resultSetChanges = ReactiveSetChanges(insertedRows: indexPathsOfInsertedRows,
+		                                      deletedRows: indexPathsOfDeletedRows,
+		                                      movedRows: indexPathsOfMovedRows,
+		                                      updatedRows: indexPathsOfUpdatedRows,
+		                                      insertedSections: indiceOfInsertedSections,
+		                                      deletedSections: indiceOfDeletedSections)
 
-		eventObserver.sendNext(.Updated(resultSetChanges))
+		eventObserver.sendNext(.updated(resultSetChanges))
 	}
 
 	deinit {

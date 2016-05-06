@@ -12,9 +12,8 @@ import ReactiveCocoa
 final public class ArraySetSection<E: Equatable> {
 	private var storage: Array<E>
 
-	private let eventObserver: Observer<ReactiveSetEvent, NoError>
-	public let eventProducer: SignalProducer<ReactiveSetEvent, NoError>
-	private var bufferingChanges: [ReactiveSetEvent.Changes]?
+	private let eventObserver: Observer<ArraySetSectionEvent<Index>, NoError>
+	internal let eventProducer: SignalProducer<ArraySetSectionEvent<Index>, NoError>
 
 	internal var disposable: Disposable?
 
@@ -27,31 +26,11 @@ final public class ArraySetSection<E: Equatable> {
 	}
 
 	public func fetch() throws {
-		eventObserver.sendNext(.Reloaded)
+		eventObserver.sendNext(.reloaded)
 	}
 
-	public func modify(@noescape action: () throws -> Void) rethrows {
-		bufferingChanges = []
-		try action()
-
-		if !bufferingChanges!.isEmpty {
-			let changes = ReactiveSetEvent.Changes(indexPathsOfDeletedRows: bufferingChanges!.flatMap { $0.indexPathsOfDeletedRows ?? [] },
-				indexPathsOfInsertedRows: bufferingChanges!.flatMap { $0.indexPathsOfInsertedRows ?? [] },
-				indexPathsOfMovedRows: bufferingChanges!.flatMap { $0.indexPathsOfMovedRows ?? [] },
-				indexPathsOfUpdatedRows: bufferingChanges!.flatMap { $0.indexPathsOfUpdatedRows ?? [] })
-
-			eventObserver.sendNext(.Updated(changes))
-		}
-
-		bufferingChanges = nil
-	}
-
-	public func pushChanges(changes: ReactiveSetEvent.Changes) {
-		if bufferingChanges != nil {
-			bufferingChanges!.append(changes)
-		} else {
-			eventObserver.sendNext(.Updated(changes))
-		}
+	internal func pushChanges(changes: ArraySetSectionChanges<Index>) {
+		eventObserver.sendNext(.updated(changes))
 	}
 
 	deinit {
@@ -87,7 +66,7 @@ extension ArraySetSection: ReactiveSetSection, MutableCollectionType {
 		}
 		set(newValue) {
 			storage[position] = newValue
-			pushChanges(ReactiveSetEvent.Changes(indexPathsOfUpdatedRows: [NSIndexPath(index: position)]))
+			pushChanges(ArraySetSectionChanges(updatedRows: [position]))
 		}
 	}
 
@@ -160,35 +139,26 @@ extension ArraySetSection: RangeReplaceableCollectionType {
 
 		if subRange.count == 0 {
 			// Appending at subRange.startIndex, No Replacing & Deletion
-			let indexPaths = (subRange.startIndex ..< newEndIndex).map {
-				NSIndexPath(index: $0)
-			}
-			let changes = ReactiveSetEvent.Changes(indexPathsOfInsertedRows: indexPaths)
+			let changes = ArraySetSectionChanges(insertedRows: Array(subRange.startIndex ..< newEndIndex))
 			pushChanges(changes)
 		} else {
 			let replacingEndIndex = min(newEndIndex, subRange.endIndex)
-			let updatedRows = (subRange.startIndex ..< replacingEndIndex).map {
-				NSIndexPath(index: $0)
-			}
+			let updatedRows = Array(subRange.startIndex ..< replacingEndIndex)
 
-			var insertedRows: [NSIndexPath]?
-			var deletedRows: [NSIndexPath]?
+			var insertedRows: [Int]?
+			var deletedRows: [Int]?
 
 			if newEndIndex > subRange.endIndex {
 				// Appending after replaced items
-				insertedRows = (subRange.endIndex ..< newEndIndex).map {
-					NSIndexPath(index: $0)
-				}
+				insertedRows = Array(subRange.endIndex ..< newEndIndex)
 			} else {
 				// Deleting after replaced items
-				deletedRows = (newEndIndex ..< subRange.endIndex).map {
-					NSIndexPath(index: $0)
-				}
+				deletedRows = Array(newEndIndex ..< subRange.endIndex)
 			}
 
-			let changes = ReactiveSetEvent.Changes(indexPathsOfDeletedRows: deletedRows ?? [],
-				indexPathsOfInsertedRows: insertedRows ?? [],
-				indexPathsOfUpdatedRows: updatedRows)
+			let changes = ArraySetSectionChanges(insertedRows: insertedRows,
+			                                     deletedRows: deletedRows,
+			                                     updatedRows: updatedRows)
 
 			pushChanges(changes)
 		}
@@ -203,4 +173,32 @@ extension ArraySetSection: Equatable {}
 
 public func ==<E>(lhs: ArraySetSection<E>, rhs: ArraySetSection<E>) -> Bool {
 	return lhs === rhs
+}
+
+internal enum ArraySetSectionEvent<Index: ReactiveSetIndex> {
+	case reloaded
+	case updated(ArraySetSectionChanges<Index>)
+}
+
+internal struct ArraySetSectionChanges<Index: ReactiveSetIndex> {
+	var insertedRows: [Index]? = nil
+	var deletedRows: [Index]? = nil
+	var movedRows: [(from: Index, to: Index)]? = nil
+	var updatedRows: [Index]? = nil
+
+	init(insertedRows: [Index]? = nil, deletedRows: [Index]? = nil, movedRows: [(from: Index, to: Index)]? = nil, updatedRows: [Index]? = nil) {
+		self.insertedRows = insertedRows
+		self.deletedRows = deletedRows
+		self.movedRows = movedRows
+		self.updatedRows = updatedRows
+	}
+
+	func reactiveSetChanges<SectionIndex: ReactiveSetIndex>(for sectionIndex: SectionIndex) -> ReactiveSetChanges<SectionIndex, Index> {
+		var changes = ReactiveSetChanges<SectionIndex, Index>()
+		changes.insertedRows = insertedRows?.map { ReactiveSetIndexPath<SectionIndex, Index>(section: sectionIndex, row: $0) }
+		changes.deletedRows = deletedRows?.map { ReactiveSetIndexPath<SectionIndex, Index>(section: sectionIndex, row: $0) }
+		changes.updatedRows = updatedRows?.map { ReactiveSetIndexPath<SectionIndex, Index>(section: sectionIndex, row: $0) }
+		changes.movedRows = movedRows?.map { (ReactiveSetIndexPath<SectionIndex, Index>(section: sectionIndex, row: $0.from), ReactiveSetIndexPath<SectionIndex, Index>(section: sectionIndex, row: $0.to)) }
+		return changes
+	}
 }
