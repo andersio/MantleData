@@ -1,5 +1,5 @@
 //
-//  Object.swift
+//  ManagedObject+Extension.swift
 //  MantleData
 //
 //  Created by Anders on 9/10/2015.

@@ -1,5 +1,5 @@
 //
-//  ReactiveSet+SupportingTypes.swift
+//  ReactiveSetIndex.swift
 //  MantleData
 //
 //  Created by Anders on 6/5/2016.

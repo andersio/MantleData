@@ -1,5 +1,5 @@
 //
-//  ArraySet.swift
+//  ArraySetSection.swift
 //  MantleData
 //
 //  Created by Anders on 13/1/2016.

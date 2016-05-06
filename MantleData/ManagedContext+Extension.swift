@@ -1,5 +1,5 @@
 //
-//  ObjectContext.swift
+//  ManagedContext+Extension.swift
 //  MantleData
 //
 //  Created by Anders on 11/10/2015.

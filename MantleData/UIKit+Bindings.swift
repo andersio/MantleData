@@ -1,5 +1,5 @@
 //
-//  UIKitBindings+iOS.swift
+//  UIKit+Bindings.swift
 //  MantleData
 //
 //  Created by Anders on 10/3/2016.
