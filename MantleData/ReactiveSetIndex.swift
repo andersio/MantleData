@@ -37,44 +37,48 @@ public func < <SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>
 
 public protocol ReactiveSetIndex: RandomAccessIndexType {
 	init<I: ReactiveSetIndex>(converting: I)
-	func toIntMax() -> IntMax
+	func toInt() -> Int
 }
 
 extension Int: ReactiveSetIndex {
 	public init<I: ReactiveSetIndex>(converting index: I) {
-		self = Int(index.toIntMax())
+		self = Int(index.toInt())
+	}
+
+	public func toInt() -> Int {
+		return self
 	}
 }
 
 public struct AnyReactiveSetIndex: ReactiveSetIndex {
-	public typealias Distance = IntMax
-	public let intMaxValue: Distance
+	public typealias Distance = Int
+	public let intValue: Distance
 
 	public init(_ base: Distance) {
-		intMaxValue = base
+		intValue = base
 	}
 
-	public func toIntMax() -> IntMax {
-		return intMaxValue
+	public func toInt() -> Int {
+		return intValue
 	}
 
 	public init<I: ReactiveSetIndex>(converting anotherIndex: I) {
-		intMaxValue = anotherIndex.toIntMax()
+		intValue = anotherIndex.toInt()
 	}
 
 	public func successor() -> AnyReactiveSetIndex {
-		return AnyReactiveSetIndex(intMaxValue + 1)
+		return AnyReactiveSetIndex(intValue + 1)
 	}
 
 	public func predecessor() -> AnyReactiveSetIndex {
-		return AnyReactiveSetIndex(intMaxValue - 1)
+		return AnyReactiveSetIndex(intValue - 1)
 	}
 
 	public func advancedBy(n: Distance) -> AnyReactiveSetIndex {
-		return AnyReactiveSetIndex(intMaxValue + n)
+		return AnyReactiveSetIndex(intValue + n)
 	}
 
 	public func distanceTo(end: AnyReactiveSetIndex) -> Distance {
-		return end.intMaxValue - intMaxValue
+		return end.intValue - intValue
 	}
 }

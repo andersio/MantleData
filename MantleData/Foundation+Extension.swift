@@ -26,7 +26,7 @@ import Foundation
 
 extension NSIndexPath {
 	public convenience init<SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>(converting indexPath: ReactiveSetIndexPath<SectionIndex, RowIndex>) {
-		self.init(forRow: Int(indexPath.row.toIntMax()), inSection: Int(indexPath.section.toIntMax()))
+		self.init(forRow: indexPath.row.toInt(), inSection: indexPath.section.toInt())
 	}
 }
 
@@ -34,7 +34,7 @@ extension NSMutableIndexSet {
 	public convenience init<Index: ReactiveSetIndex>(converting indices: [Index]) {
 		self.init()
 		for index in indices {
-			self.addIndex(Int(index.toIntMax()))
+			self.addIndex(index.toInt())
 		}
 	}
 }
