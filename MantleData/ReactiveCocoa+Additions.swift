@@ -8,13 +8,6 @@
 
 import ReactiveCocoa
 
-extension PropertyType {
-	public func map<T>(transform: Value -> T) -> AnyProperty<T> {
-		return AnyProperty<T>(initialValue: transform(value),
-		                   producer: producer.map(transform))
-	}
-}
-
 extension Observer {
 	public func sendCompleted(with finalValue: Value) {
 		sendNext(finalValue)
