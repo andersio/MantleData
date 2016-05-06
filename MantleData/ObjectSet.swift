@@ -187,10 +187,11 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		objectCache.removeValueForKey(object)
 	}
 
-	private func sectionName(from object: E) -> ReactiveSetSectionName {
+	private func _sectionName(of object: E) -> ReactiveSetSectionName {
 		if let keyPath = self.sectionNameKeyPath {
 			return ReactiveSetSectionName(converting: object.valueForKeyPath(keyPath))
 		}
+
 		return ReactiveSetSectionName()
 	}
 
@@ -264,7 +265,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 						sectionName = ReactiveSetSectionName()
 					}
 
-					if let index = sections.index(forName: sectionName) {
+					if let index = indexOfSection(with: sectionName) {
 						if let objectIndex = sections[index].index(of: object,
 																											 using: objectSortDescriptors,
 																											 with: objectCache) {
@@ -298,7 +299,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 						sectionName = ReactiveSetSectionName()
 					}
 
-					if let index = sections.index(forName: sectionName) {
+					if let index = indexOfSection(with: sectionName) {
 						/// Use binary search, but compare against the previous values dictionary.
 						if let objectIndex = sections[index].index(of: object,
 																											 using: objectSortDescriptors,
@@ -314,10 +315,10 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 					if let sectionNameKeyPath = sectionNameKeyPath {
 						let previousSectionName = ReactiveSetSectionName(converting: objectCache[cacheIndex].1[sectionNameKeyPath])
-						currentSectionName = sectionName(from: object)
+						currentSectionName = _sectionName(of: object)
 
 						guard previousSectionName == currentSectionName else {
-							guard let previousSectionIndex = sectionSnapshots.index(forName: currentSectionName) else {
+							guard let previousSectionIndex = sectionSnapshots.indexOfSection(with: currentSectionName) else {
 								preconditionFailure("current section name is supposed to exist, but not found.")
 							}
 
@@ -329,7 +330,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 						currentSectionName = ReactiveSetSectionName()
 					}
 
-					guard let currentSectionIndex = sections.index(forName: currentSectionName) else {
+					guard let currentSectionIndex = indexOfSection(with: currentSectionName) else {
 						preconditionFailure("current section name is supposed to exist, but not found.")
 					}
 
@@ -343,7 +344,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 						updatedObjects.insert(object, intoSetAt: currentSectionIndex)
 					}
 				} else {
-					let currentSectionName = sectionName(from: object)
+					let currentSectionName = _sectionName(of: object)
 					insertedObjects.insert(object, intoSetOfKey: currentSectionName)
 					updateCache(for: object)
 					continue
@@ -354,7 +355,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		if let _insertedObjects = userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject> {
 			for object in _insertedObjects {
 				if let object = qualifyingObject(object) {
-					let name = sectionName(from: object)
+					let name = _sectionName(of: object)
 					insertedObjects.insert(object, intoSetOfKey: name)
 					updateCache(for: object)
 				}
@@ -422,7 +423,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 				let indexPath = NSIndexPath(forRow: objectIndex, inSection: previousSectionIndex)
 				originOfSectionChangedObjects[object] = indexPath
 
-				let newSectionName = sectionName(from: object)
+				let newSectionName = _sectionName(of: object)
 				inboundObjects.insert(object, intoSetOfKey: newSectionName)
 			}
 		}
@@ -459,7 +460,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		/// MARK: Handle insertions.
 
 		func insert(objects: Set<E>, intoSectionFor name: ReactiveSetSectionName) {
-			if let sectionIndex = sections.index(forName: name) {
+			if let sectionIndex = indexOfSection(with: name) {
 				for object in objects {
 					sections[sectionIndex].insert(object, using: objectSortDescriptors)
 				}
@@ -485,7 +486,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 		for sectionIndex in sections.indices {
 			let sectionName = sections[sectionIndex].name
-			let previousSectionIndex = sectionSnapshots.index(forName: sectionName)
+			let previousSectionIndex = sectionSnapshots.indexOfSection(with: sectionName)
 
 			if let previousSectionIndex = previousSectionIndex {
 				for object in inPlaceMovingObjects[previousSectionIndex] {
@@ -539,12 +540,12 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			}
 		}
 
-		let resultSetChanges = ReactiveSetChanges(indexPathsOfDeletedRows: indexPathsOfDeletedRows,
-		                                          indexPathsOfInsertedRows: indexPathsOfInsertedRows,
-		                                          indexPathsOfMovedRows: indexPathsOfMovedRows,
-		                                          indexPathsOfUpdatedRows: indexPathsOfUpdatedRows,
-		                                          indiceOfInsertedSections: indiceOfInsertedSections,
-		                                          indiceOfDeletedSections: indiceOfDeletedSections)
+		let resultSetChanges = ReactiveSetEvent.Changes(indexPathsOfDeletedRows: indexPathsOfDeletedRows,
+		                                                indexPathsOfInsertedRows: indexPathsOfInsertedRows,
+		                                                indexPathsOfMovedRows: indexPathsOfMovedRows,
+		                                                indexPathsOfUpdatedRows: indexPathsOfUpdatedRows,
+		                                                indiceOfInsertedSections: indiceOfInsertedSections,
+		                                                indiceOfDeletedSections: indiceOfDeletedSections)
 
 		eventObserver.sendNext(.Updated(resultSetChanges))
 	}
@@ -577,13 +578,11 @@ extension ObjectSet: ReactiveSet {
 
 	public func generate() -> AnyReactiveSetIterator<ObjectSetSection<E>> {
 		var index = startIndex
+		let limit = endIndex
+
 		return AnyReactiveSetIterator {
-			if index < self.endIndex {
-				defer { index = index.successor() }
-				return self[index]
-			} else {
-				return nil
-			}
+			defer { index = index.successor() }
+			return index < limit ? self[index] : nil
 		}
 	}
 
@@ -591,6 +590,10 @@ extension ObjectSet: ReactiveSet {
 
 	public subscript(bounds: Range<Int>) -> ArraySlice<ObjectSetSection<E>> {
 		return sections[bounds]
+	}
+
+	public func sectionName(of object: E) -> ReactiveSetSectionName? {
+		return _sectionName(of: object)
 	}
 }
 
@@ -617,6 +620,9 @@ public struct ObjectSetSection<E: NSManagedObject> {
 }
 
 extension ObjectSetSection: ReactiveSetSection {
+	public typealias Generator = AnyReactiveSetSectionIterator<E>
+	public typealias Index = Int
+
 	public var startIndex: Int {
 		return storage.startIndex
 	}
@@ -628,6 +634,16 @@ extension ObjectSetSection: ReactiveSetSection {
 	public subscript(index: Int) -> E {
 		get { return storage[index] }
 		set { storage[index] = newValue }
+	}
+
+	public func generate() -> AnyReactiveSetSectionIterator<E> {
+		var index = startIndex
+		let limit = endIndex
+
+		return AnyReactiveSetSectionIterator {
+			defer { index = index.successor() }
+			return index < limit ? self[index] : nil
+		}
 	}
 }
 

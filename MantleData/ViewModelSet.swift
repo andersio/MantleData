@@ -34,7 +34,8 @@ public final class ViewModelSet<U: ViewModel>: Base {
   }
 
   public func numberOfRows(for sectionIndex: Int) -> Int {
-    return Int(set[sectionIndex].count)
+		let index = AnyReactiveSetIndex(converting: sectionIndex)
+    return Int(set[index].count)
   }
 
 	public func fetch() throws {
@@ -42,7 +43,8 @@ public final class ViewModelSet<U: ViewModel>: Base {
 	}
 
   public func sectionName(for sectionIndex: Int) -> String? {
-		let sectionName = set[sectionIndex].name
+		let index = AnyReactiveSetIndex(converting: sectionIndex)
+		let sectionName = set[index].name
 		return sectionNameTransform?(sectionIndex, sectionName) ?? sectionName.value
   }
 
