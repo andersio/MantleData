@@ -6,13 +6,17 @@
 //  Copyright © 2015 Ik ben anders. All rights reserved.
 //
 
-import Foundation
 import ReactiveCocoa
 
-public final class ViewModelSet<U: ViewModel>: Base {
-	public var sectionNameTransform: ((Int, ReactiveSetSectionName) -> String?)?
+/// `ViewModelSet` is a type-erased collection view to a `ReactiveSet` implementation, which
+/// maps view models of type `U` from the underlying set of `U.MappingObject` objects.
+///
+/// - Note: Due to the one-way mapping requirement, `ViewModelSet` cannot conform to `ReactiveSet`.
+
+public final class ViewModelSet<U: ViewModel> {
+	internal var sectionNameMapper: (ReactiveSetSectionName -> ReactiveSetSectionName)?
   private let set: _AnyReactiveSetBox<U.MappingObject>
-	private let factory: U.MappingObject -> U
+	internal let factory: U.MappingObject -> U
   
   public var eventProducer: SignalProducer<ReactiveSetEvent<AnyReactiveSetIndex, AnyReactiveSetIndex>, NoError> {
 		return set.eventProducer
@@ -21,36 +25,40 @@ public final class ViewModelSet<U: ViewModel>: Base {
 	public init<R: ReactiveSet where R.Generator.Element.Generator.Element == U.MappingObject>(_ set: R, factory: U.MappingObject -> U) {
     self.set = _AnyReactiveSetBoxBase(set)
 		self.factory = factory
-
-    super.init()
 	}
-
-	public var numberOfObjects: Int {
-		return set.reduce(0, combine: { $0 + Int($1.count) })
-	}
-
-  public var numberOfSections: Int {
-    return Int(set.count)
-  }
-
-  public func numberOfRows(for sectionIndex: Int) -> Int {
-		let index = AnyReactiveSetIndex(converting: sectionIndex)
-    return Int(set[index].count)
-  }
 
 	public func fetch() throws {
 		try set.fetch()
 	}
 
-  public func sectionName(for sectionIndex: Int) -> String? {
-		let index = AnyReactiveSetIndex(converting: sectionIndex)
-		let sectionName = set[index].name
-		return sectionNameTransform?(sectionIndex, sectionName) ?? sectionName.value
-  }
+	public func mapSectionName(using transform: ReactiveSetSectionName -> ReactiveSetSectionName) -> ViewModelSet {
+		sectionNameMapper = transform
+		return self
+	}
+}
 
-	public subscript(indexPath: NSIndexPath) -> U {
-		let model = set[AnyReactiveSetIndex(converting: indexPath.section), row: AnyReactiveSetIndex(converting: indexPath.row)]
-    let viewModel = factory(model)
-    return viewModel
-  }
+extension ViewModelSet: CollectionType {
+	public typealias Index = AnyReactiveSetIndex
+	public typealias Generator = AnyGenerator<ViewModelSetSection<U>>
+
+	public var startIndex: Index {
+		return set.startIndex
+	}
+
+	public var endIndex: Index {
+		return set.endIndex
+	}
+
+	public subscript(position: Index) -> Generator.Element {
+		return ViewModelSetSection(set[position], in: self)
+	}
+
+	public func generate() -> Generator {
+		var iterator = startIndex
+		let limit = endIndex
+		return AnyGenerator {
+			defer { iterator = iterator.successor() }
+			return iterator < limit ? self[iterator] : nil
+		}
+	}
 }
