@@ -35,12 +35,11 @@ public protocol ReactiveSet: class, CollectionType {
 	var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> { get }
 
 	func fetch() throws
-	func sectionName(of object: Object) -> ReactiveSetSectionName?
+	func sectionName(of object: Generator.Element.Generator.Element) -> ReactiveSetSectionName?
+	func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath<Index, Generator.Element.Index>?
 }
 
 extension ReactiveSet {
-	public typealias Object = Generator.Element.Generator.Element
-
 	public subscript(index: AnyReactiveSetIndex) -> Generator.Element {
 		return self[Index(converting: index)]
 	}
@@ -56,15 +55,13 @@ extension ReactiveSet {
 	public subscript(indexPath: ReactiveSetIndexPath<Index, Generator.Element.Index>) -> Generator.Element.Generator.Element {
 		return self[indexPath.section][indexPath.row]
 	}
+}
 
-	public subscript(sectionIndex: Index, row rowIndex: Generator.Element.Index) -> Generator.Element.Generator.Element {
-		return self[sectionIndex][rowIndex]
-	}
-
-	public func indexPath(of element: Object) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
+extension ReactiveSet where Generator.Element.Generator.Element: Equatable {
+	public func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
 		if let name = sectionName(of: element),
-					 sectionIndex = indexOfSection(with: name),
-					 objectIndex = self[sectionIndex].indexOf(element) {
+			sectionIndex = indexOfSection(with: name),
+			objectIndex = self[sectionIndex].indexOf(element) {
 			return ReactiveSetIndexPath(section: sectionIndex, row: objectIndex)
 		}
 

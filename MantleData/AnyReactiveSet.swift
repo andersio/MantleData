@@ -8,7 +8,7 @@
 
 import ReactiveCocoa
 
-final public class AnyReactiveSet<E: Equatable> {
+final public class AnyReactiveSet<E> {
 	private let set: _AnyReactiveSetBox<E>
 
 	public init<R: ReactiveSet where R.Generator.Element.Generator.Element == E>(_ set: R) {
@@ -21,9 +21,10 @@ extension AnyReactiveSet: ReactiveSet {
 
 	public typealias Index = AnyReactiveSetIndex
 	public typealias Generator = AnyReactiveSetIterator<Section>
-	public typealias SubSequence = AnyReactiveSetSlice<E>
 
-	// Indexable
+	public var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
+		return set.eventProducer
+	}
 
 	public var startIndex: Index {
 		return set.startIndex
@@ -33,170 +34,60 @@ extension AnyReactiveSet: ReactiveSet {
 		return set.endIndex
 	}
 
+	public func fetch() throws {
+		try set.fetch()
+	}
+
 	public subscript(index: Index) -> Section {
 		return set[index]
 	}
-
-	// SequenceType
 
 	public func generate() -> Generator {
 		return set.generate()
 	}
 
-	// CollectionType
-
-	public subscript(bounds: Range<Index>) -> SubSequence {
-		return set[bounds]
-	}
-
-	// ReactiveSet
-
-	public var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
-		return set.eventProducer
-	}
-
-	public func fetch() throws {
-		try set.fetch()
-	}
-
 	public func sectionName(of object: E) -> ReactiveSetSectionName? {
 		return set.sectionName(of: object)
 	}
+
+	public func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
+		return set.indexPath(of: element)
+	}
 }
 
-public struct AnyReactiveSetSection<E: Equatable> {
-	public let name: ReactiveSetSectionName
-	private let storage: _AnyReactiveSetSectionBox<E>
+public struct AnyReactiveSetSection<E> {
+	private let wrappedSection: _AnyReactiveSetSectionBox<E>
 
 	public init<S: ReactiveSetSection where S.Generator.Element == E>(_ section: S) {
-		name = section.name
-		storage = _AnyReactiveSetSectionBoxBase(section)
+		wrappedSection = _AnyReactiveSetSectionBoxBase(section)
 	}
 }
 
 extension AnyReactiveSetSection: ReactiveSetSection {
 	public typealias Index = AnyReactiveSetIndex
 	public typealias Generator = AnyReactiveSetSectionIterator<E>
-	public typealias SubSequence = AnyReactiveSetSectionSlice<E>
 
-	// Indexable
+	public var name: ReactiveSetSectionName {
+		return wrappedSection.name
+	}
 
 	public var startIndex: Index {
-		return storage.startIndex
+		return wrappedSection.startIndex
 	}
 
 	public var endIndex: Index {
-		return storage.endIndex
+		return wrappedSection.endIndex
 	}
 
 	public subscript(index: Index) -> Generator.Element {
-		return storage[index]
+		return wrappedSection[index]
 	}
-
-	// SequenceType
 
 	public func generate() -> Generator {
-		return storage.generate()
-	}
-
-	// CollectionType
-
-	public subscript(bounds: Range<Index>) -> SubSequence {
-		return storage[bounds]
+		return wrappedSection.generate()
 	}
 }
 
 public func == <Entity>(left: AnyReactiveSetSection<Entity>, right: AnyReactiveSetSection<Entity>) -> Bool {
 	return left.name == right.name
-}
-
-public struct AnyReactiveSetSlice<E: Equatable>: CollectionType {
-	public typealias _Element = AnyReactiveSetSection<E>
-
-	public typealias Index = AnyReactiveSetIndex
-	public typealias Generator = AnyReactiveSetIterator<AnyReactiveSetSection<E>>
-	public typealias SubSequence = AnyReactiveSetSlice<E>
-
-	private let set: _AnyReactiveSetBox<E>
-	private let bounds: Range<Index>
-
-	internal init(base set: _AnyReactiveSetBox<E>, bounds: Range<AnyReactiveSetIndex>) {
-		self.set = set
-		self.bounds = bounds
-	}
-
-	public var startIndex: Index {
-		return bounds.startIndex
-	}
-
-	public var endIndex: Index {
-		return bounds.endIndex
-	}
-
-	public func generate() -> Generator {
-		var index = bounds.startIndex
-		return AnyReactiveSetIterator {
-			if index < self.bounds.endIndex {
-				defer { index = index.successor() }
-				return self.set[index]
-			} else {
-				return nil
-			}
-		}
-	}
-
-	public subscript(index: Index) -> Generator.Element {
-		assert(index >= startIndex && index < endIndex, "Accessing a slice with an out of bound index.")
-		return set[index]
-	}
-
-	public subscript(subRange: Range<Index>) -> SubSequence {
-		assert(subRange.startIndex >= startIndex && subRange.endIndex <= endIndex, "Accessing a slice with an out of bound range.")
-		return set[subRange]
-	}
-}
-
-
-public struct AnyReactiveSetSectionSlice<E: Equatable>: CollectionType {
-	public typealias Index = AnyReactiveSetIndex
-	public typealias Generator = AnyGenerator<E>
-	public typealias SubSequence = AnyReactiveSetSectionSlice<E>
-
-	private let set: _AnyReactiveSetSectionBox<E>
-	private let bounds: Range<AnyReactiveSetIndex>
-
-	internal init(base set: _AnyReactiveSetSectionBox<E>, bounds: Range<AnyReactiveSetIndex>) {
-		self.set = set
-		self.bounds = bounds
-	}
-
-	public var startIndex: Index {
-		return bounds.startIndex
-	}
-
-	public var endIndex: Index {
-		return bounds.endIndex
-	}
-
-	public func generate() -> Generator {
-		var index = bounds.startIndex
-		return AnyGenerator {
-			if index < self.bounds.endIndex {
-				defer { index = index.successor() }
-				return self.set[index]
-			} else {
-				return nil
-			}
-		}
-	}
-
-	public subscript(index: Index) -> Generator.Element {
-		assert(index >= startIndex && index < endIndex, "Accessing a slice with an out of bound index.")
-		return set[index]
-	}
-
-	public subscript(subRange: Range<Index>) -> SubSequence {
-		assert(subRange.startIndex >= startIndex && subRange.endIndex <= endIndex, "Accessing a slice with an out of bound range.")
-		return set[subRange]
-	}
 }

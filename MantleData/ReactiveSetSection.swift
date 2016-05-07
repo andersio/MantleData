@@ -11,7 +11,7 @@ import Foundation
 /// Section of ReactiveSet
 
 public protocol ReactiveSetSectionGenerator: GeneratorType {
-	associatedtype Element: Equatable
+	associatedtype Element
 }
 
 public protocol ReactiveSetSection: CollectionType {
@@ -25,7 +25,7 @@ public func == <S: ReactiveSetSection>(left: S, right: S) -> Bool {
 	return left.name == right.name
 }
 
-public struct AnyReactiveSetSectionIterator<E: Equatable>: ReactiveSetSectionGenerator {
+public struct AnyReactiveSetSectionIterator<E>: ReactiveSetSectionGenerator {
 	public typealias Element = E
 
 	private let generator: () -> Element?
@@ -71,9 +71,9 @@ public struct ReactiveSetSectionName: Hashable {
 	}
 
 	/// `nil` is defined as the smallest of all.
-	public func compareTo(otherName: ReactiveSetSectionName) -> NSComparisonResult {
-		if let value = value, otherValue = otherName.value {
-			return value.compare(otherValue)
+	public func compare(to anotherName: ReactiveSetSectionName) -> NSComparisonResult {
+		if let value = value, anotherValue = anotherName.value {
+			return value.compare(anotherValue)
 		}
 
 		if value == nil {
@@ -81,7 +81,7 @@ public struct ReactiveSetSectionName: Hashable {
 			return .OrderedAscending
 		}
 
-		if otherName.value == nil {
+		if anotherName.value == nil {
 			// (self) compare to (nil)
 			return .OrderedDescending
 		}
