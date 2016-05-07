@@ -34,7 +34,7 @@ public enum BinarySearchResult<Index> {
 }
 
 extension CollectionType where Generator.Element == NSSortDescriptor {
-	public func compare<E: AnyObject>(element: E, to anotherElement: E) -> NSComparisonResult {
+	public func compare<E: NSObject>(element: E, to anotherElement: E) -> NSComparisonResult {
 		for descriptor in self {
 			let order = descriptor.compareObject(element, toObject: anotherElement)
 
@@ -47,72 +47,10 @@ extension CollectionType where Generator.Element == NSSortDescriptor {
 	}
 }
 
-extension CollectionType where Generator.Element: NSManagedObject, Index == Int {
-	public func index(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) -> Index? {
-		if case let .found(index) = binarySearch(of: element, using: sortDescriptors) {
-			return index
-		}
-
-		return nil
-	}
-
-	public func binarySearch(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) -> BinarySearchResult<Index> {
-		func bidirectionalSearch(center index: Int, using sortDescriptors: [NSSortDescriptor]) -> BinarySearchResult<Index> {
-			var leftIndex = index - 1
-			while leftIndex >= startIndex && sortDescriptors.compare(self[leftIndex], to: element) == .OrderedSame {
-				if self[leftIndex] == element {
-					return .found(at: leftIndex)
-				}
-				leftIndex -= 1
-			}
-
-			var rightIndex = index + 1
-			while rightIndex < endIndex && sortDescriptors.compare(self[rightIndex], to: element) == .OrderedSame {
-				if self[rightIndex] == element {
-					return .found(at: rightIndex)
-				}
-				rightIndex += 1
-			}
-
-			return .notFound(next: leftIndex + 1)
-		}
-
-		var low = startIndex
-		var high = endIndex - 1
-
-		while low <= high {
-			let mid = (high + low) / 2
-
-			if self[mid] == element {
-				return .found(at: mid)
-			} else {
-				switch sortDescriptors.compare(element, to: self[mid]) {
-				case .OrderedAscending:
-					high = mid - 1
-
-				case .OrderedDescending:
-					low = mid + 1
-
-				case .OrderedSame:
-					return bidirectionalSearch(center: mid, using: sortDescriptors)
-				}
-			}
-		}
-
-		return .notFound(next: high + 1)
-	}
-
-	public func index(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor], with substitution: [Generator.Element: [String: AnyObject]]) -> Index? {
-		if case let .found(index) = binarySearch(of: element, using: sortDescriptors, with: substitution) {
-			return index
-		}
-
-		return nil
-	}
-
-	func bidirectionalSearch(at center: Int, for element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) -> BinarySearchResult<Index> {
+extension CollectionType where Generator.Element == NSManagedObjectID, Index == Int {
+	func bidirectionalSearch(at center: Int, for element: NSManagedObjectID, using sortDescriptors: [NSSortDescriptor], with cachedValues: [NSManagedObjectID: [String: AnyObject]]) -> BinarySearchResult<Index> {
 		var leftIndex = center - 1
-		while leftIndex >= startIndex && sortDescriptors.compare(self[leftIndex], to: element) == .OrderedSame {
+		while leftIndex >= startIndex && sortDescriptors.compare(cachedValues[self[leftIndex]]!, to: cachedValues[element]!) == .OrderedSame {
 			if self[leftIndex] == element {
 				return .found(at: leftIndex)
 			}
@@ -120,7 +58,7 @@ extension CollectionType where Generator.Element: NSManagedObject, Index == Int 
 		}
 
 		var rightIndex = center + 1
-		while rightIndex < endIndex && sortDescriptors.compare(self[rightIndex], to: element) == .OrderedSame {
+		while rightIndex < endIndex && sortDescriptors.compare(cachedValues[self[rightIndex]]!, to: cachedValues[element]!) == .OrderedSame {
 			if self[rightIndex] == element {
 				return .found(at: rightIndex)
 			}
@@ -130,7 +68,15 @@ extension CollectionType where Generator.Element: NSManagedObject, Index == Int 
 		return .notFound(next: leftIndex + 1)
 	}
 
-	public func binarySearch(of element: Generator.Element, using sortDescriptors: [NSSortDescriptor], with substitution: [Generator.Element: [String: AnyObject]]) -> BinarySearchResult<Index> {
+	public func index(of element: NSManagedObjectID, using sortDescriptors: [NSSortDescriptor], with cachedValues: [NSManagedObjectID: [String: AnyObject]]) -> Index? {
+		if case let .found(index) = binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
+			return index
+		}
+
+		return nil
+	}
+
+	public func binarySearch(of element: NSManagedObjectID, using sortDescriptors: [NSSortDescriptor], with cachedValues: [NSManagedObjectID: [String: AnyObject]]) -> BinarySearchResult<Index> {
 		var low = startIndex
 		var high = endIndex - 1
 
@@ -140,7 +86,7 @@ extension CollectionType where Generator.Element: NSManagedObject, Index == Int 
 			if self[mid] == element {
 				return .found(at: mid)
 			} else {
-				switch sortDescriptors.compare(element, to: self[mid]) {
+				switch sortDescriptors.compare(cachedValues[element]!, to: cachedValues[self[mid]]!) {
 				case .OrderedAscending:
 					high = mid - 1
 
@@ -148,7 +94,7 @@ extension CollectionType where Generator.Element: NSManagedObject, Index == Int 
 					low = mid + 1
 
 				case .OrderedSame:
-					return bidirectionalSearch(at: mid, for: element, using: sortDescriptors)
+					return bidirectionalSearch(at: mid, for: element, using: sortDescriptors, with: cachedValues)
 				}
 			}
 		}
@@ -157,9 +103,9 @@ extension CollectionType where Generator.Element: NSManagedObject, Index == Int 
 	}
 }
 
-extension RangeReplaceableCollectionType where Generator.Element: NSManagedObject, Index == Int {
-	public mutating func insert(element: Generator.Element, using sortDescriptors: [NSSortDescriptor]) {
-		switch binarySearch(of: element, using: sortDescriptors) {
+extension RangeReplaceableCollectionType where Generator.Element == NSManagedObjectID, Index == Int {
+	public mutating func insert(element: NSManagedObjectID, using sortDescriptors: [NSSortDescriptor], with cachedValues: [NSManagedObjectID: [String: AnyObject]]) {
+		switch binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
 		case .found:
 			return
 
