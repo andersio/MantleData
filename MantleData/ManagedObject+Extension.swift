@@ -37,20 +37,21 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 
 			proxyBox.value!.attach(to: strongSelf)
 
-			func disposeProxy(with referenceToSelf: NSManagedObject) {
-				if let proxy = proxyBox.swap(nil) {
-					proxy.detach(from: referenceToSelf)
-					observer.sendCompleted()
+			let deinitDisposable = strongSelf.willDeinitProducer
+				.startWithNext { [unowned strongSelf, weak proxyBox] in
+					if let proxy = proxyBox?.swap(nil) {
+						proxy.detach(from: strongSelf)
+						observer.sendCompleted()
+					}
 				}
-			}
-
-			strongSelf.willDeinitProducer.startWithNext { [unowned strongSelf] in
-				disposeProxy(with: strongSelf)
-			}
 
 			disposable += ActionDisposable { [weak self] in
 				if let strongSelf = self {
-					disposeProxy(with: strongSelf)
+					if let proxy = proxyBox.swap(nil) {
+						proxy.detach(from: strongSelf)
+						observer.sendCompleted()
+						deinitDisposable.dispose()
+					}
 				}
 			}
 		}
