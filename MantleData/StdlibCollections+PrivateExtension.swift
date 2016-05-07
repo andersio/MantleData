@@ -69,7 +69,7 @@ extension Array where Element: SetType {
 }
 
 extension Dictionary where Value: SetType {
-	internal mutating func insert(value: Value.Element, intoSetOfKey key: Key) {
+	internal mutating func insert(value: Value.Element, intoSetOf key: Key) {
 		if !keys.contains(key) {
 			self[key] = Value()
 		}
@@ -78,24 +78,10 @@ extension Dictionary where Value: SetType {
 }
 
 extension Dictionary where Value: protocol<ArrayLiteralConvertible, RangeReplaceableCollectionType>, Value.Generator.Element == Value.Element {
-	internal mutating func insert(value: Value.Element, intoSetOfKey key: Key) {
+	internal mutating func append(value: Value.Element, toCollectionOf key: Key) {
 		if !keys.contains(key) {
 			self[key] = Value()
 		}
 		self[key]?.append(value)
-	}
-}
-
-extension MutableCollectionType where Index: RandomAccessIndexType, Generator.Element: NSManagedObject {
-	internal mutating func sort(with sortDescriptors: [NSSortDescriptor]) {
-		if sortDescriptors.count == 0 {
-			return
-		}
-
-		sortInPlace { object1, object2 in
-			return sortDescriptors.contains { descriptor in
-				return descriptor.compareObject(object1, toObject: object2) == .OrderedAscending
-			}
-		}
 	}
 }
