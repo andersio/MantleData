@@ -30,7 +30,7 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 			defer { strongSelf.didAccessValueForKey(nil) }
 
 			let proxyBox = Atomic<KVOProxy?>(KVOProxy(keyPath: keyPath) { [weak strongSelf] value in
-				if let strongSelf = strongSelf where strongSelf.faultingState == 0 {
+				if let strongSelf = strongSelf where strongSelf.faultingState == 0 && !strongSelf.deleted {
 					observer.sendNext(Value(cocoaValue: value))
 				}
 			})
