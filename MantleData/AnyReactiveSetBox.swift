@@ -11,10 +11,6 @@ import ReactiveCocoa
 final internal class _AnyReactiveSetBoxBase<R: ReactiveSet>: _AnyReactiveSetBox<R.Generator.Element.Generator.Element> {
 	private let set: R
 
-	init(_ set: R) {
-		self.set = set
-	}
-
 	override var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
 		return set.eventProducer.map { event in
 			switch event {
@@ -45,6 +41,10 @@ final internal class _AnyReactiveSetBoxBase<R: ReactiveSet>: _AnyReactiveSetBox<
 		}
 	}
 
+	init(_ set: R) {
+		self.set = set
+	}
+
 	override func fetch() throws {
 		try set.fetch()
 	}
@@ -62,8 +62,6 @@ final internal class _AnyReactiveSetBoxBase<R: ReactiveSet>: _AnyReactiveSetBox<
 		return AnyReactiveSetSection(set[index])
 	}
 
-	// SequenceType
-
 	override func generate() -> Generator {
 		var i = self.startIndex
 		return AnyReactiveSetIterator {
@@ -76,17 +74,22 @@ final internal class _AnyReactiveSetBoxBase<R: ReactiveSet>: _AnyReactiveSetBox<
 		}
 	}
 
-	override subscript(subRange: Range<AnyReactiveSetIndex>) -> AnyReactiveSetSlice<R.Generator.Element.Generator.Element> {
-		return AnyReactiveSetSlice(base: self, bounds: subRange)
+	override func sectionName(of object: Generator.Element.Generator.Element) -> ReactiveSetSectionName? {
+		return set.sectionName(of: object)
+	}
+
+	override func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
+		return set.indexPath(of: element)?.typeErased()
 	}
 }
 
-internal class _AnyReactiveSetBox<E: Equatable>: ReactiveSet {
+internal class _AnyReactiveSetBox<E>: ReactiveSet {
 	typealias Index = AnyReactiveSetIndex
 	typealias Generator = AnyReactiveSetIterator<AnyReactiveSetSection<E>>
-	typealias SubSequence = AnyReactiveSetSlice<E>
 
-	// Indexable
+	var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
+		_abstractMethod_subclassMustImplement()
+	}
 
 	var startIndex: Index {
 		_abstractMethod_subclassMustImplement()
@@ -96,56 +99,50 @@ internal class _AnyReactiveSetBox<E: Equatable>: ReactiveSet {
 		_abstractMethod_subclassMustImplement()
 	}
 
+	func fetch() throws {
+		_abstractMethod_subclassMustImplement()
+	}
+
 	subscript(index: Index) -> AnyReactiveSetSection<E> {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	// SequenceType
-
 	func generate() -> Generator {
-		_abstractMethod_subclassMustImplement()
-	}
-
-	subscript(subRange: Range<Index>) -> SubSequence {
-		_abstractMethod_subclassMustImplement()
-	}
-
-	// ReactiveSet
-
-	var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
-		_abstractMethod_subclassMustImplement()
-	}
-
-	func fetch() throws {
 		_abstractMethod_subclassMustImplement()
 	}
 	
 	func sectionName(of object: E) -> ReactiveSetSectionName? {
 		_abstractMethod_subclassMustImplement()
 	}
+
+	func indexPath(of element: E) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
+		_abstractMethod_subclassMustImplement()
+	}
 }
 
 final internal class _AnyReactiveSetSectionBoxBase<S: ReactiveSetSection>: _AnyReactiveSetSectionBox<S.Generator.Element> {
-	private let set: S
+	private let wrappedSection: S
 
-	init(_ set: S) {
-		self.set = set
+	override var name: ReactiveSetSectionName {
+		return wrappedSection.name
 	}
 
 	override var startIndex: Index {
-		return Index(converting: set.startIndex)
+		return Index(converting: wrappedSection.startIndex)
 	}
 
 	override var endIndex: Index {
-		return Index(converting: set.endIndex)
+		return Index(converting: wrappedSection.endIndex)
+	}
+
+	init(_ set: S) {
+		self.wrappedSection = set
 	}
 
 	override subscript(index: Index) -> S.Generator.Element {
 		let index = S.Index(converting: index)
-		return set[index]
+		return wrappedSection[index]
 	}
-
-	// SequenceType
 
 	override func generate() -> Generator {
 		var i = self.startIndex
@@ -157,24 +154,17 @@ final internal class _AnyReactiveSetSectionBoxBase<S: ReactiveSetSection>: _AnyR
 			return nil
 		}
 	}
-
-	override subscript(subRange: Range<AnyReactiveSetIndex>) -> AnyReactiveSetSectionSlice<S.Generator.Element> {
-		return AnyReactiveSetSectionSlice(base: self, bounds: subRange)
-	}
 }
 
-internal class _AnyReactiveSetSectionBox<E: Equatable>: ReactiveSetSection {
+internal class _AnyReactiveSetSectionBox<E>: ReactiveSetSection {
 	typealias Entity = E
 
 	typealias Index = AnyReactiveSetIndex
 	typealias Generator = AnyReactiveSetSectionIterator<E>
-	typealias SubSequence = AnyReactiveSetSectionSlice<E>
 
 	var name: ReactiveSetSectionName {
 		_abstractMethod_subclassMustImplement()
 	}
-
-	// Indexable
 
 	var startIndex: Index {
 		_abstractMethod_subclassMustImplement()
@@ -188,13 +178,7 @@ internal class _AnyReactiveSetSectionBox<E: Equatable>: ReactiveSetSection {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	// SequenceType
-
 	func generate() -> Generator {
-		_abstractMethod_subclassMustImplement()
-	}
-
-	subscript(subRange: Range<Index>) -> SubSequence {
 		_abstractMethod_subclassMustImplement()
 	}
 }

@@ -12,7 +12,7 @@ import ReactiveCocoa
 extension RangeReplaceableCollectionType where Generator.Element: ReactiveSetSection {
 	internal mutating func insert(section: Generator.Element, name: ReactiveSetSectionName, ordering: NSComparisonResult) -> Index {
 		let position: Index
-		if let searchResult = indexOf({ $0.name.compareTo(name) != ordering }) {
+		if let searchResult = indexOf({ $0.name.compare(to: name) != ordering }) {
 			position = searchResult
 		} else {
 			position = ordering == .OrderedAscending ? startIndex : endIndex

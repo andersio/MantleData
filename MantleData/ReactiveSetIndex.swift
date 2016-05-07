@@ -40,6 +40,12 @@ public protocol ReactiveSetIndex: RandomAccessIndexType {
 	func toInt() -> Int
 }
 
+extension ReactiveSetIndex {
+	public func typeErased() -> AnyReactiveSetIndex {
+		return AnyReactiveSetIndex(converting: self)
+	}
+}
+
 extension Int: ReactiveSetIndex {
 	public init<I: ReactiveSetIndex>(converting index: I) {
 		self = Int(index.toInt())

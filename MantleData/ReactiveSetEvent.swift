@@ -57,6 +57,12 @@ extension ReactiveSetEvent: CustomStringConvertible {
 	}
 }
 
+extension ReactiveSetEvent: CustomDebugStringConvertible {
+	public var debugDescription: String {
+		return description
+	}
+}
+
 extension ReactiveSetChanges: CustomStringConvertible {
 	public var description: String {
 		var strings = [String]()
@@ -87,5 +93,11 @@ extension ReactiveSetChanges: CustomStringConvertible {
 		}
 		
 		return strings.joinWithSeparator("\n")
+	}
+}
+
+extension ReactiveSetChanges: CustomDebugStringConvertible {
+	public var debugDescription: String {
+		return description
 	}
 }
