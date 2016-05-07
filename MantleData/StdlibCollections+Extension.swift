@@ -9,25 +9,6 @@
 import Foundation
 import protocol ReactiveCocoa.OptionalType
 
-extension CollectionType where Generator.Element: OptionalType, Generator.Element.Wrapped: NSIndexSet {
-	public func flattened() -> NSIndexSet {
-		let flattenedIndexSet = NSMutableIndexSet()
-		forEach {
-			if let indexSet = $0.optional {
-				flattenedIndexSet.addIndexes(indexSet)
-			}
-		}
-		return flattenedIndexSet
-	}
-}
-
-extension Range where Element: CocoaBridgeable, Element: ForwardIndexType, Element.Distance: CocoaBridgeable {
-	public var cocoaValue: NSRange {
-		return NSRange(location: Int(cocoaValue: startIndex.cocoaValue),
-		               length: Int(cocoaValue: startIndex.distanceTo(endIndex).cocoaValue))
-	}
-}
-
 public enum BinarySearchResult<Index> {
 	case found(at: Index)
 	case notFound(next: Index)
