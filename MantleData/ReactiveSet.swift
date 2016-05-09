@@ -55,6 +55,10 @@ extension ReactiveSet {
 	public subscript(indexPath: ReactiveSetIndexPath<Index, Generator.Element.Index>) -> Generator.Element.Generator.Element {
 		return self[indexPath.section][indexPath.row]
 	}
+
+	public var objectCount: Generator.Element.Index.Distance {
+		return reduce(0, combine: { $0 + $1.count })
+	}
 }
 
 extension ReactiveSet where Generator.Element.Generator.Element: Equatable {
