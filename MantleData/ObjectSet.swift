@@ -90,6 +90,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 	public init(for request: NSFetchRequest,
 							in context: NSManagedObjectContext,
+							prefetchingPolicy: ObjectSetPrefetchingPolicy,
 							sectionNameKeyPath: String? = nil,
 							excludeUpdatedRowsInEvents: Bool = true) {
 		self.context = context
@@ -118,7 +119,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		sortKeys = fetchRequest.sortDescriptors!.map { $0.key! }
 		sortKeysInSections = Array(sortKeys.dropFirst())
 		sortKeyComponents = sortKeys.map { ($0, $0.componentsSeparatedByString(".")) }
-		sortOrderAffectingRelationships = Array(Set(sortKeyComponents.flatMap { $0.1.count > 1 ? $0.1[0] : nil }))
+		sortOrderAffectingRelationships = sortKeyComponents.flatMap { $0.1.count > 1 ? $0.1[0] : nil }.uniquing()
 
 		super.init()
 	}
@@ -143,12 +144,13 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			self.fetchRequest.propertiesToFetch = fetching
 			self.fetchRequest.resultType = .DictionaryResultType
 
-			let asyncRequest = NSAsynchronousFetchRequest(fetchRequest: self.fetchRequest, completionBlock: completionBlock)
+			let asyncRequest = NSAsynchronousFetchRequest(fetchRequest: self.fetchRequest,
+																										completionBlock: completionBlock)
 
 			do {
 				try self.context.executeRequest(asyncRequest)
-			} catch let error as NSError {
-				fatalError("\(error.description)")
+			} catch let error {
+				fatalError("\(error)")
 			}
 		}
 	}
@@ -570,8 +572,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 		/// MARK: Handle deletions.
 
-		var indexPathsOfDeletedRows = deletedObjects.enumerate().flatMap { (sectionIndex, indice) in
-			return indice.map { objectIndex -> _IndexPath in
+		var indexPathsOfDeletedRows = deletedObjects.enumerate().flatMap { sectionIndex, indices in
+			return indices.map { objectIndex -> _IndexPath in
 				deletingIndexPaths.orderedInsert(objectIndex, toCollectionAt: sectionIndex, ascending: false)
 				return _IndexPath(section: sectionIndex, row: objectIndex)
 			}
@@ -623,13 +625,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 					sections[sectionIndex].storage.insert(id, using: objectSortDescriptors, with: objectCache)
 				}
 			} else {
-				let section = ObjectSetSection(at: -1,
-				                               name: name,
-				                               array: ContiguousArray(ids),
-				                               in: self)
-				sections.insert(section,
-				                name: name,
-				                ordering: sectionNameOrdering)
+				let section = ObjectSetSection(at: -1, name: name, array: ContiguousArray(ids), in: self)
+				sections.insert(section, name: name, ordering: sectionNameOrdering)
 			}
 		}
 
@@ -659,10 +656,12 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			let inboundObjects = inboundObjects[sectionName] ?? []
 
 			for (objectIndex, object) in sections[sectionIndex].storage.enumerate() {
-				if !shouldExcludeUpdatedRows, let oldSectionIndex = previousSectionIndex where updatedObjects[oldSectionIndex].contains(object) {
-					let indexPath = _IndexPath(section: sectionIndex, row: objectIndex)
-					indexPathsOfUpdatedRows.append(indexPath)
-					continue
+				if !shouldExcludeUpdatedRows {
+					if let oldSectionIndex = previousSectionIndex where updatedObjects[oldSectionIndex].contains(object) {
+						let indexPath = _IndexPath(section: sectionIndex, row: objectIndex)
+						indexPathsOfUpdatedRows.append(indexPath)
+						continue
+					}
 				}
 
 				if previousSectionIndex != nil && insertedObjects.contains(object) {
