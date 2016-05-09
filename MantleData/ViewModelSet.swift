@@ -35,6 +35,10 @@ public final class ViewModelSet<U: ViewModel> {
 		sectionNameMapper = transform
 		return self
 	}
+
+	public var objectCount: Int {
+		return set.objectCount
+	}
 }
 
 extension ViewModelSet: CollectionType {
