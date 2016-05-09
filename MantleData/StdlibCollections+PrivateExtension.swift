@@ -9,8 +9,102 @@
 import Foundation
 import ReactiveCocoa
 
+internal enum BinarySearchResult<Index> {
+	case found(at: Index)
+	case notFound(next: Index)
+}
+
+extension CollectionType where Generator.Element == NSManagedObjectID, Index == Int {
+	internal func bidirectionalSearch(at center: Int,
+																		for element: NSManagedObjectID,
+																		using sortDescriptors: [NSSortDescriptor],
+																		with cachedValues: [NSManagedObjectID: [String: AnyObject]])
+																		-> BinarySearchResult<Index> {
+		var leftIndex = center - 1
+		while leftIndex >= startIndex &&
+					sortDescriptors.compare(cachedValues[self[leftIndex]]! as NSDictionary,
+					                        to: cachedValues[element]! as NSDictionary)
+					== .OrderedSame {
+			if self[leftIndex] == element {
+				return .found(at: leftIndex)
+			}
+			leftIndex -= 1
+		}
+
+		var rightIndex = center + 1
+		while rightIndex < endIndex &&
+					sortDescriptors.compare(cachedValues[self[rightIndex]]! as NSDictionary,
+					                        to: cachedValues[element]! as NSDictionary)
+					== .OrderedSame {
+			if self[rightIndex] == element {
+				return .found(at: rightIndex)
+			}
+			rightIndex += 1
+		}
+
+		return .notFound(next: leftIndex + 1)
+	}
+
+	internal func index(of element: NSManagedObjectID,
+											using sortDescriptors: [NSSortDescriptor],
+											with cachedValues: [NSManagedObjectID: [String: AnyObject]])
+											-> Index? {
+		if case let .found(index) = binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
+			return index
+		}
+
+		return nil
+	}
+
+	internal func binarySearch(of element: NSManagedObjectID,
+														using sortDescriptors: [NSSortDescriptor],
+														with cachedValues: [NSManagedObjectID: [String: AnyObject]])
+														-> BinarySearchResult<Index> {
+		var low = startIndex
+		var high = endIndex - 1
+
+		while low <= high {
+			let mid = (high + low) / 2
+
+			if self[mid] == element {
+				return .found(at: mid)
+			} else {
+				switch sortDescriptors.compare(cachedValues[element]! as NSDictionary,
+				                               to: cachedValues[self[mid]]! as NSDictionary) {
+				case .OrderedAscending:
+					high = mid - 1
+
+				case .OrderedDescending:
+					low = mid + 1
+
+				case .OrderedSame:
+					return bidirectionalSearch(at: mid, for: element, using: sortDescriptors, with: cachedValues)
+				}
+			}
+		}
+
+		return .notFound(next: high + 1)
+	}
+}
+
+extension RangeReplaceableCollectionType where Generator.Element == NSManagedObjectID, Index == Int {
+	internal mutating func insert(element: NSManagedObjectID,
+	                              using sortDescriptors: [NSSortDescriptor],
+																with cachedValues: [NSManagedObjectID: [String: AnyObject]]) {
+		switch binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
+		case .found:
+			return
+
+		case let .notFound(insertingIndex):
+			insert(element, atIndex: insertingIndex)
+		}
+	}
+}
+
 extension RangeReplaceableCollectionType where Generator.Element: ReactiveSetSection {
-	internal mutating func insert(section: Generator.Element, name: ReactiveSetSectionName, ordering: NSComparisonResult) -> Index {
+	internal mutating func insert(section: Generator.Element,
+	                              name: ReactiveSetSectionName,
+	                              ordering: NSComparisonResult) -> Index {
 		let position: Index
 		if let searchResult = indexOf({ $0.name.compare(to: name) != ordering }) {
 			position = searchResult
@@ -22,8 +116,6 @@ extension RangeReplaceableCollectionType where Generator.Element: ReactiveSetSec
 		return position
 	}
 }
-
-/// Generic additions:
 
 extension CollectionType where Generator.Element: Comparable, Index == Int {
 	internal func binarySearch(element: Generator.Element, ascending: Bool) -> BinarySearchResult<Index> {
@@ -83,5 +175,11 @@ extension Dictionary where Value: protocol<ArrayLiteralConvertible, RangeReplace
 			self[key] = Value()
 		}
 		self[key]?.append(value)
+	}
+}
+
+extension CollectionType where Generator.Element: Hashable {
+	internal func uniquing() -> [Generator.Element] {
+		return Array(Set(self))
 	}
 }
