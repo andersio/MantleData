@@ -20,6 +20,11 @@ import CoreData
 /// index paths for updated rows based on the assumed use of KVO-based bindings. You may override
 /// this behavior by setting `excludeUpdatedRowsInEvents` in the initialiser as `false`.
 ///
+/// - Important: If you are using ObjectSet with a child context, you must force the creation of
+///							 permanent IDs on inserted objects before you save a child context. Otherwise,
+///							 ObjectSet would raise an assertion if it catches any inserted objects with
+///							 temporary IDs having been saved.
+///
 /// - Warning:	 This class is not thread-safe. Use it only in the associated NSManagedObjectContext.
 final public class ObjectSet<E: NSManagedObject>: Base {
 	internal typealias _IndexPath = ReactiveSetIndexPath<Index, Generator.Element.Index>
@@ -290,18 +295,21 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 				}
 
 				if let temporaryId = temporaryObjects[object] {
-					assert(!object.objectID.temporaryID)
+					if !object.objectID.temporaryID {
+						/// If the object ID is no longer temporary, find the position of the object.
+						/// Then update the object and the cache with the permanent ID.
 
-					/// Find the position of the object.
-					let sectionIndex = indexOfSection(with: sectionName(of: object)!)!
-					let objectIndex = sections[sectionIndex].storage.index(of: temporaryId,
-					                                                       using: objectSortDescriptors,
-					                                                       with: objectCache)!
+						let sectionIndex = indexOfSection(with: sectionName(of: object)!)!
+						let objectIndex = sections[sectionIndex].storage.index(of: temporaryId,
+																																	 using: objectSortDescriptors,
+																																	 with: objectCache)!
 
-					/// Update the object and the cache with the permanent ID.
-					sections[sectionIndex].storage[objectIndex] = object.objectID
-					clearCache(for: temporaryId)
-					updateCache(for: object.objectID, with: object)
+						sections[sectionIndex].storage[objectIndex] = object.objectID
+						clearCache(for: temporaryId)
+						updateCache(for: object.objectID, with: object)
+					} else {
+						assertionFailure("ObjectSet does not implement any workaround to the temporary ID issue with parent-child context relationships. Please use `NSManagedObjectContext.obtainPermanentIDsForObjects(_:)` before saving your objects in a child context.")
+					}
 				}
 			}
 		}
