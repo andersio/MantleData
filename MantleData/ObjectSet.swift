@@ -53,7 +53,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	// An ObjectSet retains the managed object context.
 	private(set) public weak var context: NSManagedObjectContext!
 
-	private var eventSignal = Atomic<Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>?>(nil)
+	private var eventSignal: Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>?
 	private var eventObserver: Observer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>? = nil {
 		willSet {
 			if eventObserver == nil && newValue != nil {
@@ -77,21 +77,13 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 	public var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
 		return SignalProducer { observer, disposable in
-			var _signal: Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>!
-
-			self.eventSignal.modify { oldValue in
-				if let oldValue = oldValue {
-					_signal = oldValue
-					return oldValue
-				} else {
-					let (signal, observer) = Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>.pipe()
-					self.eventObserver = observer
-					_signal = signal
-					return signal
-				}
+			if self.eventSignal == nil {
+				let (signal, observer) = Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>.pipe()
+				self.eventSignal = signal
+				self.eventObserver = observer
 			}
 
-			disposable += _signal.observe(observer)
+			disposable += self.eventSignal!.observe(observer)
 		}
 	}
 
