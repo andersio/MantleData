@@ -35,12 +35,13 @@ extension ObjectSetSection: ReactiveSetSection {
 
 	public subscript(position: Int) -> E {
 		get {
-			guard let object = parentSet.context.objectRegisteredForID(storage[position]) as? E else {
-				let object = parentSet.context.objectWithID(storage[position]) as! E
+			parentSet.prefetcher?.acknowledgeNextAccess(at: ReactiveSetIndexPath(section: indexInSet, row: position))
+			
+			if let object = parentSet.context.objectRegisteredForID(storage[position]) as? E {
 				return object
 			}
 
-			return object
+			return parentSet.context.objectWithID(storage[position]) as! E
 		}
 		set { storage[position] = newValue.objectID }
 	}
