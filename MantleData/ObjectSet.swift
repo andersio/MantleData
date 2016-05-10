@@ -351,6 +351,140 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		return nil
 	}
 
+	private func sortOrderIsAffected(by object: E, against snapshot: [String: AnyObject]) -> Bool {
+		for key in sortKeysInSections {
+			if let index = snapshot.indexForKey(key) {
+				if !object.valueForKeyPath(key)!.isEqual(snapshot[index].1) {
+					return true
+				}
+			}
+		}
+
+		return false
+	}
+
+	private func processDeletedObjects(set: Set<NSManagedObject>,
+															 inout deleted deletedIndexPaths: [[Int]],
+															 inout cacheClearing cacheClearingIds: ContiguousArray<NSManagedObjectID>) {
+		for object in set {
+			guard let object = object as? E else {
+				continue
+			}
+
+			if let cacheIndex = objectCache.indexForKey(object.objectID) {
+				let sectionName: ReactiveSetSectionName
+
+				if let sectionNameKeyPath = sectionNameKeyPath {
+					sectionName = ReactiveSetSectionName(converting: objectCache[cacheIndex].1[sectionNameKeyPath])
+				} else {
+					sectionName = ReactiveSetSectionName()
+				}
+
+				if let index = indexOfSection(with: sectionName) {
+					if let objectIndex = sections[index].storage.index(of: object.objectID,
+					                                                   using: objectSortDescriptors,
+					                                                   with: objectCache) {
+						deletedIndexPaths.orderedInsert(objectIndex, toCollectionAt: index)
+						cacheClearingIds.append(object.objectID)
+					}
+				}
+			}
+		}
+	}
+
+	private func processUpdatedObjects(set: Set<NSManagedObject>,
+															 inout inserted insertedIds: [ReactiveSetSectionName: Set<NSManagedObjectID>],
+															 inout updated updatedIds: [Set<NSManagedObjectID>],
+															 inout sortOrderAffecting sortOrderAffectingIndexPaths: [Set<Int>],
+															 inout sectionChanged sectionChangedIndexPaths: [Set<Int>],
+															 inout deleted deletedIndexPaths: [[Int]],
+															 inout cacheClearing cacheClearingIds: ContiguousArray<NSManagedObjectID>) {
+		for object in set {
+			guard let object = object as? E else {
+				continue
+			}
+
+			let cacheIndex = objectCache.indexForKey(object.objectID)
+
+			if !predicateMatching(object) {
+				guard let cacheIndex = cacheIndex else {
+					continue
+				}
+
+				/// The object no longer qualifies. Delete it from the ObjectSet.
+				let sectionName: ReactiveSetSectionName
+
+				if let sectionNameKeyPath = sectionNameKeyPath {
+					sectionName = ReactiveSetSectionName(converting: objectCache[cacheIndex].1[sectionNameKeyPath])
+				} else {
+					sectionName = ReactiveSetSectionName()
+				}
+
+				if let index = indexOfSection(with: sectionName) {
+					/// Use binary search, but compare against the previous values dictionary.
+					if let objectIndex = sections[index].storage.index(of: object.objectID,
+					                                                   using: objectSortDescriptors,
+					                                                   with: objectCache) {
+						deletedIndexPaths.orderedInsert(objectIndex, toCollectionAt: index)
+						cacheClearingIds.append(object.objectID)
+						continue
+					}
+				}
+			} else if let cacheIndex = cacheIndex {
+				/// The object still qualifies. Does it have any change affecting the sort order?
+				let currentSectionName: ReactiveSetSectionName
+
+				if let sectionNameKeyPath = sectionNameKeyPath {
+					let previousSectionName = ReactiveSetSectionName(converting: objectCache[cacheIndex].1[sectionNameKeyPath])
+					currentSectionName = _sectionName(of: object)
+
+					guard previousSectionName == currentSectionName else {
+						guard let previousSectionIndex = sections.indexOfSection(with: currentSectionName) else {
+							preconditionFailure("current section name is supposed to exist, but not found.")
+						}
+
+						guard let objectIndex = sections[previousSectionIndex].storage.index(of: object.objectID,
+						                                                                     using: objectSortDescriptors,
+						                                                                     with: objectCache) else {
+																																									preconditionFailure("An object should be in section \(previousSectionIndex), but it cannot be found. (ID: \(object.objectID.URIRepresentation()))")
+						}
+
+						sectionChangedIndexPaths.insert(objectIndex, intoSetAt: previousSectionIndex)
+						updateCache(for: object.objectID, with: object)
+						continue
+					}
+				} else {
+					currentSectionName = ReactiveSetSectionName()
+				}
+
+				guard let currentSectionIndex = indexOfSection(with: currentSectionName) else {
+					preconditionFailure("current section name is supposed to exist, but not found.")
+				}
+
+				guard !sortOrderIsAffected(by: object, against: objectCache[cacheIndex].1) else {
+					guard let objectIndex = sections[currentSectionIndex].storage.index(of: object.objectID,
+					                                                                    using: objectSortDescriptors,
+					                                                                    with: objectCache) else {
+																																								preconditionFailure("An object should be in section \(currentSectionIndex), but it cannot be found. (ID: \(object.objectID.URIRepresentation()))")
+					}
+
+					sortOrderAffectingIndexPaths.insert(objectIndex, intoSetAt: currentSectionIndex)
+					updateCache(for: object.objectID, with: object)
+					continue
+				}
+				
+				if !shouldExcludeUpdatedRows {
+					updatedIds.insert(object.objectID, intoSetAt: currentSectionIndex)
+				}
+			} else {
+				let currentSectionName = _sectionName(of: object)
+				insertedIds.insert(object.objectID, intoSetOf: currentSectionName)
+				updateCache(for: object.objectID, with: object)
+				continue
+			}
+		}
+	}
+
 	/// Merge changes since last posting of NSManagedContextObjectsDidChangeNotification.
 	/// This method should not mutate the `sections` array.
 	@objc private func process(objectsDidChangeNotification notification: NSNotification) {
@@ -369,145 +503,20 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		}
 
 		/// Reference sections by name, since these objects may lead to creating a new section.
-		var insertedObjects = [ReactiveSetSectionName: Set<NSManagedObjectID>]()
+		var insertedIds = [ReactiveSetSectionName: Set<NSManagedObjectID>]()
 
 		/// Referencing sections by the index in snapshot.
-		var sectionChangedObjects = sections.indices.map { _ in Set<Int>() }
-		var deletedObjects = sections.indices.map { _ in [Int]() }
-		var updatedObjects = sections.indices.map { _ in Set<NSManagedObjectID>() }
-		var sortOrderAffectingObjects = sections.indices.map { _ in Set<Int>() }
-
-		func sortOrderIsAffected(by object: E, against snapshot: [String: AnyObject]) -> Bool {
-			for key in sortKeysInSections {
-				if let index = snapshot.indexForKey(key) {
-					if !object.valueForKeyPath(key)!.isEqual(snapshot[index].1) {
-						return true
-					}
-				}
-			}
-
-			return false
-		}
-
-		func processDeletedObjects(set: Set<NSManagedObject>) {
-			for object in set {
-				guard let object = object as? E else {
-					continue
-				}
-
-				if let cacheIndex = objectCache.indexForKey(object.objectID) {
-					let sectionName: ReactiveSetSectionName
-
-					if let sectionNameKeyPath = sectionNameKeyPath {
-						sectionName = ReactiveSetSectionName(converting: objectCache[cacheIndex].1[sectionNameKeyPath])
-					} else {
-						sectionName = ReactiveSetSectionName()
-					}
-
-					if let index = indexOfSection(with: sectionName) {
-						if let objectIndex = sections[index].storage.index(of: object.objectID,
-						                                                   using: objectSortDescriptors,
-						                                                   with: objectCache) {
-							deletedObjects.orderedInsert(objectIndex, toCollectionAt: index)
-							clearCache(for: object.objectID)
-						}
-					}
-				}
-			}
-		}
-
-		func processUpdatedObjects(set: Set<NSManagedObject>) {
-			for object in set {
-				guard let object = object as? E else {
-					continue
-				}
-
-				let cacheIndex = objectCache.indexForKey(object.objectID)
-
-				if !predicateMatching(object) {
-					guard let cacheIndex = cacheIndex else {
-						continue
-					}
-
-					/// The object no longer qualifies. Delete it from the ObjectSet.
-					let sectionName: ReactiveSetSectionName
-
-					if let sectionNameKeyPath = sectionNameKeyPath {
-						sectionName = ReactiveSetSectionName(converting: objectCache[cacheIndex].1[sectionNameKeyPath])
-					} else {
-						sectionName = ReactiveSetSectionName()
-					}
-
-					if let index = indexOfSection(with: sectionName) {
-						/// Use binary search, but compare against the previous values dictionary.
-						if let objectIndex = sections[index].storage.index(of: object.objectID,
-						                                                   using: objectSortDescriptors,
-						                                                   with: objectCache) {
-							deletedObjects.orderedInsert(objectIndex, toCollectionAt: index)
-							clearCache(for: object.objectID)
-							continue
-						}
-					}
-				} else if let cacheIndex = cacheIndex {
-					/// The object still qualifies. Does it have any change affecting the sort order?
-					let currentSectionName: ReactiveSetSectionName
-
-					if let sectionNameKeyPath = sectionNameKeyPath {
-						let previousSectionName = ReactiveSetSectionName(converting: objectCache[cacheIndex].1[sectionNameKeyPath])
-						currentSectionName = _sectionName(of: object)
-
-						guard previousSectionName == currentSectionName else {
-							guard let previousSectionIndex = sections.indexOfSection(with: currentSectionName) else {
-								preconditionFailure("current section name is supposed to exist, but not found.")
-							}
-
-							guard let objectIndex = sections[previousSectionIndex].storage.index(of: object.objectID,
-							                                                                     using: objectSortDescriptors,
-							                                                                     with: objectCache) else {
-								preconditionFailure("An object should be in section \(previousSectionIndex), but it cannot be found. (ID: \(object.objectID.URIRepresentation()))")
-							}
-
-							sectionChangedObjects.insert(objectIndex, intoSetAt: previousSectionIndex)
-							updateCache(for: object.objectID, with: object)
-							continue
-						}
-					} else {
-						currentSectionName = ReactiveSetSectionName()
-					}
-
-					guard let currentSectionIndex = indexOfSection(with: currentSectionName) else {
-						preconditionFailure("current section name is supposed to exist, but not found.")
-					}
-
-					guard !sortOrderIsAffected(by: object, against: objectCache[cacheIndex].1) else {
-						guard let objectIndex = sections[currentSectionIndex].storage.index(of: object.objectID,
-						                                                                     using: objectSortDescriptors,
-						                                                                     with: objectCache) else {
-							preconditionFailure("An object should be in section \(currentSectionIndex), but it cannot be found. (ID: \(object.objectID.URIRepresentation()))")
-						}
-
-						sortOrderAffectingObjects.insert(objectIndex, intoSetAt: currentSectionIndex)
-						updateCache(for: object.objectID, with: object)
-						continue
-					}
-
-					if !shouldExcludeUpdatedRows {
-						updatedObjects.insert(object.objectID, intoSetAt: currentSectionIndex)
-					}
-				} else {
-					let currentSectionName = _sectionName(of: object)
-					insertedObjects.insert(object.objectID, intoSetOf: currentSectionName)
-					updateCache(for: object.objectID, with: object)
-					continue
-				}
-			}
-		}
+		var sectionChangedIndexPaths = sections.indices.map { _ in Set<Int>() }
+		var deletedIndexPaths = sections.indices.map { _ in [Int]() }
+		var updatedIds = sections.indices.map { _ in Set<NSManagedObjectID>() }
+		var sortOrderAffectingIndexPaths = sections.indices.map { _ in Set<Int>() }
+		var cacheClearingIds = ContiguousArray<NSManagedObjectID>()
 
 		if let _insertedObjects = userInfo[NSInsertedObjectsKey] as? Set<NSManagedObject> {
 			for object in _insertedObjects {
 				if let object = qualifyingObject(object) {
 					let name = _sectionName(of: object)
-					insertedObjects.insert(object.objectID, intoSetOf: name)
+					insertedIds.insert(object.objectID, intoSetOf: name)
 					updateCache(for: object.objectID, with: object)
 
 					if object.objectID.temporaryID {
@@ -518,26 +527,46 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		}
 
 		if let deletedObjects = userInfo[NSDeletedObjectsKey] as? Set<NSManagedObject> {
-			processDeletedObjects(deletedObjects)
+			processDeletedObjects(deletedObjects,
+			                      deleted: &deletedIndexPaths,
+			                      cacheClearing: &cacheClearingIds)
 		}
 
 		if let invalidatedObjects = userInfo[NSInvalidatedObjectsKey] as? Set<NSManagedObject> {
-			processDeletedObjects(invalidatedObjects)
+			processDeletedObjects(invalidatedObjects,
+			                      deleted: &deletedIndexPaths,
+			                      cacheClearing: &cacheClearingIds)
 		}
 
 		if let updatedObjects = userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject> {
-			processUpdatedObjects(updatedObjects)
+			processUpdatedObjects(updatedObjects,
+			                      inserted: &insertedIds,
+			                      updated: &updatedIds,
+			                      sortOrderAffecting: &sortOrderAffectingIndexPaths,
+			                      sectionChanged: &sectionChangedIndexPaths,
+			                      deleted: &deletedIndexPaths,
+			                      cacheClearing: &cacheClearingIds)
 		}
 
 		if let refreshedObjects = userInfo[NSRefreshedObjectsKey] as? Set<NSManagedObject> {
-			processUpdatedObjects(refreshedObjects)
+			processUpdatedObjects(refreshedObjects,
+			                      inserted: &insertedIds,
+			                      updated: &updatedIds,
+			                      sortOrderAffecting: &sortOrderAffectingIndexPaths,
+			                      sectionChanged: &sectionChangedIndexPaths,
+			                      deleted: &deletedIndexPaths,
+			                      cacheClearing: &cacheClearingIds)
 		}
 
-		if let changes = mergeChanges(inserted: insertedObjects,
-																  deleted: deletedObjects,
-																  updated: updatedObjects,
-																  sortOrderAffecting: sortOrderAffectingObjects,
-																  sectionChanged: sectionChangedObjects) {
+		for id in cacheClearingIds {
+			clearCache(for: id)
+		}
+
+		if let changes = mergeChanges(inserted: insertedIds,
+																  deleted: deletedIndexPaths,
+																  updated: updatedIds,
+																  sortOrderAffecting: sortOrderAffectingIndexPaths,
+																  sectionChanged: sectionChangedIndexPaths) {
 			eventObserver.sendNext(.updated(changes))
 		}
 	}
