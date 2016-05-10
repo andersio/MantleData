@@ -52,6 +52,11 @@
 		9A39A6731BC958E100FC86E1 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A39A6761BC958E100FC86E1 /* ReactiveView+UIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6641BC958E100FC86E1 /* ReactiveView+UIKit.swift */; };
 		9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6661BC958E100FC86E1 /* ObjectSet.swift */; };
+		9A511A3B1CDE47730098D30B /* ObjectSetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3A1CDE47730098D30B /* ObjectSetSection.swift */; };
+		9A511A3D1CDE47850098D30B /* ObjectSetPrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */; };
+		9A511A3E1CDE47850098D30B /* ObjectSetPrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */; };
+		9A511A401CDE47950098D30B /* ViewModelSetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3F1CDE47950098D30B /* ViewModelSetSection.swift */; };
+		9A511A411CDE47950098D30B /* ViewModelSetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3F1CDE47950098D30B /* ViewModelSetSection.swift */; };
 		9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* Dispatch.m */; };
 		9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
 		9A974BB01CC7B88C00395E2D /* UIKit+Bindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A974BAF1CC7B88C00395E2D /* UIKit+Bindings.swift */; };
@@ -125,6 +130,9 @@
 		9A39A6641BC958E100FC86E1 /* ReactiveView+UIKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveView+UIKit.swift"; path = "MantleData/ReactiveView+UIKit.swift"; sourceTree = "<group>"; };
 		9A39A6661BC958E100FC86E1 /* ObjectSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSet.swift; path = MantleData/ObjectSet.swift; sourceTree = "<group>"; };
 		9A39A66A1BC958E100FC86E1 /* ViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModel.swift; path = MantleData/ViewModel.swift; sourceTree = "<group>"; };
+		9A511A3A1CDE47730098D30B /* ObjectSetSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSetSection.swift; path = MantleData/ObjectSetSection.swift; sourceTree = "<group>"; };
+		9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSetPrefetcher.swift; path = MantleData/ObjectSetPrefetcher.swift; sourceTree = "<group>"; };
+		9A511A3F1CDE47950098D30B /* ViewModelSetSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelSetSection.swift; path = MantleData/ViewModelSetSection.swift; sourceTree = "<group>"; };
 		9A55779F1C1EBC7F00789E02 /* Dispatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Dispatch.m; path = MantleData/Dispatch.m; sourceTree = "<group>"; };
 		9A974BAF1CC7B88C00395E2D /* UIKit+Bindings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKit+Bindings.swift"; path = "MantleData/UIKit+Bindings.swift"; sourceTree = "<group>"; };
 		9A999FD91CD64E3A009AA161 /* PropertyEditor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PropertyEditor.swift; path = MantleData/PropertyEditor.swift; sourceTree = "<group>"; };
@@ -277,10 +285,10 @@
 				9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */,
 				9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */,
 				9A2997E51C510BAD00801A30 /* ReactiveSet.swift */,
-				9A39A66A1BC958E100FC86E1 /* ViewModel.swift */,
+				9ACB1FAB1CDC69720010555B /* ReactiveSetSection.swift */,
 				9ACB1FA91CDC69720010555B /* ReactiveSetEvent.swift */,
 				9ACB1FAA1CDC69720010555B /* ReactiveSetIndex.swift */,
-				9ACB1FAB1CDC69720010555B /* ReactiveSetSection.swift */,
+				9A39A66A1BC958E100FC86E1 /* ViewModel.swift */,
 			);
 			name = "Reactive Collection Protocols";
 			sourceTree = "<group>";
@@ -303,7 +311,10 @@
 				9A2997E31C510BAD00801A30 /* ArraySet.swift */,
 				9A2997E41C510BAD00801A30 /* ArraySetSection.swift */,
 				9A39A6661BC958E100FC86E1 /* ObjectSet.swift */,
+				9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */,
+				9A511A3A1CDE47730098D30B /* ObjectSetSection.swift */,
 				9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */,
+				9A511A3F1CDE47950098D30B /* ViewModelSetSection.swift */,
 			);
 			name = "Reactive Collection Types";
 			sourceTree = "<group>";
@@ -486,6 +497,7 @@
 				9A0D9A851C76ABD30013C976 /* AnyReactiveSetBox.swift in Sources */,
 				9A0D9A861C76ABD30013C976 /* ArraySet.swift in Sources */,
 				9A0D9A871C76ABD30013C976 /* ArraySetSection.swift in Sources */,
+				9A511A411CDE47950098D30B /* ViewModelSetSection.swift in Sources */,
 				9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */,
 				9A0D9A881C76ABD30013C976 /* ReactiveSet.swift in Sources */,
 				9A0D9A891C76ABD30013C976 /* ObjectSet.swift in Sources */,
@@ -502,6 +514,7 @@
 				9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */,
 				9A0D9A981C76ABD30013C976 /* Base.swift in Sources */,
 				9A0D9A991C76ABD30013C976 /* Dispatch.swift in Sources */,
+				9A511A3E1CDE47850098D30B /* ObjectSetPrefetcher.swift in Sources */,
 				9A0D9A9A1C76ABD30013C976 /* Dispatch.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -530,6 +543,7 @@
 				9A2997E71C510BAD00801A30 /* AnyReactiveSetBox.swift in Sources */,
 				9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */,
 				9A5577A01C1EBC7F00789E02 /* Dispatch.m in Sources */,
+				9A511A3B1CDE47730098D30B /* ObjectSetSection.swift in Sources */,
 				9A974BB01CC7B88C00395E2D /* UIKit+Bindings.swift in Sources */,
 				9AA736BE1CCE49C600EE2C26 /* ConflictResolving.swift in Sources */,
 				9ACB1FAC1CDC69720010555B /* ReactiveSetEvent.swift in Sources */,
@@ -539,11 +553,13 @@
 				9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */,
 				9A141A3E1C495E500049BEC9 /* ViewModelSet.swift in Sources */,
 				9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */,
+				9A511A3D1CDE47850098D30B /* ObjectSetPrefetcher.swift in Sources */,
 				9A2997F61C510BDB00801A30 /* NSObject+Bindings.swift in Sources */,
 				9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
 				9ACB1FAD1CDC69720010555B /* ReactiveSetIndex.swift in Sources */,
 				9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */,
 				9A2997ED1C510BB700801A30 /* StdlibCollections+PrivateExtension.swift in Sources */,
+				9A511A401CDE47950098D30B /* ViewModelSetSection.swift in Sources */,
 				9ACB1FB31CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */,
 				9A2997EA1C510BAD00801A30 /* ReactiveSet.swift in Sources */,
 				9A2997FC1C510BE900801A30 /* Dispatch.swift in Sources */,
@@ -596,6 +612,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
+				GCC_OPTIMIZATION_LEVEL = fast;
 				INFOPLIST_FILE = "MantleData-OSX/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
@@ -705,6 +722,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = fast;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -756,6 +774,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_OPTIMIZATION_LEVEL = fast;
 				INFOPLIST_FILE = "$(SRCROOT)/MantleData/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
