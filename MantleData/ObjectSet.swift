@@ -22,7 +22,7 @@ import CoreData
 ///
 /// - Warning:	 This class is not thread-safe. Use it only in the associated NSManagedObjectContext.
 final public class ObjectSet<E: NSManagedObject>: Base {
-	private typealias _IndexPath = ReactiveSetIndexPath<Index, Generator.Element.Index>
+	internal typealias _IndexPath = ReactiveSetIndexPath<Index, Generator.Element.Index>
 
 	public let fetchRequest: NSFetchRequest
 	public let entity: NSEntityDescription
@@ -42,6 +42,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 	private var temporaryObjects = [E: NSManagedObjectID]()
 	private var isAwaitingContextSave = false
+
+	internal var prefetcher: ObjectSetPrefetcher<E>?
 
 	// An ObjectSet retains the managed object context.
 	private(set) public weak var context: NSManagedObjectContext!
@@ -122,6 +124,17 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		sortOrderAffectingRelationships = sortKeyComponents.flatMap { $0.1.count > 1 ? $0.1[0] : nil }.uniquing()
 
 		super.init()
+
+		switch prefetchingPolicy {
+		case let .adjacent(batchSize):
+			prefetcher = LinearBatchingPrefetcher(for: self, batchSize: batchSize)
+
+		case .all:
+			prefetcher = GreedyPrefetcher(for: self)
+
+		case .none:
+			prefetcher = nil
+		}
 	}
 
 	public func fetch() throws {
@@ -157,6 +170,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 	private func sectionize(using resultDictionaries: [[String: AnyObject]]) {
 		sections = []
+		prefetcher?.reset()
 
 		if !resultDictionaries.isEmpty {
 			var ranges: [(range: Range<Int>, name: ReactiveSetSectionName)] = []
@@ -246,6 +260,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			}
 		}
 
+		prefetcher?.acknowledgeFetchCompletion(resultDictionaries.count)
 		eventObserver?.sendNext(.reloaded)
 	}
 
@@ -542,6 +557,9 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		let deletedObjects = deletedObjects ?? sections.indices.map { _ in [Int]() }
 		let updatedObjects = updatedObjects ?? sections.indices.map { _ in Set<NSManagedObjectID>() }
 		let sortOrderAffectingObjects = sortOrderAffectingObjects ?? sections.indices.map { _ in Set<Int>() }
+
+		/// Notify the prefetcher for changes.
+		prefetcher?.acknowledgeChanges(inserted: insertedObjects, deleted: deletedObjects)
 
 		/// Process deletions first, and buffer moves and insertions.
 		let sectionSnapshots = sections

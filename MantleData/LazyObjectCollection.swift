@@ -169,9 +169,10 @@ extension LazyObjectCollection {
 /// MARK: Factories
 
 extension LazyObjectCollection {
-	public func makeObjectSet() -> ObjectSet<Entity> {
+	public func makeObjectSet(prefetching policy: ObjectSetPrefetchingPolicy = .none) -> ObjectSet<Entity> {
 		return ObjectSet(for: fetchRequest,
 		                 in: context,
+		                 prefetchingPolicy: policy,
 		                 sectionNameKeyPath: hasGroupByKeyPath ? fetchRequest.sortDescriptors!.first!.key! : nil)
 	}
 
