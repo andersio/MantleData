@@ -351,7 +351,9 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		return nil
 	}
 
-	private func sortOrderIsAffected(by object: E, against snapshot: [String: AnyObject]) -> Bool {
+	private func sortOrderIsAffected(by object: E, comparingWithSnapshotAt objectCacheIndex: DictionaryIndex<NSManagedObjectID, [String: AnyObject]>) -> Bool {
+		let snapshot = objectCache[objectCacheIndex].1
+
 		for key in sortKeysInSections {
 			if let index = snapshot.indexForKey(key) {
 				if !object.valueForKeyPath(key)!.isEqual(snapshot[index].1) {
@@ -446,7 +448,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 						guard let objectIndex = sections[previousSectionIndex].storage.index(of: object.objectID,
 						                                                                     using: objectSortDescriptors,
 						                                                                     with: objectCache) else {
-																																									preconditionFailure("An object should be in section \(previousSectionIndex), but it cannot be found. (ID: \(object.objectID.URIRepresentation()))")
+							preconditionFailure("An object should be in section \(previousSectionIndex), but it cannot be found. (ID: \(object.objectID.URIRepresentation()))")
 						}
 
 						sectionChangedIndexPaths.insert(objectIndex, intoSetAt: previousSectionIndex)
@@ -461,11 +463,11 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 					preconditionFailure("current section name is supposed to exist, but not found.")
 				}
 
-				guard !sortOrderIsAffected(by: object, against: objectCache[cacheIndex].1) else {
+				guard !sortOrderIsAffected(by: object, comparingWithSnapshotAt: cacheIndex) else {
 					guard let objectIndex = sections[currentSectionIndex].storage.index(of: object.objectID,
 					                                                                    using: objectSortDescriptors,
 					                                                                    with: objectCache) else {
-																																								preconditionFailure("An object should be in section \(currentSectionIndex), but it cannot be found. (ID: \(object.objectID.URIRepresentation()))")
+						preconditionFailure("An object should be in section \(currentSectionIndex), but it cannot be found. (ID: \(object.objectID.URIRepresentation()))")
 					}
 
 					sortOrderAffectingIndexPaths.insert(objectIndex, intoSetAt: currentSectionIndex)
