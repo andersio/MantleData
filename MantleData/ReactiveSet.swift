@@ -35,7 +35,7 @@ public protocol ReactiveSet: class, CollectionType {
 	var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> { get }
 
 	func fetch() throws
-	func sectionName(of object: Generator.Element.Generator.Element) -> ReactiveSetSectionName?
+	func sectionName(of element: Generator.Element.Generator.Element) -> ReactiveSetSectionName?
 	func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath<Index, Generator.Element.Index>?
 }
 
