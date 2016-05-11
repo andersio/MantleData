@@ -35,6 +35,23 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	public let shouldExcludeUpdatedRows: Bool
 	public let sectionNameKeyPath: String?
 
+	public var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
+		return SignalProducer { observer, disposable in
+			if self.eventSignal == nil {
+				let (signal, observer) = Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>.pipe()
+				self.eventSignal = signal
+				self.eventObserver = observer
+			}
+
+			disposable += self.eventSignal!.observe(observer)
+		}
+	}
+
+	private(set) public weak var context: NSManagedObjectContext!
+
+	internal var sections: [ObjectSetSection<E>] = []
+	internal var prefetcher: ObjectSetPrefetcher<E>?
+
 	private let sectionNameOrdering: NSComparisonResult
 	private let objectSortDescriptors: [NSSortDescriptor]
 	private let sortKeys: [String]
@@ -42,16 +59,10 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	private let sortOrderAffectingRelationships: [String]
 	private let sortKeysInSections: [String]
 
-	internal var sections: [ObjectSetSection<E>] = []
 	private var objectCache = [NSManagedObjectID: [String: AnyObject]]()
 
 	private var temporaryObjects = [E: NSManagedObjectID]()
 	private var isAwaitingContextSave = false
-
-	internal var prefetcher: ObjectSetPrefetcher<E>?
-
-	// An ObjectSet retains the managed object context.
-	private(set) public weak var context: NSManagedObjectContext!
 
 	private var eventSignal: Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>?
 	private var eventObserver: Observer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>? = nil {
@@ -72,18 +83,6 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 						}
 				}
 			}
-		}
-	}
-
-	public var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
-		return SignalProducer { observer, disposable in
-			if self.eventSignal == nil {
-				let (signal, observer) = Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>.pipe()
-				self.eventSignal = signal
-				self.eventObserver = observer
-			}
-
-			disposable += self.eventSignal!.observe(observer)
 		}
 	}
 
@@ -809,5 +808,16 @@ extension ObjectSet: ReactiveSet {
 
 	public func sectionName(of object: E) -> ReactiveSetSectionName? {
 		return _sectionName(of: object)
+	}
+
+	public func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
+		let sectionName = _sectionName(of: element)
+		if let sectionIndex = indexOfSection(with: sectionName) {
+			if let objectIndex = self[sectionIndex].storage.index(of: element.objectID, using: objectSortDescriptors, with: objectCache) {
+				return ReactiveSetIndexPath(section: sectionIndex, row: objectIndex)
+			}
+		}
+
+		return nil
 	}
 }
