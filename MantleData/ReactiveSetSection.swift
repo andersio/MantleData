@@ -21,6 +21,12 @@ public protocol ReactiveSetSection: CollectionType {
 	var name: ReactiveSetSectionName { get }
 }
 
+extension ReactiveSetSection {
+	public subscript(index: Int) -> Generator.Element {
+		return self[Index(converting: index)]
+	}
+}
+
 public func == <S: ReactiveSetSection>(left: S, right: S) -> Bool {
 	return left.name == right.name
 }

@@ -25,8 +25,8 @@ import Foundation
 #endif
 
 extension NSIndexPath {
-	public convenience init<SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>(converting indexPath: ReactiveSetIndexPath<SectionIndex, RowIndex>) {
-		self.init(forRow: indexPath.row.toInt(), inSection: indexPath.section.toInt())
+	public convenience init(converting indexPath: ReactiveSetIndexPath) {
+		self.init(forRow: indexPath.row, inSection: indexPath.section)
 	}
 }
 

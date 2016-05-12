@@ -11,8 +11,8 @@ import ReactiveCocoa
 
 // Root
 final public class ArraySet<E: Equatable> {
-	public let eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>
-	private let eventObserver: Observer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>
+	public let eventProducer: SignalProducer<ReactiveSetEvent, NoError>
+	private let eventObserver: Observer<ReactiveSetEvent, NoError>
 
 	private var storage: [ArraySetSection<E>] = []
 
@@ -35,7 +35,7 @@ final public class ArraySet<E: Equatable> {
 		}
 	}
 
-	internal func pushChanges(changes: ReactiveSetChanges<ArraySet.Index, ArraySet.Generator.Element.Index>) {
+	internal func pushChanges(changes: ReactiveSetChanges) {
 		eventObserver.sendNext(.updated(changes))
 	}
 
@@ -188,7 +188,7 @@ extension ArraySet: RangeReplaceableCollectionType {
 		register(newElements[newElementsRange], from: replacedSections.startIndex)
 		insertedSections.appendContentsOf(Array(newElementsRange))
 
-		let changes: ReactiveSetChanges<ArraySet.Index, ArraySet.Generator.Element.Index>
+		let changes: ReactiveSetChanges
 
 		if newEndIndex > subRange.endIndex {
 			// Appending after replaced items

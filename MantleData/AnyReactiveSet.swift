@@ -19,10 +19,10 @@ final public class AnyReactiveSet<E> {
 extension AnyReactiveSet: ReactiveSet {
 	public typealias Section = AnyReactiveSetSection<E>
 
-	public typealias Index = AnyReactiveSetIndex
+	public typealias Index = Int
 	public typealias Generator = AnyReactiveSetIterator<Section>
 
-	public var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
+	public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
 		return set.eventProducer
 	}
 
@@ -50,7 +50,7 @@ extension AnyReactiveSet: ReactiveSet {
 		return set.sectionName(of: object)
 	}
 
-	public func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
+	public func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath? {
 		return set.indexPath(of: element)
 	}
 }
@@ -64,7 +64,7 @@ public struct AnyReactiveSetSection<E> {
 }
 
 extension AnyReactiveSetSection: ReactiveSetSection {
-	public typealias Index = AnyReactiveSetIndex
+	public typealias Index = Int
 	public typealias Generator = AnyReactiveSetSectionIterator<E>
 
 	public var name: ReactiveSetSectionName {

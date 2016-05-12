@@ -112,13 +112,11 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					}
 
 					if let indexPaths = changes.deletedRows {
-						let indexPaths = indexPaths.map { NSIndexPath(converting: $0) }
-						tableView.deleteRowsAtIndexPaths(indexPaths, withRowAnimation: self.deletingAnimation)
+						tableView.deleteRowsAtIndexPaths(indexPaths as [NSIndexPath], withRowAnimation: self.deletingAnimation)
 					}
 
 					if self.shouldReloadRowsForUpdatedObjects, let indexPaths = changes.updatedRows {
-						let indexPaths = indexPaths.map { NSIndexPath(converting: $0) }
-						tableView.reloadRowsAtIndexPaths(indexPaths, withRowAnimation: self.updatingAnimation)
+						tableView.reloadRowsAtIndexPaths(indexPaths as [NSIndexPath], withRowAnimation: self.updatingAnimation)
 					}
 
 					if let indices = changes.insertedSections {
@@ -135,8 +133,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					}
 
 					if let indexPaths = changes.insertedRows {
-						let indexPaths = indexPaths.map { NSIndexPath(converting: $0) }
-						tableView.insertRowsAtIndexPaths(indexPaths, withRowAnimation: self.insertingAnimation)
+						tableView.insertRowsAtIndexPaths(indexPaths as [NSIndexPath], withRowAnimation: self.insertingAnimation)
 					}
 
 					tableView.endUpdates()
@@ -159,7 +156,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	}
 
 	public func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-		let sectionName = set[section.typeErased()].name.value
+		let sectionName = set[section].name.value
 		return sectionNameMapper?(position: section, persistedName: sectionName) ?? sectionName
 	}
 
@@ -167,12 +164,12 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		let (reuseIdentifier, configurator) = cellConfigurators[isUniform ? 0 : indexPath.section]!
 		let cell = tableView.dequeueReusableCellWithIdentifier(reuseIdentifier,
 		                                                       forIndexPath: indexPath)
-		configurator(cell: cell, viewModel: set[indexPath.section.typeErased()][indexPath.row.typeErased()])
+		configurator(cell: cell, viewModel: set[indexPath.section][indexPath.row])
 
 		return cell
 	}
 
 	public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		return set[section.typeErased()].count
+		return set[section].count
 	}
 }

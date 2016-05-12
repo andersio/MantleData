@@ -18,7 +18,7 @@ public final class ViewModelSet<U: ViewModel> {
   private let set: _AnyReactiveSetBox<U.MappingObject>
 	internal let factory: U.MappingObject -> U
   
-  public var eventProducer: SignalProducer<ReactiveSetEvent<AnyReactiveSetIndex, AnyReactiveSetIndex>, NoError> {
+  public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
 		return set.eventProducer
   }
 
@@ -42,7 +42,7 @@ public final class ViewModelSet<U: ViewModel> {
 }
 
 extension ViewModelSet: CollectionType {
-	public typealias Index = AnyReactiveSetIndex
+	public typealias Index = Int
 	public typealias Generator = AnyGenerator<ViewModelSetSection<U>>
 
 	public var startIndex: Index {

@@ -7,7 +7,7 @@
 //
 
 public struct ViewModelSetSection<U: ViewModel> {
-	public typealias Index = AnyReactiveSetIndex
+	public typealias Index = Int
 	public typealias Generator = AnyReactiveSetSectionIterator<U>
 
 	private let wrappingSection: AnyReactiveSetSection<U.MappingObject>

@@ -11,34 +11,8 @@ import ReactiveCocoa
 final internal class _AnyReactiveSetBoxBase<R: ReactiveSet>: _AnyReactiveSetBox<R.Generator.Element.Generator.Element> {
 	private let set: R
 
-	override var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
-		return set.eventProducer.map { event in
-			switch event {
-			case .reloaded:
-				return .reloaded
-
-			case let .updated(changes):
-				let insertedRows: [ReactiveSetIndexPath<AnyReactiveSetIndex, AnyReactiveSetIndex>]? = changes.insertedRows?.map { $0.typeErased() }
-				let deletedRows = changes.deletedRows?.map { $0.typeErased() }
-				let movedRows = changes.movedRows?.map { (from: $0.0.typeErased(), to: $0.1.typeErased()) }
-				let updatedRows = changes.updatedRows?.map { $0.typeErased() }
-				let insertedSections = changes.insertedSections?.map { AnyReactiveSetIndex(converting: $0) }
-				let deletedSections = changes.deletedSections?.map { AnyReactiveSetIndex(converting: $0) }
-				let reloadedSections = changes.reloadedSections?.map { AnyReactiveSetIndex(converting: $0) }
-
-				let mappedChanges: ReactiveSetChanges<AnyReactiveSetIndex, AnyReactiveSetIndex>
-
-				mappedChanges = ReactiveSetChanges(insertedRows: insertedRows,
-					deletedRows: deletedRows,
-					movedRows: movedRows,
-					updatedRows: updatedRows,
-					insertedSections: insertedSections,
-					deletedSections: deletedSections,
-					reloadedSections: reloadedSections)
-
-				return ReactiveSetEvent.updated(mappedChanges)
-			}
-		}
+	override var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
+		return set.eventProducer
 	}
 
 	init(_ set: R) {
@@ -78,16 +52,16 @@ final internal class _AnyReactiveSetBoxBase<R: ReactiveSet>: _AnyReactiveSetBox<
 		return set.sectionName(of: object)
 	}
 
-	override func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
-		return set.indexPath(of: element)?.typeErased()
+	override func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath? {
+		return set.indexPath(of: element)
 	}
 }
 
 internal class _AnyReactiveSetBox<E>: ReactiveSet {
-	typealias Index = AnyReactiveSetIndex
+	typealias Index = Int
 	typealias Generator = AnyReactiveSetIterator<AnyReactiveSetSection<E>>
 
-	var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
+	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
 		_abstractMethod_subclassMustImplement()
 	}
 
@@ -115,7 +89,7 @@ internal class _AnyReactiveSetBox<E>: ReactiveSet {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	func indexPath(of element: E) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
+	func indexPath(of element: E) -> ReactiveSetIndexPath? {
 		_abstractMethod_subclassMustImplement()
 	}
 }
@@ -159,7 +133,7 @@ final internal class _AnyReactiveSetSectionBoxBase<S: ReactiveSetSection>: _AnyR
 internal class _AnyReactiveSetSectionBox<E>: ReactiveSetSection {
 	typealias Entity = E
 
-	typealias Index = AnyReactiveSetIndex
+	typealias Index = Int
 	typealias Generator = AnyReactiveSetSectionIterator<E>
 
 	var name: ReactiveSetSectionName {
