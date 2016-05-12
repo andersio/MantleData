@@ -10,30 +10,30 @@ import Foundation
 
 /// Events of ReactiveSet
 
-public enum ReactiveSetEvent<SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex> {
+public enum ReactiveSetEvent {
 	case reloaded
-	case updated(ReactiveSetChanges<SectionIndex, RowIndex>)
+	case updated(ReactiveSetChanges)
 }
 
 /// Change Descriptor of ReactiveSet
 
-public struct ReactiveSetChanges<SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex> {
-	public var deletedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]?
-	public var insertedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]?
-	public var movedRows: [(from: ReactiveSetIndexPath<SectionIndex, RowIndex>, to: ReactiveSetIndexPath<SectionIndex, RowIndex>)]?
-	public var updatedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]?
+public struct ReactiveSetChanges {
+	public var deletedRows: [ReactiveSetIndexPath]?
+	public var insertedRows: [ReactiveSetIndexPath]?
+	public var movedRows: [(from: ReactiveSetIndexPath, to: ReactiveSetIndexPath)]?
+	public var updatedRows: [ReactiveSetIndexPath]?
 
-	public var insertedSections: [SectionIndex]?
-	public var deletedSections: [SectionIndex]?
-	public var reloadedSections: [SectionIndex]?
+	public var insertedSections: [Int]?
+	public var deletedSections: [Int]?
+	public var reloadedSections: [Int]?
 
-	public init(insertedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]? = nil,
-	            deletedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]? = nil,
-	            movedRows: [(from: ReactiveSetIndexPath<SectionIndex, RowIndex>, to: ReactiveSetIndexPath<SectionIndex, RowIndex>)]? = nil,
-	            updatedRows: [ReactiveSetIndexPath<SectionIndex, RowIndex>]? = nil,
-	            insertedSections: [SectionIndex]? = nil,
-	            deletedSections: [SectionIndex]? = nil,
-	            reloadedSections: [SectionIndex]? = nil) {
+	public init(insertedRows: [ReactiveSetIndexPath]? = nil,
+	            deletedRows: [ReactiveSetIndexPath]? = nil,
+	            movedRows: [(from: ReactiveSetIndexPath, to: ReactiveSetIndexPath)]? = nil,
+	            updatedRows: [ReactiveSetIndexPath]? = nil,
+	            insertedSections: [Int]? = nil,
+	            deletedSections: [Int]? = nil,
+	            reloadedSections: [Int]? = nil) {
 		self.insertedRows = insertedRows
 		self.deletedRows = deletedRows
 		self.movedRows = movedRows

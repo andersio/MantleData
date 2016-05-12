@@ -27,7 +27,7 @@ import CoreData
 ///
 /// - Warning:	 This class is not thread-safe. Use it only in the associated NSManagedObjectContext.
 final public class ObjectSet<E: NSManagedObject>: Base {
-	internal typealias _IndexPath = ReactiveSetIndexPath<Index, Generator.Element.Index>
+	internal typealias _IndexPath = ReactiveSetIndexPath
 
 	public let fetchRequest: NSFetchRequest
 	public let entity: NSEntityDescription
@@ -35,10 +35,10 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	public let shouldExcludeUpdatedRows: Bool
 	public let sectionNameKeyPath: String?
 
-	public var eventProducer: SignalProducer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError> {
+	public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
 		return SignalProducer { observer, disposable in
 			if self.eventSignal == nil {
-				let (signal, observer) = Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>.pipe()
+				let (signal, observer) = Signal<ReactiveSetEvent, NoError>.pipe()
 				self.eventSignal = signal
 				self.eventObserver = observer
 			}
@@ -64,8 +64,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	private var temporaryObjects = [E: NSManagedObjectID]()
 	private var isAwaitingContextSave = false
 
-	private var eventSignal: Signal<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>?
-	private var eventObserver: Observer<ReactiveSetEvent<Index, Generator.Element.Index>, NoError>? = nil {
+	private var eventSignal: Signal<ReactiveSetEvent, NoError>?
+	private var eventObserver: Observer<ReactiveSetEvent, NoError>? = nil {
 		willSet {
 			if eventObserver == nil && newValue != nil {
 				NSNotificationCenter.defaultCenter().addObserver(self,
@@ -577,7 +577,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 														updated updatedObjects: [Set<NSManagedObjectID>]? = nil,
 														sortOrderAffecting sortOrderAffectingObjects: [Set<Int>]? = nil,
 														sectionChanged sectionChangedObjects: [Set<Int>]? = nil)
-														-> ReactiveSetChanges<Index, Generator.Element.Index>? {
+														-> ReactiveSetChanges? {
 		guard let eventObserver = eventObserver else {
 			return nil
 		}
@@ -753,7 +753,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			sections[position].indexInSet = position
 		}
 
-		let resultSetChanges: ReactiveSetChanges<Index, Generator.Element.Index>
+		let resultSetChanges: ReactiveSetChanges
 		resultSetChanges = ReactiveSetChanges(insertedRows: indexPathsOfInsertedRows.isEmpty ? nil : indexPathsOfInsertedRows,
 		                                      deletedRows: indexPathsOfDeletedRows.isEmpty ? nil : indexPathsOfDeletedRows,
 		                                      movedRows: indexPathsOfMovedRows.isEmpty ? nil : indexPathsOfMovedRows,
@@ -810,7 +810,7 @@ extension ObjectSet: ReactiveSet {
 		return _sectionName(of: object)
 	}
 
-	public func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath<Index, Generator.Element.Index>? {
+	public func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath? {
 		let sectionName = _sectionName(of: element)
 		if let sectionIndex = indexOfSection(with: sectionName) {
 			if let objectIndex = self[sectionIndex].storage.index(of: element.objectID, using: objectSortDescriptors, with: objectCache) {

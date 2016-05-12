@@ -193,12 +193,12 @@ internal struct ArraySetSectionChanges<Index: ReactiveSetIndex> {
 		self.updatedRows = updatedRows
 	}
 
-	func reactiveSetChanges<SectionIndex: ReactiveSetIndex>(for sectionIndex: SectionIndex) -> ReactiveSetChanges<SectionIndex, Index> {
-		var changes = ReactiveSetChanges<SectionIndex, Index>()
-		changes.insertedRows = insertedRows?.map { ReactiveSetIndexPath<SectionIndex, Index>(section: sectionIndex, row: $0) }
-		changes.deletedRows = deletedRows?.map { ReactiveSetIndexPath<SectionIndex, Index>(section: sectionIndex, row: $0) }
-		changes.updatedRows = updatedRows?.map { ReactiveSetIndexPath<SectionIndex, Index>(section: sectionIndex, row: $0) }
-		changes.movedRows = movedRows?.map { (ReactiveSetIndexPath<SectionIndex, Index>(section: sectionIndex, row: $0.from), ReactiveSetIndexPath<SectionIndex, Index>(section: sectionIndex, row: $0.to)) }
+	func reactiveSetChanges<SectionIndex: ReactiveSetIndex>(for sectionIndex: SectionIndex) -> ReactiveSetChanges {
+		var changes = ReactiveSetChanges()
+		changes.insertedRows = insertedRows?.map { ReactiveSetIndexPath(section: sectionIndex, row: $0) }
+		changes.deletedRows = deletedRows?.map { ReactiveSetIndexPath(section: sectionIndex, row: $0) }
+		changes.updatedRows = updatedRows?.map { ReactiveSetIndexPath(section: sectionIndex, row: $0) }
+		changes.movedRows = movedRows?.map { (ReactiveSetIndexPath(section: sectionIndex, row: $0.from), ReactiveSetIndexPath(section: sectionIndex, row: $0.to)) }
 		return changes
 	}
 }

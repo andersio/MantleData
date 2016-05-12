@@ -8,28 +8,62 @@
 
 import Foundation
 
-public struct ReactiveSetIndexPath<SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>: Comparable {
-	public let section: SectionIndex
-	public let row: RowIndex
+public struct ReactiveSetIndexPath: Comparable {
+	public let section: Int
+	public let row: Int
 
-	public func typeErased() -> ReactiveSetIndexPath<AnyReactiveSetIndex, AnyReactiveSetIndex> {
-		return ReactiveSetIndexPath<AnyReactiveSetIndex, AnyReactiveSetIndex>(section: AnyReactiveSetIndex(converting: section),
-		                                                           row: AnyReactiveSetIndex(converting: row))
+	public init<L: ReactiveSetIndex, R: ReactiveSetIndex>(section: L, row: R) {
+		self.section = section.toInt()
+		self.row = row.toInt()
+	}
+
+	public init(section: Int, row: Int) {
+		self.section = section
+		self.row = row
 	}
 }
 
-public func == <SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>
-	(left: ReactiveSetIndexPath<SectionIndex, RowIndex>, right: ReactiveSetIndexPath<SectionIndex, RowIndex>) -> Bool {
+extension ReactiveSetIndexPath: _ObjectiveCBridgeable {
+	public typealias _ObjectiveCType = NSIndexPath
+
+	public static func _isBridgedToObjectiveC() -> Bool {
+		return true
+	}
+
+	public static func _getObjectiveCType() -> Any.Type {
+		return NSIndexPath.self
+	}
+
+	public func _bridgeToObjectiveC() -> _ObjectiveCType {
+		return NSIndexPath(forRow: row, inSection: section)
+	}
+
+	public static func _conditionallyBridgeFromObjectiveC(source: _ObjectiveCType, inout result: ReactiveSetIndexPath?) -> Bool {
+		if source.length != 2 {
+			return false
+		}
+
+		result = ReactiveSetIndexPath(section: source.section, row: source.row)
+		return true
+	}
+
+	public static func _forceBridgeFromObjectiveC(source: _ObjectiveCType, inout result: ReactiveSetIndexPath?) {
+		_conditionallyBridgeFromObjectiveC(source, result: &result)
+	}
+}
+
+public func ==
+	(left: ReactiveSetIndexPath, right: ReactiveSetIndexPath) -> Bool {
 	return left.section == right.section && left.row == right.row
 }
 
-public func >= <SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>
-	(left: ReactiveSetIndexPath<SectionIndex, RowIndex>, right: ReactiveSetIndexPath<SectionIndex, RowIndex>) -> Bool {
+public func >=
+	(left: ReactiveSetIndexPath, right: ReactiveSetIndexPath) -> Bool {
 	return left.section > right.section || (left.section == right.section && left.row >= right.row)
 }
 
-public func < <SectionIndex: ReactiveSetIndex, RowIndex: ReactiveSetIndex>
-	(left: ReactiveSetIndexPath<SectionIndex, RowIndex>, right: ReactiveSetIndexPath<SectionIndex, RowIndex>) -> Bool {
+public func <
+	(left: ReactiveSetIndexPath, right: ReactiveSetIndexPath) -> Bool {
 	return left.section < right.section || (left.section == right.section && left.row < right.row)
 }
 
@@ -40,12 +74,6 @@ public protocol ReactiveSetIndex: RandomAccessIndexType {
 	func toInt() -> Int
 }
 
-extension ReactiveSetIndex {
-	public func typeErased() -> AnyReactiveSetIndex {
-		return AnyReactiveSetIndex(converting: self)
-	}
-}
-
 extension Int: ReactiveSetIndex {
 	public init<I: ReactiveSetIndex>(converting index: I) {
 		self = Int(index.toInt())
@@ -53,38 +81,5 @@ extension Int: ReactiveSetIndex {
 
 	public func toInt() -> Int {
 		return self
-	}
-}
-
-public struct AnyReactiveSetIndex: ReactiveSetIndex {
-	public typealias Distance = Int
-	public let intValue: Distance
-
-	public init(_ base: Distance) {
-		intValue = base
-	}
-
-	public func toInt() -> Int {
-		return intValue
-	}
-
-	public init<I: ReactiveSetIndex>(converting anotherIndex: I) {
-		intValue = anotherIndex.toInt()
-	}
-
-	public func successor() -> AnyReactiveSetIndex {
-		return AnyReactiveSetIndex(intValue + 1)
-	}
-
-	public func predecessor() -> AnyReactiveSetIndex {
-		return AnyReactiveSetIndex(intValue - 1)
-	}
-
-	public func advancedBy(n: Distance) -> AnyReactiveSetIndex {
-		return AnyReactiveSetIndex(intValue + n)
-	}
-
-	public func distanceTo(end: AnyReactiveSetIndex) -> Distance {
-		return end.intValue - intValue
 	}
 }
