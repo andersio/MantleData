@@ -11,16 +11,16 @@ import ReactiveCocoa
 final public class AnyReactiveSet<E> {
 	private let set: _AnyReactiveSetBox<E>
 
-	public init<R: ReactiveSet where R.Generator.Element.Generator.Element == E>(_ set: R) {
+	public init<R: ReactiveSet where R.Iterator.Element.Iterator.Element == E>(_ set: R) {
 		self.set = _AnyReactiveSetBoxBase(set)
 	}
 }
 
 extension AnyReactiveSet: ReactiveSet {
-	public typealias Section = AnyReactiveSetSection<E>
-
 	public typealias Index = Int
-	public typealias Generator = AnyReactiveSetIterator<Section>
+	public typealias IndexDistance = Int
+	public typealias Iterator = AnyReactiveSetIterator<AnyReactiveSetSection<E>>
+	public typealias Indices = CountableRange<Index>
 
 	public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
 		return set.eventProducer
@@ -34,23 +34,35 @@ extension AnyReactiveSet: ReactiveSet {
 		return set.endIndex
 	}
 
-	public func fetch() throws {
-		try set.fetch()
+	public var indices: CountableRange<Index> {
+		return startIndex ..< endIndex
 	}
 
-	public subscript(index: Index) -> Section {
+	public func fetch(startTracking: Bool) throws {
+		try set.fetch(startTracking: startTracking)
+	}
+
+	public subscript(index: Index) -> AnyReactiveSetSection<E> {
 		return set[index]
 	}
 
-	public func generate() -> Generator {
-		return set.generate()
+	public func index(after i: Index) -> Index {
+		return i + 1
+	}
+
+	public func index(before i: Index) -> Index {
+		return i - 1
+	}
+
+	public func makeIterator() -> Iterator {
+		return set.makeIterator()
 	}
 
 	public func sectionName(of object: E) -> ReactiveSetSectionName? {
 		return set.sectionName(of: object)
 	}
 
-	public func indexPath(of element: Generator.Element.Generator.Element) -> ReactiveSetIndexPath? {
+	public func indexPath(of element: Iterator.Element.Iterator.Element) -> IndexPath? {
 		return set.indexPath(of: element)
 	}
 }
@@ -58,14 +70,14 @@ extension AnyReactiveSet: ReactiveSet {
 public struct AnyReactiveSetSection<E> {
 	private let wrappedSection: _AnyReactiveSetSectionBox<E>
 
-	public init<S: ReactiveSetSection where S.Generator.Element == E>(_ section: S) {
+	public init<S: ReactiveSetSection where S.Iterator.Element == E>(_ section: S) {
 		wrappedSection = _AnyReactiveSetSectionBoxBase(section)
 	}
 }
 
 extension AnyReactiveSetSection: ReactiveSetSection {
 	public typealias Index = Int
-	public typealias Generator = AnyReactiveSetSectionIterator<E>
+	public typealias Iterator = AnyReactiveSetSectionIterator<E>
 
 	public var name: ReactiveSetSectionName {
 		return wrappedSection.name
@@ -79,12 +91,20 @@ extension AnyReactiveSetSection: ReactiveSetSection {
 		return wrappedSection.endIndex
 	}
 
-	public subscript(index: Index) -> Generator.Element {
+	public subscript(index: Index) -> Iterator.Element {
 		return wrappedSection[index]
 	}
 
-	public func generate() -> Generator {
-		return wrappedSection.generate()
+	public func makeIterator() -> Iterator {
+		return wrappedSection.makeIterator()
+	}
+
+	public func index(after i: Index) -> Index {
+		return i + 1
+	}
+
+	public func index(before i: Index) -> Index {
+		return i - 1
 	}
 }
 

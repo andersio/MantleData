@@ -9,7 +9,7 @@
 import UIKit
 import ReactiveCocoa
 
-public enum TableViewAdapterRegistration {
+public enum AdapterSectionRegistration {
 	case allSections
 	case section(at: Int)
 }
@@ -22,9 +22,9 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 
 	private var shouldReloadRowsForUpdatedObjects = false
 
-	private var insertingAnimation: UITableViewRowAnimation = .Automatic
-	private var deletingAnimation: UITableViewRowAnimation = .Automatic
-	private var updatingAnimation: UITableViewRowAnimation = .Automatic
+	private var insertingAnimation: UITableViewRowAnimation = .automatic
+	private var deletingAnimation: UITableViewRowAnimation = .automatic
+	private var updatingAnimation: UITableViewRowAnimation = .automatic
 
 	private var sectionNameMapper: ((position: Int, persistedName: String?) -> String?)?
 
@@ -39,22 +39,24 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 
 	private func ensureArraySize(for index: Int) {
 		if cellConfigurators.endIndex <= index {
-			cellConfigurators.appendContentsOf(Array(count: index - cellConfigurators.startIndex, repeatedValue: nil))
+			cellConfigurators.append(contentsOf: Array(repeating: nil, count: index - cellConfigurators.startIndex))
 		}
 	}
 
-	public func register(for type: TableViewAdapterRegistration,
+	public func register<Cell: UITableViewCell>(for type: AdapterSectionRegistration,
 	                     with reuseIdentifier: String,
-											 applying cellConfigurator: (cell: UITableViewCell, viewModel: V) -> Void) -> TableViewAdapter {
+											 class: Cell.Type,
+											 applying cellConfigurator: (cell: Cell, viewModel: V) -> Void) -> Self {
 		switch type {
 		case let .section(index):
 			assert(index >= 0, "section index must be greater than or equal to zero.")
 			ensureArraySize(for: index)
-			cellConfigurators[index] = (reuseIdentifier, cellConfigurator)
+			cellConfigurators[index] = (reuseIdentifier, { cellConfigurator(cell: $0 as! Cell, viewModel: $1) })
 
 		case .allSections:
 			isUniform = true
-			cellConfigurators = [(reuseIdentifier, cellConfigurator)]
+			cellConfigurators = []
+			cellConfigurators.append((reuseIdentifier, { cellConfigurator(cell: $0 as! Cell, viewModel: $1) }))
 		}
 
 		return self
@@ -63,7 +65,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	public func setAnimation(inserting insertingAnimation: UITableViewRowAnimation? = nil,
 	                         deleting deletingAnimation: UITableViewRowAnimation? = nil,
 													 updating updatingAnimation: UITableViewRowAnimation? = nil)
-													 -> TableViewAdapter {
+													 -> Self {
 		self.insertingAnimation = insertingAnimation ?? self.insertingAnimation
 		self.deletingAnimation = deletingAnimation ?? self.deletingAnimation
 		self.updatingAnimation = updatingAnimation ?? self.updatingAnimation
@@ -71,23 +73,25 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		return self
 	}
 
-	public func mapSectionName(using transform: (position: Int, persistedName: String?) -> String?) -> TableViewAdapter {
+	public func mapSectionName(using transform: (position: Int, persistedName: String?) -> String?) -> Self {
 		sectionNameMapper = transform
 		return self
 	}
 
-	public func reloadUpdatedRows(enabling flag: Bool = true) -> TableViewAdapter {
+	public func reloadUpdatedRows(enabling flag: Bool = true) -> Self {
 		shouldReloadRowsForUpdatedObjects = flag
 		return self
 	}
 
-	public func on(emptied emptied: (() -> Void)?, unemptied: (() -> Void)?) -> TableViewAdapter {
+	public func on(emptied: (() -> Void)?, unemptied: (() -> Void)?) -> Self {
 		emptiedObserver = emptied ?? emptiedObserver
 		unemptiedObserver = unemptied ?? unemptiedObserver
 		return self
 	}
 
-	public func bind(tableView: UITableView) -> Disposable {
+	/// MARK: `UITableViewDataSource` conformance
+	@discardableResult
+	public func bind(_ tableView: UITableView) -> Disposable {
 		defer { try! set.fetch() }
 		tableView.dataSource = self
 
@@ -97,43 +101,41 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 				switch event {
 				case .reloaded:
 					tableView.reloadData()
-					
+
 				case let .updated(changes):
 					tableView.beginUpdates()
 
 					if let indices = changes.deletedSections {
-						let indexSet = NSMutableIndexSet(converting: indices)
-						tableView.deleteSections(indexSet, withRowAnimation: self.deletingAnimation)
+						let indexSet = IndexSet(converting: indices)
+						tableView.deleteSections(indexSet, with: self.deletingAnimation)
 					}
 
 					if let indices = changes.reloadedSections {
-						let indexSet = NSMutableIndexSet(converting: indices)
-						tableView.reloadSections(indexSet, withRowAnimation: self.updatingAnimation)
+						let indexSet = IndexSet(converting: indices)
+						tableView.reloadSections(indexSet, with: self.updatingAnimation)
 					}
 
 					if let indexPaths = changes.deletedRows {
-						tableView.deleteRowsAtIndexPaths(indexPaths as [NSIndexPath], withRowAnimation: self.deletingAnimation)
+						tableView.deleteRows(at: indexPaths, with: self.deletingAnimation)
 					}
 
 					if self.shouldReloadRowsForUpdatedObjects, let indexPaths = changes.updatedRows {
-						tableView.reloadRowsAtIndexPaths(indexPaths as [NSIndexPath], withRowAnimation: self.updatingAnimation)
+						tableView.reloadRows(at: indexPaths, with: self.updatingAnimation)
 					}
 
 					if let indices = changes.insertedSections {
-						let indexSet = NSMutableIndexSet(converting: indices)
-						tableView.insertSections(indexSet, withRowAnimation: self.insertingAnimation)
+						let indexSet = IndexSet(converting: indices)
+						tableView.insertSections(indexSet, with: self.insertingAnimation)
 					}
 
 					if let indexPathPairs = changes.movedRows {
-						for (from, to) in indexPathPairs {
-							let source = NSIndexPath(converting: from)
-							let destination = NSIndexPath(converting: to)
-							tableView.moveRowAtIndexPath(source, toIndexPath: destination)
+						for (source, destination) in indexPathPairs {
+							tableView.moveRow(at: source, to: destination)
 						}
 					}
 
 					if let indexPaths = changes.insertedRows {
-						tableView.insertRowsAtIndexPaths(indexPaths as [NSIndexPath], withRowAnimation: self.insertingAnimation)
+						tableView.insertRows(at: indexPaths, with: self.insertingAnimation)
 					}
 
 					tableView.endUpdates()
@@ -149,27 +151,25 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		}
 	}
 
-	/// MARK: `UITableViewDataSource` conformance
-
-	public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+	public func numberOfSections(in tableView: UITableView) -> Int {
 		return set.count
 	}
 
-	public func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+	public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
 		let sectionName = set[section].name.value
 		return sectionNameMapper?(position: section, persistedName: sectionName) ?? sectionName
 	}
 
-	public func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-		let (reuseIdentifier, configurator) = cellConfigurators[isUniform ? 0 : indexPath.section]!
-		let cell = tableView.dequeueReusableCellWithIdentifier(reuseIdentifier,
-		                                                       forIndexPath: indexPath)
-		configurator(cell: cell, viewModel: set[indexPath.section][indexPath.row])
+	public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+		let (reuseIdentifier, configurator) = cellConfigurators[isUniform ? 0 : (indexPath as NSIndexPath).section]!
+		let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier,
+		                                                       for: indexPath)
+		configurator(cell: cell, viewModel: set[(indexPath as NSIndexPath).section][(indexPath as NSIndexPath).row])
 
 		return cell
 	}
 
-	public func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+	public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 		return set[section].count
 	}
 }

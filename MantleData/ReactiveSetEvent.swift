@@ -18,19 +18,19 @@ public enum ReactiveSetEvent {
 /// Change Descriptor of ReactiveSet
 
 public struct ReactiveSetChanges {
-	public var deletedRows: [ReactiveSetIndexPath]?
-	public var insertedRows: [ReactiveSetIndexPath]?
-	public var movedRows: [(from: ReactiveSetIndexPath, to: ReactiveSetIndexPath)]?
-	public var updatedRows: [ReactiveSetIndexPath]?
+	public var deletedRows: [IndexPath]?
+	public var insertedRows: [IndexPath]?
+	public var movedRows: [(from: IndexPath, to: IndexPath)]?
+	public var updatedRows: [IndexPath]?
 
 	public var insertedSections: [Int]?
 	public var deletedSections: [Int]?
 	public var reloadedSections: [Int]?
 
-	public init(insertedRows: [ReactiveSetIndexPath]? = nil,
-	            deletedRows: [ReactiveSetIndexPath]? = nil,
-	            movedRows: [(from: ReactiveSetIndexPath, to: ReactiveSetIndexPath)]? = nil,
-	            updatedRows: [ReactiveSetIndexPath]? = nil,
+	public init(insertedRows: [IndexPath]? = nil,
+	            deletedRows: [IndexPath]? = nil,
+	            movedRows: [(from: IndexPath, to: IndexPath)]? = nil,
+	            updatedRows: [IndexPath]? = nil,
 	            insertedSections: [Int]? = nil,
 	            deletedSections: [Int]? = nil,
 	            reloadedSections: [Int]? = nil) {
@@ -92,7 +92,7 @@ extension ReactiveSetChanges: CustomStringConvertible {
 			strings.append( "> \(indexPaths.count) section(s) deleted\n")
 		}
 		
-		return strings.joinWithSeparator("\n")
+		return strings.joined(separator: "\n")
 	}
 }
 

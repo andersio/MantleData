@@ -24,7 +24,7 @@ internal class ObjectSetPrefetcher<E: NSManagedObject> {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	func acknowledgeFetchCompletion(objectCount: Int) {
+	func acknowledgeFetchCompletion(_ objectCount: Int) {
 		_abstractMethod_subclassMustImplement()
 	}
 
@@ -50,7 +50,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 	private let halfOfBatch: Int
 
 	var lastAccessedIndex: Int
-	var prefetchedRange: Range<Int>
+	var prefetchedRange: CountableRange<Int>
 
 	init(for objectSet: ObjectSet<E>, batchSize: Int) {
 		assert(batchSize % 2 == 0)
@@ -110,7 +110,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 		}
 
 		if forForwardPrefetching {
-			return (section: objectSet.endIndex - 1, row: (objectSet.last?.endIndex ?? 0) - 1)
+			return (section: objectSet.endIndex - 1, row: (objectSet[objectSet.endIndex - 1].endIndex ?? 0) - 1)
 		} else {
 			return (section: 0, row: 0)
 		}
@@ -128,16 +128,20 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 					sectionIndices.contains(iteratingSectionIndex) &&
 					iteratingPosition >= objectSet.sections[iteratingSectionIndex].startIndex {
 			if isForwardPrefetching {
-				let endIndex = iteratingPosition.advancedBy(delta,
-				                                            limit: objectSet[iteratingSectionIndex].storage.endIndex)
+				let sectionEndIndex = objectSet[iteratingSectionIndex].storage.endIndex
+				let endIndex = objectSet.sections[iteratingSectionIndex].index(iteratingPosition,
+				                                                               offsetBy: delta,
+				                                                               limitedBy: sectionEndIndex) ?? sectionEndIndex
 				delta = delta - (endIndex - iteratingPosition)
 
 				let range = iteratingPosition ..< endIndex
 				let slice = objectSet[iteratingSectionIndex].storage[range]
 				prefetchingIds.append(slice)
 			} else {
-				let startIndex = iteratingPosition.advancedBy(-delta,
-				                                              limit: objectSet[iteratingSectionIndex].storage.startIndex)
+				let sectionStartIndex = objectSet[iteratingSectionIndex].storage.startIndex
+				let startIndex = objectSet.sections[iteratingSectionIndex].index(iteratingPosition,
+				                                                                 offsetBy: -delta,
+				                                                                 limitedBy: sectionStartIndex) ?? sectionStartIndex
 				delta = delta - (iteratingPosition - startIndex)
 
 				let range = startIndex ..< iteratingPosition
@@ -159,17 +163,17 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 		let prefetchingIds = obtainIDsForBatch(at: flattenedPosition,
 		                                       forward: isForwardPrefetching)
 
-		let prefetchRequest = NSFetchRequest(entityName: String(E))
-		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
+		let prefetchRequest = E.fetchRequest()
+		prefetchRequest.predicate = Predicate(format: "self IN %@",
 		                                        argumentArray: [prefetchingIds as NSArray])
-		prefetchRequest.resultType = .ManagedObjectResultType
+		prefetchRequest.resultType = NSFetchRequestResultType()
 		prefetchRequest.returnsObjectsAsFaults = false
 
-		let prefetchedObjects = try objectSet.context.executeFetchRequest(prefetchRequest) as! [E]
+		let prefetchedObjects = try objectSet.context.fetch(prefetchRequest) as! [E]
 		retain(prefetchedObjects)
 	}
 
-	func retain(objects: [E]) {
+	func retain(_ objects: [E]) {
 		switch nextPool {
 		case .first:
 			firstPool = objects
@@ -203,7 +207,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 		}
 	}
 
-	override func acknowledgeFetchCompletion(objectCount: Int) {}
+	override func acknowledgeFetchCompletion(_ objectCount: Int) {}
 	override func acknowledgeChanges(inserted insertedIds: [ReactiveSetSectionName: Set<NSManagedObjectID>], deleted deletedIds: [[Int]]) {}
 }
 
@@ -220,29 +224,29 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E
 	override func reset() {}
 	override func acknowledgeNextAccess(at position: ObjectSet<E>._IndexPath) {}
 
-	override func acknowledgeFetchCompletion(objectCount: Int) {
+	override func acknowledgeFetchCompletion(_ objectCount: Int) {
 		var ids = [NSManagedObjectID]()
 		ids.reserveCapacity(objectCount)
 
 		for index in objectSet.indices {
-			ids.appendContentsOf(objectSet[index].storage)
+			ids.append(contentsOf: objectSet[index].storage)
 		}
 
-		let prefetchRequest = NSFetchRequest(entityName: String(E))
-		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
+		let prefetchRequest = E.fetchRequest()
+		prefetchRequest.predicate = Predicate(format: "self IN %@",
 		                                        argumentArray: [ids as NSArray])
-		prefetchRequest.resultType = .ManagedObjectResultType
+		prefetchRequest.resultType = NSFetchRequestResultType()
 
 		do {
-			let prefetchedObjects = try objectSet.context.executeFetchRequest(prefetchRequest) as! [E]
-			retainingPool.unionInPlace(prefetchedObjects)
+			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest) as! [E]
+			retainingPool.formUnion(prefetchedObjects)
 		} catch let error {
 			print("GreedyPrefetcher<\(String(E))>: cannot execute a prefetch. Error: \(error)")
 		}
 	}
 
 	override func acknowledgeChanges(inserted insertedIds: [ReactiveSetSectionName: Set<NSManagedObjectID>], deleted deletedIds: [[Int]]) {
-		for (sectionIndex, objectIndices) in deletedIds.enumerate() {
+		for (sectionIndex, objectIndices) in deletedIds.enumerated() {
 			for index in objectIndices {
 				retainingPool.remove(objectSet[sectionIndex][index])
 			}
@@ -250,14 +254,14 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E
 
 		let insertedIds = insertedIds.flatMap { $0.1 }
 
-		let prefetchRequest = NSFetchRequest(entityName: String(E))
-		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
+		let prefetchRequest = E.fetchRequest()
+		prefetchRequest.predicate = Predicate(format: "self IN %@",
 		                                        argumentArray: [insertedIds as NSArray])
-		prefetchRequest.resultType = .ManagedObjectResultType
+		prefetchRequest.resultType = NSFetchRequestResultType()
 
 		do {
-			let prefetchedObjects = try objectSet.context.executeFetchRequest(prefetchRequest) as! [E]
-			retainingPool.unionInPlace(prefetchedObjects)
+			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest) as! [E]
+			retainingPool.formUnion(prefetchedObjects)
 		} catch let error {
 			print("GreedyPrefetcher<\(String(E))>: cannot execute a prefetch. Error: \(error)")
 		}

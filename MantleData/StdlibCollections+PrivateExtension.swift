@@ -14,17 +14,17 @@ internal enum BinarySearchResult<Index> {
 	case notFound(next: Index)
 }
 
-extension CollectionType where Generator.Element == NSManagedObjectID, Index == Int {
+extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 	internal func bidirectionalSearch(at center: Int,
 																		for element: NSManagedObjectID,
-																		using sortDescriptors: [NSSortDescriptor],
+																		using sortDescriptors: [SortDescriptor],
 																		with cachedValues: [NSManagedObjectID: [String: AnyObject]])
 																		-> BinarySearchResult<Index> {
 		var leftIndex = center - 1
 		while leftIndex >= startIndex &&
 					sortDescriptors.compare(cachedValues[self[leftIndex]]! as NSDictionary,
 					                        to: cachedValues[element]! as NSDictionary)
-					== .OrderedSame {
+					== .orderedSame {
 			if self[leftIndex] == element {
 				return .found(at: leftIndex)
 			}
@@ -35,7 +35,7 @@ extension CollectionType where Generator.Element == NSManagedObjectID, Index == 
 		while rightIndex < endIndex &&
 					sortDescriptors.compare(cachedValues[self[rightIndex]]! as NSDictionary,
 					                        to: cachedValues[element]! as NSDictionary)
-					== .OrderedSame {
+					== .orderedSame {
 			if self[rightIndex] == element {
 				return .found(at: rightIndex)
 			}
@@ -46,7 +46,7 @@ extension CollectionType where Generator.Element == NSManagedObjectID, Index == 
 	}
 
 	internal func index(of element: NSManagedObjectID,
-											using sortDescriptors: [NSSortDescriptor],
+											using sortDescriptors: [SortDescriptor],
 											with cachedValues: [NSManagedObjectID: [String: AnyObject]])
 											-> Index? {
 		if case let .found(index) = binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
@@ -57,7 +57,7 @@ extension CollectionType where Generator.Element == NSManagedObjectID, Index == 
 	}
 
 	internal func binarySearch(of element: NSManagedObjectID,
-														using sortDescriptors: [NSSortDescriptor],
+														using sortDescriptors: [SortDescriptor],
 														with cachedValues: [NSManagedObjectID: [String: AnyObject]])
 														-> BinarySearchResult<Index> {
 		var low = startIndex
@@ -71,13 +71,13 @@ extension CollectionType where Generator.Element == NSManagedObjectID, Index == 
 			} else {
 				switch sortDescriptors.compare(cachedValues[element]! as NSDictionary,
 				                               to: cachedValues[self[mid]]! as NSDictionary) {
-				case .OrderedAscending:
+				case .orderedAscending:
 					high = mid - 1
 
-				case .OrderedDescending:
+				case .orderedDescending:
 					low = mid + 1
 
-				case .OrderedSame:
+				case .orderedSame:
 					return bidirectionalSearch(at: mid, for: element, using: sortDescriptors, with: cachedValues)
 				}
 			}
@@ -87,38 +87,38 @@ extension CollectionType where Generator.Element == NSManagedObjectID, Index == 
 	}
 }
 
-extension RangeReplaceableCollectionType where Generator.Element == NSManagedObjectID, Index == Int {
-	internal mutating func insert(element: NSManagedObjectID,
-	                              using sortDescriptors: [NSSortDescriptor],
+extension RangeReplaceableCollection where Iterator.Element == NSManagedObjectID, Index == Int {
+	internal mutating func insert(_ element: NSManagedObjectID,
+	                              using sortDescriptors: [SortDescriptor],
 																with cachedValues: [NSManagedObjectID: [String: AnyObject]]) {
 		switch binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
 		case .found:
 			return
 
 		case let .notFound(insertingIndex):
-			insert(element, atIndex: insertingIndex)
+			insert(element, at: insertingIndex)
 		}
 	}
 }
 
-extension RangeReplaceableCollectionType where Generator.Element: ReactiveSetSection {
-	internal mutating func insert(section: Generator.Element,
+extension RangeReplaceableCollection where Iterator.Element: ReactiveSetSection {
+	internal mutating func insert(_ section: Iterator.Element,
 	                              name: ReactiveSetSectionName,
-	                              ordering: NSComparisonResult) -> Index {
+	                              ordering: ComparisonResult) -> Index {
 		let position: Index
-		if let searchResult = indexOf({ $0.name.compare(to: name) != ordering }) {
+		if let searchResult = self.index(where: { $0.name.compare(to: name) != ordering }) {
 			position = searchResult
 		} else {
-			position = ordering == .OrderedAscending ? startIndex : endIndex
+			position = ordering == .orderedAscending ? startIndex : endIndex
 		}
 
-		insert(section, atIndex: position)
+		insert(section, at: position)
 		return position
 	}
 }
 
-extension CollectionType where Generator.Element: Comparable, Index == Int {
-	internal func binarySearch(element: Generator.Element, ascending: Bool) -> BinarySearchResult<Index> {
+extension Collection where Iterator.Element: Comparable, Index == Int {
+	internal func binarySearch(_ element: Iterator.Element, ascending: Bool) -> BinarySearchResult<Index> {
 		var low = startIndex
 		var high = endIndex - 1
 
@@ -138,30 +138,34 @@ extension CollectionType where Generator.Element: Comparable, Index == Int {
 	}
 }
 
-internal protocol SetType {
+internal protocol SetProtocol {
 	associatedtype Element: Hashable
+
 	init()
-	mutating func insert(member: Element)
-	func contains(member: Element) -> Bool
+
+	@discardableResult
+	mutating func insert(_ member: Element) -> (inserted: Bool, memberAfterInsert: Element)
+
+	func contains(_ member: Element) -> Bool
 }
 
-extension Set: SetType { }
+extension Set: SetProtocol {}
 
-extension MutableCollectionType where Generator.Element: protocol<MutableCollectionType, RangeReplaceableCollectionType>, Generator.Element.Generator.Element: Comparable, Generator.Element.Index == Int {
-	internal mutating func orderedInsert(value: Generator.Element.Generator.Element, toCollectionAt index: Index, ascending: Bool = true) {
+extension MutableCollection where Iterator.Element: protocol<MutableCollection, RangeReplaceableCollection>, Iterator.Element.Iterator.Element: Comparable, Iterator.Element.Index == Int {
+	internal mutating func orderedInsert(_ value: Iterator.Element.Iterator.Element, toCollectionAt index: Index, ascending: Bool = true) {
 		if case let .notFound(insertionPoint) = self[index].binarySearch(value, ascending: ascending) {
-			self[index].insert(value, atIndex: insertionPoint)
+			self[index].insert(value, at: insertionPoint)
 		}
 	}
 }
-extension Array where Element: SetType {
-	internal mutating func insert(value: Element.Element, intoSetAt index: Index) {
+extension Array where Element: SetProtocol {
+	internal mutating func insert(_ value: Element.Element, intoSetAt index: Index) {
 		self[index].insert(value)
 	}
 }
 
-extension Dictionary where Value: SetType {
-	internal mutating func insert(value: Value.Element, intoSetOf key: Key) {
+extension Dictionary where Value: SetProtocol {
+	internal mutating func insert(_ value: Value.Element, intoSetOf key: Key) {
 		if !keys.contains(key) {
 			self[key] = Value()
 		}
@@ -169,8 +173,8 @@ extension Dictionary where Value: SetType {
 	}
 }
 
-extension Dictionary where Value: protocol<ArrayLiteralConvertible, RangeReplaceableCollectionType>, Value.Generator.Element == Value.Element {
-	internal mutating func append(value: Value.Element, toCollectionOf key: Key) {
+extension Dictionary where Value: protocol<ArrayLiteralConvertible, RangeReplaceableCollection>, Value.Iterator.Element == Value.Element {
+	internal mutating func append(_ value: Value.Element, toCollectionOf key: Key) {
 		if !keys.contains(key) {
 			self[key] = Value()
 		}
@@ -178,8 +182,8 @@ extension Dictionary where Value: protocol<ArrayLiteralConvertible, RangeReplace
 	}
 }
 
-extension CollectionType where Generator.Element: Hashable {
-	internal func uniquing() -> [Generator.Element] {
+extension Collection where Iterator.Element: Hashable {
+	internal func uniquing() -> [Iterator.Element] {
 		return Array(Set(self))
 	}
 }

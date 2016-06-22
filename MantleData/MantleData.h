@@ -6,8 +6,7 @@
 //  Copyright © 2015 Anders. All rights reserved.
 //
 
-#import <CoreData/CoreData.h>
-#import <MantleData/Dispatch.h>
+#import <MantleData/NSManagedObjectContext+Additions.h>
 
 //! Project version number for CoreData.swift.
 FOUNDATION_EXPORT double MantleDataVersionNumber;

@@ -14,24 +14,24 @@ import ReactiveCocoa
 /// - Note: Due to the one-way mapping requirement, `ViewModelSet` cannot conform to `ReactiveSet`.
 
 public final class ViewModelSet<U: ViewModel> {
-	internal var sectionNameMapper: (ReactiveSetSectionName -> ReactiveSetSectionName)?
+	internal var sectionNameMapper: ((ReactiveSetSectionName) -> ReactiveSetSectionName)?
   private let set: _AnyReactiveSetBox<U.MappingObject>
-	internal let factory: U.MappingObject -> U
+	internal let factory: (U.MappingObject) -> U
   
   public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
 		return set.eventProducer
   }
 
-	public init<R: ReactiveSet where R.Generator.Element.Generator.Element == U.MappingObject>(_ set: R, factory: U.MappingObject -> U) {
+	public init<R: ReactiveSet where R.Iterator.Element.Iterator.Element == U.MappingObject>(_ set: R, factory: (U.MappingObject) -> U) {
     self.set = _AnyReactiveSetBoxBase(set)
 		self.factory = factory
 	}
 
-	public func fetch() throws {
-		try set.fetch()
+	public func fetch(startTracking: Bool = false) throws {
+		try set.fetch(startTracking: startTracking)
 	}
 
-	public func mapSectionName(using transform: ReactiveSetSectionName -> ReactiveSetSectionName) -> ViewModelSet {
+	public func mapSectionName(using transform: (ReactiveSetSectionName) -> ReactiveSetSectionName) -> ViewModelSet {
 		sectionNameMapper = transform
 		return self
 	}
@@ -41,9 +41,9 @@ public final class ViewModelSet<U: ViewModel> {
 	}
 }
 
-extension ViewModelSet: CollectionType {
+extension ViewModelSet: Collection {
 	public typealias Index = Int
-	public typealias Generator = AnyGenerator<ViewModelSetSection<U>>
+	public typealias Iterator = AnyIterator<ViewModelSetSection<U>>
 
 	public var startIndex: Index {
 		return set.startIndex
@@ -53,16 +53,20 @@ extension ViewModelSet: CollectionType {
 		return set.endIndex
 	}
 
-	public subscript(position: Index) -> Generator.Element {
+	public subscript(position: Index) -> Iterator.Element {
 		return ViewModelSetSection(set[position], in: self)
 	}
 
-	public func generate() -> Generator {
+	public func makeIterator() -> Iterator {
 		var iterator = startIndex
 		let limit = endIndex
-		return AnyGenerator {
-			defer { iterator = iterator.successor() }
+		return AnyIterator {
+			defer { iterator = (iterator + 1) }
 			return iterator < limit ? self[iterator] : nil
 		}
+	}
+
+	public func index(after i: Index) -> Index {
+		return i + 1
 	}
 }

@@ -9,7 +9,7 @@
 import Foundation
 
 #if os(OSX)
-	extension NSIndexPath {
+	extension IndexPath {
 		public convenience init(forRow row: Int, inSection section: Int) {
 			self.init(forItem: row, inSection: section)
 		}
@@ -24,17 +24,11 @@ import Foundation
 	}
 #endif
 
-extension NSIndexPath {
-	public convenience init(converting indexPath: ReactiveSetIndexPath) {
-		self.init(forRow: indexPath.row, inSection: indexPath.section)
-	}
-}
-
-extension NSMutableIndexSet {
-	public convenience init<Index: ReactiveSetIndex>(converting indices: [Index]) {
+extension IndexSet {
+	public init<Index: ReactiveSetIndex>(converting indices: [Index]) {
 		self.init()
 		for index in indices {
-			self.addIndex(index.toInt())
+			insert(index.toInt())
 		}
 	}
 }

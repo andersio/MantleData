@@ -9,16 +9,16 @@
 import Foundation
 import protocol ReactiveCocoa.OptionalType
 
-extension CollectionType where Generator.Element == NSSortDescriptor {
-	public func compare<E: NSObject>(element: E, to anotherElement: E) -> NSComparisonResult {
+extension Collection where Iterator.Element == SortDescriptor {
+	public func compare<E: NSObject>(_ element: E, to anotherElement: E) -> ComparisonResult {
 		for descriptor in self {
-			let order = descriptor.compareObject(element, toObject: anotherElement)
+			let order = descriptor.compare(element, to: anotherElement)
 
-			if order != .OrderedSame {
+			if order != .orderedSame {
 				return order
 			}
 		}
 
-		return .OrderedSame
+		return .orderedSame
 	}
 }

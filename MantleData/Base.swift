@@ -44,12 +44,3 @@ public class Base {
 		}
   }
 }
-
-extension NSObject {
-  final public var willDeinitProducer: SignalProducer<(), NoError> {
-    return rac_willDeallocSignal()
-      .toSignalProducer()
-      .map { _ in }
-      .flatMapError { _ in .empty }
-  }
-}
