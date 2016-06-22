@@ -61,6 +61,10 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 		}
 	}
 
+	final public func property<Value: CocoaBridgeable where Value._Inner: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> ManagedObjectProperty<Value> {
+		return ManagedObjectProperty(keyPath: keyPath, for: self)
+	}
+
 	final public func converted(for context: NSManagedObjectContext) -> Self {
 		if context === managedObjectContext {
 			return self
@@ -73,18 +77,11 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 		}
 	}
 
-	final public static func collection(in context: NSManagedObjectContext) -> LazyObjectCollection<Self> {
-		return LazyObjectCollection(in: context)
+	final public static func query(_ context: NSManagedObjectContext) -> ObjectQuery<Self> {
+		return ObjectQuery(context: context)
 	}
 
-	final public static func make(in context: NSManagedObjectContext) -> Self {
-		guard let entityDescription = NSEntityDescription.entityForName(String(Self), inManagedObjectContext: context) else {
-			preconditionFailure("Failed to create entity description of entity `\(String(Self))`.")
-		}
-		return Self(entity: entityDescription, insertIntoManagedObjectContext: context)
-	}
-
-	public func finding(ID ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
+	public func finding(ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
 		assert(ID.entity.name == String(Self), "Entity does not match with the ID.")
 		return context.object(with: ID) as! Self
 	}
@@ -99,7 +96,33 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 	}
 }
 
-private var kvoProxyContext = UnsafeMutablePointer<Void>.alloc(1)
+final public class ManagedObjectProperty<_Value: CocoaBridgeable where _Value._Inner: CocoaBridgeable>: MutablePropertyType {
+	public typealias Value = _Value
+	private let object: NSManagedObject
+	private let keyPath: String
+
+	public init(keyPath: String, for object: NSManagedObject) {
+		self.keyPath = keyPath
+		self.object = object
+	}
+
+	public var value: Value {
+		get { return Value(cocoaValue: object.value(forKeyPath: keyPath)) }
+		set { object.setValue(newValue.cocoaValue, forKey: keyPath) }
+	}
+
+	public var producer: SignalProducer<Value, NoError> {
+		return object.producer(forKeyPath: keyPath)
+	}
+
+	public var signal: Signal<Value, NoError> {
+		var signal: Signal<Value, NoError>!
+		producer.startWithSignal { startedSignal, _ in signal = startedSignal }
+		return signal
+	}
+}
+
+private var kvoProxyContext = UnsafeMutablePointer<Void>(allocatingCapacity: 1)
 
 final private class KVOProxy: NSObject {
 	let action: (AnyObject?) -> Void
