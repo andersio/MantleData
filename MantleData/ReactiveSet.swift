@@ -10,11 +10,11 @@ import ReactiveCocoa
 
 /// ReactiveSet
 
-public protocol ReactiveSetGenerator: GeneratorType {
+public protocol ReactiveSetIterator: IteratorProtocol {
 	associatedtype Element: ReactiveSetSection
 }
 
-public struct AnyReactiveSetIterator<S: ReactiveSetSection>: ReactiveSetGenerator {
+public struct AnyReactiveSetIterator<S: ReactiveSetSection>: ReactiveSetIterator {
 	public typealias Element = S
 
 	private let generator: () -> Element?
@@ -28,237 +28,57 @@ public struct AnyReactiveSetIterator<S: ReactiveSetSection>: ReactiveSetGenerato
 	}
 }
 
-public protocol ReactiveSet: class, CollectionType {
-	associatedtype Generator: ReactiveSetGenerator
+public protocol ReactiveSet: class, Collection {
+	associatedtype Iterator: ReactiveSetIterator
 	associatedtype Index: ReactiveSetIndex
 
 	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> { get }
-	var isFetched: Bool { get }
 
-	func fetch() throws
+	func fetch(startTracking: Bool) throws
+	func sectionName(of element: Generator.Element.Iterator.Element) -> ReactiveSetSectionName?
+	func indexPath(of element: Generator.Element.Iterator.Element) -> IndexPath?
 }
 
 extension ReactiveSet {
-	public var eventSignal: Signal<ReactiveSetEvent, NoError> {
-		var extractedSignal: Signal<ReactiveSetEvent, NoError>!
-		eventProducer.startWithSignal { signal, _ in
-			extractedSignal = signal
-		}
-		return extractedSignal
+	public subscript(index: Int) -> Iterator.Element {
+		return self[Index(converting: index)]
 	}
 
-	public subscript(index: AnyReactiveSetIndex) -> Generator.Element {
-		return self[Index(reactiveSetIndex: index)]
-	}
-}
-
-extension ReactiveSet where Index: ReactiveSetIndex {
-	public subscript(index: Int) -> Generator.Element {
-		return self[Index(reactiveSetIndex: index)]
-	}
-}
-
-extension ReactiveSet where Index: ReactiveSetIndex, Generator.Element.Index: ReactiveSetIndex {
-	public subscript(indexPath: NSIndexPath) -> Generator.Element.Generator.Element {
-		let section = self[Index(reactiveSetIndex: indexPath.section)]
-		return section[Generator.Element.Index(reactiveSetIndex: indexPath.row)]
-	}
-}
-
-/// Events of ReactiveSet
-
-public enum ReactiveSetEvent {
-	case Reloaded
-	case Updated(ReactiveSetChanges)
-}
-
-extension ReactiveSetEvent: CustomStringConvertible {
-	public var description: String {
-		switch self {
-		case .Reloaded:
-			return "ReactiveSetEvent.Reloaded"
-
-		case let .Updated(changes):
-			return "ReactiveSetEvent.Updated [BEGIN]\n\(changes)\n[END]"
-		}
-	}
-}
-
-/// Change Descriptor of ReactiveSet
-
-public struct ReactiveSetChanges {
-	public let indexPathsOfDeletedRows: [NSIndexPath]?
-	public let indexPathsOfInsertedRows: [NSIndexPath]?
-	public let indexPathsOfMovedRows: [(NSIndexPath, NSIndexPath)]?
-	public let indexPathsOfUpdatedRows: [NSIndexPath]?
-
-	public let indiceOfInsertedSections: NSIndexSet?
-	public let indiceOfDeletedSections: NSIndexSet?
-	public let indiceOfReloadedSections: NSIndexSet?
-
-	public init(indexPathsOfDeletedRows: [NSIndexPath]? = nil, indexPathsOfInsertedRows: [NSIndexPath]? = nil, indexPathsOfMovedRows: [(NSIndexPath, NSIndexPath)]? = nil, indexPathsOfUpdatedRows: [NSIndexPath]? = nil, indiceOfInsertedSections: NSIndexSet? = nil, indiceOfDeletedSections: NSIndexSet? = nil, indiceOfReloadedSections: NSIndexSet? = nil) {
-		func makeImmutable(indexSet: NSIndexSet?) -> NSIndexSet? {
-			if let indexSet = indexSet {
-				return indexSet is NSMutableIndexSet ? NSIndexSet(indexSet: indexSet) : indexSet
-			} else {
-				return nil
-			}
+	public subscript(name: ReactiveSetSectionName) -> Iterator.Element? {
+		if let index = indexOfSection(with: name) {
+			return self[index]
 		}
 
-		self.indexPathsOfInsertedRows = indexPathsOfInsertedRows
-		self.indexPathsOfDeletedRows = indexPathsOfDeletedRows
-		self.indexPathsOfMovedRows = indexPathsOfMovedRows
-		self.indexPathsOfUpdatedRows = indexPathsOfUpdatedRows
-		self.indiceOfDeletedSections = makeImmutable(indiceOfDeletedSections)
-		self.indiceOfInsertedSections = makeImmutable(indiceOfInsertedSections)
-		self.indiceOfReloadedSections = makeImmutable(indiceOfReloadedSections)
+		return nil
 	}
 
-	public init(appendingIndex index: Int, changes: ReactiveSetChanges) {
-		self.init(indexPathsOfDeletedRows: changes.indexPathsOfDeletedRows?.mapped(prependingIndex: index),
-			indexPathsOfInsertedRows: changes.indexPathsOfInsertedRows?.mapped(prependingIndex: index),
-			indexPathsOfMovedRows: changes.indexPathsOfMovedRows?.mapped(prependingIndex: index),
-			indexPathsOfUpdatedRows: changes.indexPathsOfUpdatedRows?.mapped(prependingIndex: index))
+	public subscript(indexPath: IndexPath) -> Iterator.Element.Iterator.Element {
+		return self[indexPath.section][Generator.Element.Index(converting: indexPath.row)]
 	}
-}
 
-extension ReactiveSetChanges: CustomStringConvertible {
-	public var description: String {
-		var strings = [String]()
-		strings.append("ReactiveSetChanges")
+	public var objectCount: Iterator.Element.IndexDistance {
+		return reduce(0, combine: { $0 + $1.count })
+	}
 
-		if let indexPaths = indexPathsOfInsertedRows {
-			strings.append("> \(indexPaths.count) row(s) inserted\n")
-		}
-
-		if let indexPaths = indexPathsOfDeletedRows {
-			strings.append( "> \(indexPaths.count) row(s) deleted\n")
-		}
-
-		if let indexPaths = indexPathsOfMovedRows {
-			strings.append( "> \(indexPaths.count) row(s) moved\n")
-		}
-
-		if let indexPaths = indexPathsOfUpdatedRows {
-			strings.append( "> \(indexPaths.count) row(s) updated\n")
-		}
-
-		if let indexPaths = indiceOfInsertedSections {
-			strings.append( "> \(indexPaths.count) section(s) inserted\n")
-		}
-
-		if let indexPaths = indiceOfDeletedSections {
-			strings.append( "> \(indexPaths.count) section(s) deleted\n")
-		}
-
-		return strings.joinWithSeparator("\n")
+	public func fetch() throws {
+		try fetch(startTracking: false)
 	}
 }
 
-
-
-/// Section of ReactiveSet
-
-public protocol ReactiveSetSection: CollectionType {
-	associatedtype Index: ReactiveSetIndex
-
-	var name: ReactiveSetSectionName { get }
-}
-
-public func == <S: ReactiveSetSection>(left: S, right: S) -> Bool {
-	return left.name == right.name
-}
-
-extension ReactiveSetSection where Index: ReactiveSetIndex {
-	public subscript(index: Int) -> Generator.Element {
-		return self[Index(reactiveSetIndex: index)]
-	}
-
-	public subscript(index: AnyReactiveSetIndex) -> Generator.Element {
-		return self[Index(reactiveSetIndex: index)]
-	}
-}
-
-/// Index of ReactiveSet
-
-public protocol ReactiveSetIndex: RandomAccessIndexType {
-	init<I: ReactiveSetIndex>(reactiveSetIndex: I)
-	var intMaxValue: IntMax { get }
-}
-
-extension Int: ReactiveSetIndex {
-	public init<I: ReactiveSetIndex>(reactiveSetIndex index: I) {
-		self = Int(index.intMaxValue)
-	}
-
-	public var intMaxValue: IntMax {
-		return IntMax(self)
-	}
-}
-
-public struct AnyReactiveSetIndex: ReactiveSetIndex {
-	public typealias Distance = IntMax
-	public let intMaxValue: Distance
-
-	public init(_ base: Distance) {
-		intMaxValue = base
-	}
-
-	public init<I: ReactiveSetIndex>(reactiveSetIndex index: I) {
-		intMaxValue = index.intMaxValue
-	}
-
-	public func successor() -> AnyReactiveSetIndex {
-		return AnyReactiveSetIndex(intMaxValue + 1)
-	}
-
-	public func predecessor() -> AnyReactiveSetIndex {
-		return AnyReactiveSetIndex(intMaxValue - 1)
-	}
-
-	public func advancedBy(n: Distance) -> AnyReactiveSetIndex {
-		return AnyReactiveSetIndex(intMaxValue + n)
-	}
-
-	public func distanceTo(end: AnyReactiveSetIndex) -> Distance {
-		return end.intMaxValue - intMaxValue
-	}
-}
-
-/// Section Name of ReactiveSet
-
-public struct ReactiveSetSectionName: Hashable {
-	public let value: String?
-
-	public init(_ value: String?) {
-		self.value = value
-	}
-
-	public var hashValue: Int {
-		return value?.hashValue ?? 0
-	}
-
-	/// `nil` is defined as the smallest of all.
-	public func compareTo(otherName: ReactiveSetSectionName) -> NSComparisonResult {
-		if let value = value, otherValue = otherName.value {
-			return value.compare(otherValue)
+extension ReactiveSet where Iterator.Element.Iterator.Element: Equatable {
+	public func indexPath(of element: Iterator.Element.Iterator.Element) -> IndexPath? {
+		if let name = sectionName(of: element),
+			sectionIndex = indexOfSection(with: name),
+			objectIndex = self[sectionIndex].index(of: element) {
+			return IndexPath(row: objectIndex.toInt(), section: sectionIndex.toInt())
 		}
 
-		if value == nil {
-			// (nil) compare to (otherName)
-			return .OrderedAscending
-		}
-
-		if otherName.value == nil {
-			// (self) compare to (nil)
-			return .OrderedDescending
-		}
-
-		// (nil) compare to (nil)
-		return .OrderedSame
+		return nil
 	}
 }
 
-public func ==(lhs: ReactiveSetSectionName, rhs: ReactiveSetSectionName) -> Bool {
-	return lhs.value == rhs.value
+extension Collection where Iterator.Element: ReactiveSetSection {
+	public func indexOfSection(with name: ReactiveSetSectionName) -> Index? {
+		return self.index { $0.name == name }
+	}
 }

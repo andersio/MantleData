@@ -1,5 +1,5 @@
 //
-//  ReactiveBindings.swift
+//  NSObject+Bindings.swift
 //  MantleData
 //
 //  Created by Anders on 14/12/2015.

@@ -1,5 +1,5 @@
 //
-//  Object.swift
+//  ManagedObject+Extension.swift
 //  MantleData
 //
 //  Created by Anders on 9/10/2015.
@@ -13,6 +13,10 @@ public protocol ManagedObjectProtocol {}
 extension NSManagedObject: ManagedObjectProtocol {}
 
 extension ManagedObjectProtocol where Self: NSManagedObject {
+	public var typedObjectID: ManagedObjectID<Self> {
+		return ManagedObjectID(object: self)
+	}
+
 	/// Return a producer which emits the current and subsequent values for the supplied key path.
 	/// A fault would be fired when the producer is started.
 	/// - Parameter keyPath: The key path to be observed.
@@ -26,34 +30,39 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 			}
 
 			// Fire fault.
-			strongSelf.willAccessValueForKey(nil)
-			defer { strongSelf.didAccessValueForKey(nil) }
+			strongSelf.willAccessValue(forKey: nil)
+			defer { strongSelf.didAccessValue(forKey: nil) }
 
 			let proxyBox = Atomic<KVOProxy?>(KVOProxy(keyPath: keyPath) { [weak strongSelf] value in
-				if let strongSelf = strongSelf where !strongSelf.fault {
+				if let strongSelf = strongSelf where strongSelf.faultingState == 0 && !strongSelf.isDeleted {
 					observer.sendNext(Value(cocoaValue: value))
 				}
-				})
+			})
 
 			proxyBox.value!.attach(to: strongSelf)
 
-			func disposeProxy(with referenceToSelf: NSManagedObject) {
-				if let proxy = proxyBox.swap(nil) {
-					proxy.detach(from: referenceToSelf)
-					observer.sendCompleted()
+			let deinitDisposable = strongSelf.willDeinitProducer
+				.startWithNext { [unowned strongSelf, weak proxyBox] in
+					if let proxy = proxyBox?.swap(nil) {
+						proxy.detach(from: strongSelf)
+						observer.sendCompleted()
+					}
 				}
-			}
-
-			strongSelf.willDeinitProducer.startWithNext { [unowned strongSelf] in
-				disposeProxy(with: strongSelf)
-			}
 
 			disposable += ActionDisposable { [weak self] in
 				if let strongSelf = self {
-					disposeProxy(with: strongSelf)
+					if let proxy = proxyBox.swap(nil) {
+						proxy.detach(from: strongSelf)
+						observer.sendCompleted()
+						deinitDisposable.dispose()
+					}
 				}
 			}
 		}
+	}
+
+	final public func property<Value: CocoaBridgeable where Value._Inner: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> ManagedObjectProperty<Value> {
+		return ManagedObjectProperty(keyPath: keyPath, for: self)
 	}
 
 	final public func converted(for context: NSManagedObjectContext) -> Self {
@@ -61,69 +70,81 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 			return self
 		} else {
 			do {
-				return try context.existingObjectWithID(objectID) as! Self
+				return try context.existingObject(with: objectID) as! Self
 			} catch {
-				return context.objectWithID(objectID) as! Self
+				return context.object(with: objectID) as! Self
 			}
 		}
 	}
 
-	public static var entityName: String {
-		return String(Self)
+	final public static func query(_ context: NSManagedObjectContext) -> ObjectQuery<Self> {
+		return ObjectQuery(context: context)
 	}
 
-	final public static func with(context: NSManagedObjectContext,
-	                              @noescape action: (inout using: FetchRequestBuilder) throws -> Void) rethrows -> ResultProducer<Self> {
-		var builder = FetchRequestBuilder(entity: entityName, in: context)
-		try action(using: &builder)
-		return ResultProducer(builder: builder)
+	public func finding(ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
+		assert(ID.entity.name == String(Self), "Entity does not match with the ID.")
+		return context.object(with: ID) as! Self
 	}
 
-	final public static func make(in context: NSManagedObjectContext) -> Self {
-		guard let entityDescription = NSEntityDescription.entityForName(entityName, inManagedObjectContext: context) else {
-			preconditionFailure("Failed to create entity description of entity `\(entityName)`.")
-		}
-		return Self(entity: entityDescription, insertIntoManagedObjectContext: context)
-	}
-
-	public func finding(for ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
-		assert(ID.entity.name == Self.entityName, "Entity does not match with the ID.")
-		return try! context.existingObjectWithID(ID) as! Self
-	}
-
-	public func finding(for IDs: [NSManagedObjectID], in context: NSManagedObjectContext) -> [Self] {
+	public func finding(IDs: [NSManagedObjectID], in context: NSManagedObjectContext) -> [Self] {
 		var objects = [Self]()
 		for ID in IDs {
-			assert(ID.entity.name == Self.entityName, "Entity does not match with the ID.")
-			objects.append(try! context.existingObjectWithID(ID) as! Self)
+			assert(ID.entity.name == String(Self), "Entity does not match with the ID.")
+			objects.append(context.object(with: ID) as! Self)
 		}
 		return objects
 	}
 }
 
-private var kvoProxyContext = UnsafeMutablePointer<Void>.alloc(1)
+final public class ManagedObjectProperty<_Value: CocoaBridgeable where _Value._Inner: CocoaBridgeable>: MutablePropertyType {
+	public typealias Value = _Value
+	private let object: NSManagedObject
+	private let keyPath: String
+
+	public init(keyPath: String, for object: NSManagedObject) {
+		self.keyPath = keyPath
+		self.object = object
+	}
+
+	public var value: Value {
+		get { return Value(cocoaValue: object.value(forKeyPath: keyPath)) }
+		set { object.setValue(newValue.cocoaValue, forKey: keyPath) }
+	}
+
+	public var producer: SignalProducer<Value, NoError> {
+		return object.producer(forKeyPath: keyPath)
+	}
+
+	public var signal: Signal<Value, NoError> {
+		var signal: Signal<Value, NoError>!
+		producer.startWithSignal { startedSignal, _ in signal = startedSignal }
+		return signal
+	}
+}
+
+private var kvoProxyContext = UnsafeMutablePointer<Void>(allocatingCapacity: 1)
 
 final private class KVOProxy: NSObject {
-	let action: AnyObject? -> Void
+	let action: (AnyObject?) -> Void
 	let keyPath: String
 
-	init(keyPath: String, action: AnyObject? -> Void) {
+	init(keyPath: String, action: (AnyObject?) -> Void) {
 		self.action = action
 		self.keyPath = keyPath
 		super.init()
 	}
 
 	func attach(to object: NSObject) {
-		object.addObserver(self, forKeyPath: keyPath, options: [.Initial, .New], context: kvoProxyContext)
+		object.addObserver(self, forKeyPath: keyPath, options: [.initial, .new], context: kvoProxyContext)
 	}
 
 	func detach(from object: NSObject) {
 		object.removeObserver(self, forKeyPath: keyPath, context: kvoProxyContext)
 	}
 
-	override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+	override func observeValue(forKeyPath keyPath: String?, of object: AnyObject?, change: [NSKeyValueChangeKey : AnyObject]?, context: UnsafeMutablePointer<Void>?) {
 		if context == kvoProxyContext {
-			action(change![NSKeyValueChangeNewKey])
+			action(change![NSKeyValueChangeKey.newKey])
 		}
 	}
 }

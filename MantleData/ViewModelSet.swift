@@ -1,58 +1,72 @@
 //
-//  Repository.swift
-//  Galleon
+//  ViewModelSet.swift
+//  MantleData
 //
 //  Created by Ik ben anders on 7/9/2015.
 //  Copyright © 2015 Ik ben anders. All rights reserved.
 //
 
-import Foundation
 import ReactiveCocoa
 
-public final class ViewModelSet<U: ViewModel>: Base {
-	public var sectionNameTransform: ((Int, ReactiveSetSectionName) -> String?)?
+/// `ViewModelSet` is a type-erased collection view to a `ReactiveSet` implementation, which
+/// maps view models of type `U` from the underlying set of `U.MappingObject` objects.
+///
+/// - Note: Due to the one-way mapping requirement, `ViewModelSet` cannot conform to `ReactiveSet`.
+
+public final class ViewModelSet<U: ViewModel> {
+	internal var sectionNameMapper: ((ReactiveSetSectionName) -> ReactiveSetSectionName)?
   private let set: _AnyReactiveSetBox<U.MappingObject>
-	private let factory: U.MappingObject -> U
+	internal let factory: (U.MappingObject) -> U
   
   public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
 		return set.eventProducer
   }
 
-	public init<R: ReactiveSet where R.Generator.Element.Generator.Element == U.MappingObject>(_ set: R, factory: U.MappingObject -> U) {
+	public init<R: ReactiveSet where R.Iterator.Element.Iterator.Element == U.MappingObject>(_ set: R, factory: (U.MappingObject) -> U) {
     self.set = _AnyReactiveSetBoxBase(set)
 		self.factory = factory
-
-    super.init()
 	}
 
-	public var isFetched: Bool {
-		return set.isFetched
+	public func fetch(startTracking: Bool = false) throws {
+		try set.fetch(startTracking: startTracking)
 	}
 
-	public var numberOfObjects: Int {
-		return set.reduce(0, combine: { $0 + Int($1.count) })
+	public func mapSectionName(using transform: (ReactiveSetSectionName) -> ReactiveSetSectionName) -> ViewModelSet {
+		sectionNameMapper = transform
+		return self
 	}
 
-  public var numberOfSections: Int {
-    return Int(set.count)
-  }
+	public var objectCount: Int {
+		return set.objectCount
+	}
+}
 
-  public func numberOfRows(for sectionIndex: Int) -> Int {
-    return Int(set[sectionIndex].count)
-  }
+extension ViewModelSet: Collection {
+	public typealias Index = Int
+	public typealias Iterator = AnyIterator<ViewModelSetSection<U>>
 
-	public func fetch() throws {
-		try set.fetch()
+	public var startIndex: Index {
+		return set.startIndex
 	}
 
-  public func sectionName(for sectionIndex: Int) -> String? {
-		let sectionName = set[sectionIndex].name
-		return sectionNameTransform?(sectionIndex, sectionName) ?? sectionName.value
-  }
+	public var endIndex: Index {
+		return set.endIndex
+	}
 
-	public subscript(indexPath: NSIndexPath) -> U {
-    let model = set[indexPath]
-    let viewModel = factory(model)
-    return viewModel
-  }
+	public subscript(position: Index) -> Iterator.Element {
+		return ViewModelSetSection(set[position], in: self)
+	}
+
+	public func makeIterator() -> Iterator {
+		var iterator = startIndex
+		let limit = endIndex
+		return AnyIterator {
+			defer { iterator = (iterator + 1) }
+			return iterator < limit ? self[iterator] : nil
+		}
+	}
+
+	public func index(after i: Index) -> Index {
+		return i + 1
+	}
 }
