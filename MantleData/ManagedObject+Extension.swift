@@ -13,6 +13,10 @@ public protocol ManagedObjectProtocol {}
 extension NSManagedObject: ManagedObjectProtocol {}
 
 extension ManagedObjectProtocol where Self: NSManagedObject {
+	public var typedObjectID: ManagedObjectID<Self> {
+		return ManagedObjectID(object: self)
+	}
+
 	/// Return a producer which emits the current and subsequent values for the supplied key path.
 	/// A fault would be fired when the producer is started.
 	/// - Parameter keyPath: The key path to be observed.
@@ -26,11 +30,11 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 			}
 
 			// Fire fault.
-			strongSelf.willAccessValueForKey(nil)
-			defer { strongSelf.didAccessValueForKey(nil) }
+			strongSelf.willAccessValue(forKey: nil)
+			defer { strongSelf.didAccessValue(forKey: nil) }
 
 			let proxyBox = Atomic<KVOProxy?>(KVOProxy(keyPath: keyPath) { [weak strongSelf] value in
-				if let strongSelf = strongSelf where strongSelf.faultingState == 0 && !strongSelf.deleted {
+				if let strongSelf = strongSelf where strongSelf.faultingState == 0 && !strongSelf.isDeleted {
 					observer.sendNext(Value(cocoaValue: value))
 				}
 			})
@@ -62,9 +66,9 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 			return self
 		} else {
 			do {
-				return try context.existingObjectWithID(objectID) as! Self
+				return try context.existingObject(with: objectID) as! Self
 			} catch {
-				return context.objectWithID(objectID) as! Self
+				return context.object(with: objectID) as! Self
 			}
 		}
 	}
@@ -82,14 +86,14 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 
 	public func finding(ID ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
 		assert(ID.entity.name == String(Self), "Entity does not match with the ID.")
-		return context.objectWithID(ID) as! Self
+		return context.object(with: ID) as! Self
 	}
 
-	public func finding(IDs IDs: [NSManagedObjectID], in context: NSManagedObjectContext) -> [Self] {
+	public func finding(IDs: [NSManagedObjectID], in context: NSManagedObjectContext) -> [Self] {
 		var objects = [Self]()
 		for ID in IDs {
 			assert(ID.entity.name == String(Self), "Entity does not match with the ID.")
-			objects.append(context.objectWithID(ID) as! Self)
+			objects.append(context.object(with: ID) as! Self)
 		}
 		return objects
 	}
@@ -98,26 +102,26 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 private var kvoProxyContext = UnsafeMutablePointer<Void>.alloc(1)
 
 final private class KVOProxy: NSObject {
-	let action: AnyObject? -> Void
+	let action: (AnyObject?) -> Void
 	let keyPath: String
 
-	init(keyPath: String, action: AnyObject? -> Void) {
+	init(keyPath: String, action: (AnyObject?) -> Void) {
 		self.action = action
 		self.keyPath = keyPath
 		super.init()
 	}
 
 	func attach(to object: NSObject) {
-		object.addObserver(self, forKeyPath: keyPath, options: [.Initial, .New], context: kvoProxyContext)
+		object.addObserver(self, forKeyPath: keyPath, options: [.initial, .new], context: kvoProxyContext)
 	}
 
 	func detach(from object: NSObject) {
 		object.removeObserver(self, forKeyPath: keyPath, context: kvoProxyContext)
 	}
 
-	override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+	override func observeValue(forKeyPath keyPath: String?, of object: AnyObject?, change: [NSKeyValueChangeKey : AnyObject]?, context: UnsafeMutablePointer<Void>?) {
 		if context == kvoProxyContext {
-			action(change![NSKeyValueChangeNewKey])
+			action(change![NSKeyValueChangeKey.newKey])
 		}
 	}
 }

@@ -8,7 +8,7 @@
 
 public struct ViewModelSetSection<U: ViewModel> {
 	public typealias Index = Int
-	public typealias Generator = AnyReactiveSetSectionIterator<U>
+	public typealias Iterator = AnyReactiveSetSectionIterator<U>
 
 	private let wrappingSection: AnyReactiveSetSection<U.MappingObject>
 	private unowned var parentSet: ViewModelSet<U>
@@ -32,17 +32,25 @@ extension ViewModelSetSection: ReactiveSetSection {
 		return wrappingSection.endIndex
 	}
 
-	public subscript(position: Index) -> Generator.Element {
+	public subscript(position: Index) -> Iterator.Element {
 		return parentSet.factory(wrappingSection[position])
 	}
 
-	public func generate() -> Generator {
+	public func makeIterator() -> Iterator {
 		var iterator = startIndex
 		let limit = endIndex
 
 		return AnyReactiveSetSectionIterator {
-			defer { iterator = iterator.successor() }
+			defer { iterator = (iterator + 1) }
 			return iterator < limit ? self[iterator] : nil
 		}
+	}
+
+	public func index(after i: Index) -> Index {
+		return i + 1
+	}
+
+	public func index(before i: Index) -> Index {
+		return i - 1
 	}
 }

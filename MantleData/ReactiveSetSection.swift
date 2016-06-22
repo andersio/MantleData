@@ -10,19 +10,19 @@ import Foundation
 
 /// Section of ReactiveSet
 
-public protocol ReactiveSetSectionGenerator: GeneratorType {
+public protocol ReactiveSetSectionIterator: IteratorProtocol {
 	associatedtype Element
 }
 
-public protocol ReactiveSetSection: CollectionType {
-	associatedtype Generator: ReactiveSetSectionGenerator
+public protocol ReactiveSetSection: Collection {
+	associatedtype Iterator: ReactiveSetSectionIterator
 	associatedtype Index: ReactiveSetIndex
 
 	var name: ReactiveSetSectionName { get }
 }
 
 extension ReactiveSetSection {
-	public subscript(index: Int) -> Generator.Element {
+	public subscript(index: Int) -> Iterator.Element {
 		return self[Index(converting: index)]
 	}
 }
@@ -31,7 +31,7 @@ public func == <S: ReactiveSetSection>(left: S, right: S) -> Bool {
 	return left.name == right.name
 }
 
-public struct AnyReactiveSetSectionIterator<E>: ReactiveSetSectionGenerator {
+public struct AnyReactiveSetSectionIterator<E>: ReactiveSetSectionIterator {
 	public typealias Element = E
 
 	private let generator: () -> Element?
@@ -77,23 +77,23 @@ public struct ReactiveSetSectionName: Hashable {
 	}
 
 	/// `nil` is defined as the smallest of all.
-	public func compare(to anotherName: ReactiveSetSectionName) -> NSComparisonResult {
+	public func compare(to anotherName: ReactiveSetSectionName) -> ComparisonResult {
 		if let value = value, anotherValue = anotherName.value {
 			return value.compare(anotherValue)
 		}
 
 		if value == nil {
 			// (nil) compare to (otherName)
-			return .OrderedAscending
+			return .orderedAscending
 		}
 
 		if anotherName.value == nil {
 			// (self) compare to (nil)
-			return .OrderedDescending
+			return .orderedDescending
 		}
 
 		// (nil) compare to (nil)
-		return .OrderedSame
+		return .orderedSame
 	}
 }
 

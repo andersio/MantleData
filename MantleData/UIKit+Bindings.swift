@@ -11,20 +11,20 @@ import ReactiveCocoa
 
 infix operator <| { precedence 93 }
 
-public func <| <Input>(left: SignalProducer<Input?, NoError> -> Void, right: SignalProducer<Input, NoError>) {
+public func <| <Input>(left: (SignalProducer<Input?, NoError>) -> Void, right: SignalProducer<Input, NoError>) {
 	left(right.map { $0 })
 }
 
-public func <| <Input>(left: SignalProducer<Input, NoError> -> Void, right: SignalProducer<Input, NoError>) {
+public func <| <Input>(left: (SignalProducer<Input, NoError>) -> Void, right: SignalProducer<Input, NoError>) {
 	left(right)
 }
 
-public func <| <Input, Property: PropertyType where Property.Value == Input>(left: SignalProducer<Input, NoError> -> Void, right: Property) {
+public func <| <Input, Property: PropertyProtocol where Property.Value == Input>(left: (SignalProducer<Input, NoError>) -> Void, right: Property) {
 	left <| right.producer
 }
 
 extension UIView {
-	public var rxBackgroundColor: SignalProducer<UIColor?, NoError> -> Void {
+	public var rxBackgroundColor: (SignalProducer<UIColor?, NoError>) -> Void {
 		return { producer in
 			producer
 				.takeUntil(self.willDeinitProducer)
@@ -36,7 +36,7 @@ extension UIView {
 }
 
 extension UILabel {
-	public var rxText: SignalProducer<String?, NoError> -> Void {
+	public var rxText: (SignalProducer<String?, NoError>) -> Void {
 		return { producer in
 			producer
 				.takeUntil(self.willDeinitProducer)

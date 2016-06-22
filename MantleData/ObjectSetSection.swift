@@ -22,7 +22,7 @@ public struct ObjectSetSection<E: NSManagedObject> {
 }
 
 extension ObjectSetSection: ReactiveSetSection {
-	public typealias Generator = AnyReactiveSetSectionIterator<E>
+	public typealias Iterator = AnyReactiveSetSectionIterator<E>
 	public typealias Index = Int
 
 	public var startIndex: Int {
@@ -35,36 +35,44 @@ extension ObjectSetSection: ReactiveSetSection {
 
 	public subscript(position: Int) -> E {
 		get {
-			parentSet.prefetcher?.acknowledgeNextAccess(at: ReactiveSetIndexPath(section: indexInSet, row: position))
+			parentSet.prefetcher?.acknowledgeNextAccess(at: IndexPath(row: position, section: indexInSet))
 			
-			if let object = parentSet.context.objectRegisteredForID(storage[position]) as? E {
+			if let object = parentSet.context.registeredObject(for: storage[position]) as? E {
 				return object
 			}
 
-			return parentSet.context.objectWithID(storage[position]) as! E
+			return parentSet.context.object(with: storage[position]) as! E
 		}
 		set { storage[position] = newValue.objectID }
 	}
 
-	public func generate() -> AnyReactiveSetSectionIterator<E> {
+	public func makeIterator() -> AnyReactiveSetSectionIterator<E> {
 		var index = startIndex
 		let limit = endIndex
 
 		return AnyReactiveSetSectionIterator {
-			defer { index = index.successor() }
+			defer { index = (index + 1) }
 			return index < limit ? self[index] : nil
 		}
 	}
+
+	public func index(after i: Index) -> Index {
+		return i + 1
+	}
+
+	public func index(before i: Index) -> Index {
+		return i - 1
+	}
 }
 
-extension ObjectSetSection: RangeReplaceableCollectionType {
+extension ObjectSetSection: RangeReplaceableCollection {
 	public init() {
 		_unimplementedMethod()
 	}
 
-	public mutating func replaceRange<C : CollectionType where C.Generator.Element == E>(subRange: Range<Int>, with newElements: C) {
-		storage.replaceRange(subRange, with: newElements.map { $0.objectID })
+	public mutating func replaceSubrange<C : Collection where C.Iterator.Element == E>(_ subRange: Range<Int>, with newElements: C) {
+		storage.replaceSubrange(subRange, with: newElements.map { $0.objectID })
 	}
 }
 
-extension ObjectSetSection: MutableCollectionType {}
+extension ObjectSetSection: MutableCollection {}
