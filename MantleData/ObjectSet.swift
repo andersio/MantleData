@@ -637,10 +637,9 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 		/// MARK: Handle deletions.
 
-		var indexPathsOfDeletedRows = deletedObjects.enumerated().flatMap { sectionIndex, indices in
-			return indices.map { objectIndex -> _IndexPath in
+		deletedObjects.enumerated().forEach { sectionIndex, indices in
+			indices.forEach { objectIndex in
 				deletingIndexPaths.orderedInsert(objectIndex, toCollectionAt: sectionIndex, ascending: false)
-				return _IndexPath(row: objectIndex, section: sectionIndex)
 			}
 		}
 
@@ -679,7 +678,12 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			if sections[index].count == 0 && inPlaceMovingObjects[index].count == 0 {
 				sections.remove(at: index)
 				indiceOfDeletedSections.append(index)
+				deletingIndexPaths.remove(at: index)
 			}
+		}
+
+		var indexPathsOfDeletedRows = deletingIndexPaths.enumerated().flatMap { sectionIndex, indices in
+			return indices.map { IndexPath(row: $0, section: sectionIndex) }
 		}
 
 		/// MARK: Handle insertions.
