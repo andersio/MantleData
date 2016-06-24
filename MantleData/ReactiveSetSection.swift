@@ -10,12 +10,7 @@ import Foundation
 
 /// Section of ReactiveSet
 
-public protocol ReactiveSetSectionIterator: IteratorProtocol {
-	associatedtype Element
-}
-
-public protocol ReactiveSetSection: Collection {
-	associatedtype Iterator: ReactiveSetSectionIterator
+public protocol ReactiveSetSection: BidirectionalCollection {
 	associatedtype Index: ReactiveSetIndex
 
 	var name: ReactiveSetSectionName { get }
@@ -29,20 +24,6 @@ extension ReactiveSetSection {
 
 public func == <S: ReactiveSetSection>(left: S, right: S) -> Bool {
 	return left.name == right.name
-}
-
-public struct AnyReactiveSetSectionIterator<E>: ReactiveSetSectionIterator {
-	public typealias Element = E
-
-	private let generator: () -> Element?
-
-	public init(generator: () -> Element?) {
-		self.generator = generator
-	}
-
-	public mutating func next() -> Element? {
-		return generator()
-	}
 }
 
 /// Section Name of ReactiveSet

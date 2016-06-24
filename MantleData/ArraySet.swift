@@ -10,7 +10,11 @@ import Foundation
 import ReactiveCocoa
 
 // Root
-final public class ArraySet<E: Equatable> {
+final public class ArraySet<E: Equatable>: ReactiveSet {
+	public typealias Index = Int
+	public typealias IndexDistance = Int
+	public typealias Iterator = DefaultReactiveSetIterator<ArraySetSection<E>>
+
 	public let eventProducer: SignalProducer<ReactiveSetEvent, NoError>
 	private let eventObserver: Observer<ReactiveSetEvent, NoError>
 
@@ -28,28 +32,6 @@ final public class ArraySet<E: Equatable> {
 				values: []) })
 	}
 
-	internal func pushChanges(_ changes: ArraySetSectionChanges<Iterator.Element.Index>, from section: ArraySetSection<E>? = nil) {
-		if let section = section {
-			let sectionIndex = storage.index(of: section)!
-			eventObserver.sendNext(.updated(changes.reactiveSetChanges(for: sectionIndex)))
-		}
-	}
-
-	internal func pushChanges(_ changes: ReactiveSetChanges) {
-		eventObserver.sendNext(.updated(changes))
-	}
-
-	deinit {
-		replaceSubrange(0 ..< storage.count, with: [])
-		eventObserver.sendCompleted()
-	}
-}
-
-extension ArraySet: ReactiveSet {
-	public typealias Index = Int
-	public typealias IndexDistance = Int
-	public typealias Iterator = AnyReactiveSetIterator<ArraySetSection<E>>
-
 	public func fetch(startTracking: Bool) throws {
 		eventObserver.sendNext(.reloaded)
 	}
@@ -63,10 +45,7 @@ extension ArraySet: ReactiveSet {
 	}
 
 	public func makeIterator() -> Iterator {
-		var generator = storage.makeIterator()
-		return AnyReactiveSetIterator {
-			return generator.next()
-		}
+		return DefaultReactiveSetIterator(for: self)
 	}
 
 	public func index(after i: Index) -> Index {
@@ -103,6 +82,34 @@ extension ArraySet: ReactiveSet {
 		}
 
 		return nil
+	}
+
+	public func indexPath(of element: Iterator.Element.Iterator.Element) -> IndexPath? {
+		for (sectionIndex, section) in self.enumerated() {
+			for (rowIndex, row) in section.enumerated() {
+				if row == element {
+					return IndexPath(row: rowIndex, section: sectionIndex)
+				}
+			}
+		}
+
+		return nil
+	}
+
+	internal func pushChanges(_ changes: ArraySetSectionChanges<Iterator.Element.Index>, from section: ArraySetSection<E>? = nil) {
+		if let section = section {
+			let sectionIndex = storage.index(of: section)!
+			eventObserver.sendNext(.updated(changes.reactiveSetChanges(for: sectionIndex)))
+		}
+	}
+
+	internal func pushChanges(_ changes: ReactiveSetChanges) {
+		eventObserver.sendNext(.updated(changes))
+	}
+
+	deinit {
+		replaceSubrange(0 ..< storage.count, with: [])
+		eventObserver.sendCompleted()
 	}
 }
 

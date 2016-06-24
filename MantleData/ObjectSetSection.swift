@@ -6,7 +6,10 @@
 //  Copyright © 2016 Anders. All rights reserved.
 //
 
-public struct ObjectSetSection<E: NSManagedObject> {
+public struct ObjectSetSection<E: NSManagedObject>: ReactiveSetSection {
+	public typealias Index = Int
+	public typealias Iterator = AnyIterator<E>
+
 	public let name: ReactiveSetSectionName
 
 	public internal(set) var indexInSet: Int
@@ -19,11 +22,6 @@ public struct ObjectSetSection<E: NSManagedObject> {
 		self.storage = array ?? []
 		self.parentSet = parentSet
 	}
-}
-
-extension ObjectSetSection: ReactiveSetSection {
-	public typealias Iterator = AnyReactiveSetSectionIterator<E>
-	public typealias Index = Int
 
 	public var startIndex: Int {
 		return storage.startIndex
@@ -46,13 +44,17 @@ extension ObjectSetSection: ReactiveSetSection {
 		set { storage[position] = newValue.objectID }
 	}
 
-	public func makeIterator() -> AnyReactiveSetSectionIterator<E> {
-		var index = startIndex
-		let limit = endIndex
+	public subscript(subRange: Range<Int>) -> BidirectionalSlice<ObjectSetSection<E>> {
+		return BidirectionalSlice(base: self, bounds: subRange)
+	}
 
-		return AnyReactiveSetSectionIterator {
-			defer { index = (index + 1) }
-			return index < limit ? self[index] : nil
+	public func makeIterator() -> AnyIterator<E> {
+		var index: Index? = startIndex
+		return AnyIterator {
+			return index.map { currentIndex in
+				defer { index = self.index(currentIndex, offsetBy: 1, limitedBy: self.endIndex) }
+				return self[currentIndex]
+			}
 		}
 	}
 
@@ -64,15 +66,3 @@ extension ObjectSetSection: ReactiveSetSection {
 		return i - 1
 	}
 }
-
-extension ObjectSetSection: RangeReplaceableCollection {
-	public init() {
-		_unimplementedMethod()
-	}
-
-	public mutating func replaceSubrange<C : Collection where C.Iterator.Element == E>(_ subRange: Range<Int>, with newElements: C) {
-		storage.replaceSubrange(subRange, with: newElements.map { $0.objectID })
-	}
-}
-
-extension ObjectSetSection: MutableCollection {}

@@ -9,18 +9,24 @@
 import ReactiveCocoa
 
 /// ReactiveSet
-
 public protocol ReactiveSetIterator: IteratorProtocol {
 	associatedtype Element: ReactiveSetSection
 }
 
-public struct AnyReactiveSetIterator<S: ReactiveSetSection>: ReactiveSetIterator {
-	public typealias Element = S
+public struct DefaultReactiveSetSectionIterator<E>: IteratorProtocol {
+	public typealias Element = E
 
 	private let generator: () -> Element?
 
-	public init(generator: () -> Element?) {
-		self.generator = generator
+	public init<S: ReactiveSetSection where S.Iterator.Element == E>(for section: S, bounds: Range<S.Index>? = nil) {
+		var bounds = bounds ?? section.startIndex ..< section.endIndex
+		var index: S.Index? = bounds.lowerBound
+		self.generator = {
+			return index.map { currentIndex in
+				defer { index = section.index(currentIndex, offsetBy: 1, limitedBy: bounds.upperBound) }
+				return section[currentIndex]
+			}
+		}
 	}
 
 	public mutating func next() -> Element? {
@@ -28,15 +34,36 @@ public struct AnyReactiveSetIterator<S: ReactiveSetSection>: ReactiveSetIterator
 	}
 }
 
-public protocol ReactiveSet: class, Collection {
+public struct DefaultReactiveSetIterator<S: ReactiveSetSection>: ReactiveSetIterator {
+	public typealias Element = S
+
+	private let generator: () -> Element?
+
+	public init<R: ReactiveSet where R.Iterator.Element == S>(for set: R, bounds: Range<R.Index>? = nil) {
+		var bounds = bounds ?? set.startIndex ..< set.endIndex
+		var index: R.Index? = bounds.lowerBound
+		self.generator = {
+			return index.map { currentIndex in
+				defer { index = set.index(currentIndex, offsetBy: 1, limitedBy: bounds.upperBound) }
+				return set[currentIndex]
+			}
+		}
+	}
+
+	public mutating func next() -> Element? {
+		return generator()
+	}
+}
+
+public protocol ReactiveSet: class, BidirectionalCollection {
 	associatedtype Iterator: ReactiveSetIterator
 	associatedtype Index: ReactiveSetIndex
 
 	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> { get }
 
 	func fetch(startTracking: Bool) throws
-	func sectionName(of element: Generator.Element.Iterator.Element) -> ReactiveSetSectionName?
-	func indexPath(of element: Generator.Element.Iterator.Element) -> IndexPath?
+	func sectionName(of element: Iterator.Element.Iterator.Element) -> ReactiveSetSectionName?
+	func indexPath(of element: Iterator.Element.Iterator.Element) -> IndexPath?
 }
 
 extension ReactiveSet {
@@ -53,7 +80,7 @@ extension ReactiveSet {
 	}
 
 	public subscript(indexPath: IndexPath) -> Iterator.Element.Iterator.Element {
-		return self[indexPath.section][Generator.Element.Index(converting: indexPath.row)]
+		return self[indexPath.section][Iterator.Element.Index(converting: indexPath.row)]
 	}
 
 	public var objectCount: Iterator.Element.IndexDistance {
@@ -62,18 +89,6 @@ extension ReactiveSet {
 
 	public func fetch() throws {
 		try fetch(startTracking: false)
-	}
-}
-
-extension ReactiveSet where Iterator.Element.Iterator.Element: Equatable {
-	public func indexPath(of element: Iterator.Element.Iterator.Element) -> IndexPath? {
-		if let name = sectionName(of: element),
-			sectionIndex = indexOfSection(with: name),
-			objectIndex = self[sectionIndex].index(of: element) {
-			return IndexPath(row: objectIndex.toInt(), section: sectionIndex.toInt())
-		}
-
-		return nil
 	}
 }
 

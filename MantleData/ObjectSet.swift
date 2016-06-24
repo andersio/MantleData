@@ -670,7 +670,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 		for sectionIndex in deletingIndexPaths.indices {
 			deletingIndexPaths[sectionIndex].forEach {
-				sections[sectionIndex].remove(at: $0)
+				sections[sectionIndex].storage.remove(at: $0)
 			}
 		}
 
@@ -792,8 +792,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 extension ObjectSet: ReactiveSet {
 	public typealias Index = Int
-	public typealias Iterator = AnyReactiveSetIterator<ObjectSetSection<E>>
-	public typealias SubSequence = ArraySlice<ObjectSetSection<E>>
+	public typealias Iterator = DefaultReactiveSetIterator<ObjectSetSection<E>>
 
 	// Indexable
 
@@ -809,16 +808,18 @@ extension ObjectSet: ReactiveSet {
 		return sections[index]
 	}
 
+	public subscript(subRange: Range<Index>) -> BidirectionalSlice<ObjectSet<E>> {
+		return BidirectionalSlice(base: self, bounds: subRange)
+	}
+
 	// SequenceType
 
-	public func makeIterator() -> AnyReactiveSetIterator<ObjectSetSection<E>> {
-		var index = startIndex
-		let limit = endIndex
+	public func makeIterator() -> DefaultReactiveSetIterator<ObjectSetSection<E>> {
+		return DefaultReactiveSetIterator(for: self)
+	}
 
-		return AnyReactiveSetIterator {
-			defer { index = (index + 1) }
-			return index < limit ? self[index] : nil
-		}
+	public func index(before i: Index) -> Index {
+		return i - 1
 	}
 
 	public func index(after i: Index) -> Index {
@@ -826,10 +827,6 @@ extension ObjectSet: ReactiveSet {
 	}
 
 	// CollectionType
-
-	public subscript(bounds: Range<Int>) -> ArraySlice<ObjectSetSection<E>> {
-		return sections[bounds]
-	}
 
 	public func sectionName(of object: E) -> ReactiveSetSectionName? {
 		return _sectionName(of: object)
