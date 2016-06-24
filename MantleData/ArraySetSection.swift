@@ -40,8 +40,7 @@ final public class ArraySetSection<E: Equatable> {
 
 extension ArraySetSection: ReactiveSetSection, MutableCollection {
 	public typealias Index = Int
-	public typealias IndexDistance = Int
-	public typealias Iterator = AnyReactiveSetSectionIterator<E>
+	public typealias Iterator = Array<E>.Iterator
 
 	public var startIndex: Int {
 		return storage.startIndex
@@ -51,14 +50,8 @@ extension ArraySetSection: ReactiveSetSection, MutableCollection {
 		return storage.endIndex
 	}
 
-	public func makeIterator() -> AnyReactiveSetSectionIterator<E> {
-		var index = storage.startIndex
-		let limit = storage.endIndex
-
-		return AnyReactiveSetSectionIterator {
-			defer { index = (index + 1) }
-			return index < limit ? self.storage[index] : nil
-		}
+	public func makeIterator() -> IndexingIterator<Array<E>> {
+		return storage.makeIterator()
 	}
 
 	public func index(after i: Index) -> Index {
@@ -173,7 +166,7 @@ extension ArraySetSection: RangeReplaceableCollection {
 		}
 	}
 
-	public func reserveCapacity(_ n: IndexDistance) {
+	public func reserveCapacity(_ n: Array<E>.IndexDistance) {
 		storage.reserveCapacity(n)
 	}
 }

@@ -10,8 +10,7 @@
 		9A0D9A7F1C76ABA30013C976 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A0D9A7E1C76ABA30013C976 /* CoreData.framework */; };
 		9A0D9A811C76ABA80013C976 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A0D9A801C76ABA80013C976 /* ReactiveCocoa.framework */; };
 		9A0D9A831C76ABAD0013C976 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A0D9A821C76ABAD0013C976 /* Result.framework */; };
-		9A0D9A841C76ABD30013C976 /* AnyReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */; };
-		9A0D9A851C76ABD30013C976 /* AnyReactiveSetBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */; };
+		9A0D9A851C76ABD30013C976 /* ExistentialCollections+Private.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */; };
 		9A0D9A861C76ABD30013C976 /* ArraySet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E31C510BAD00801A30 /* ArraySet.swift */; };
 		9A0D9A871C76ABD30013C976 /* ArraySetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E41C510BAD00801A30 /* ArraySetSection.swift */; };
 		9A0D9A881C76ABD30013C976 /* ReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E51C510BAD00801A30 /* ReactiveSet.swift */; };
@@ -29,8 +28,7 @@
 		9A0D9A9B1C76ABE00013C976 /* NSManagedObjectContext+Additions.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A2997FD1C510BF100801A30 /* NSManagedObjectContext+Additions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A0D9A9C1C76ADA90013C976 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A141A3E1C495E500049BEC9 /* ViewModelSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6591BC958E100FC86E1 /* ViewModelSet.swift */; };
-		9A2997E61C510BAD00801A30 /* AnyReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */; };
-		9A2997E71C510BAD00801A30 /* AnyReactiveSetBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */; };
+		9A2997E71C510BAD00801A30 /* ExistentialCollections+Private.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */; };
 		9A2997E81C510BAD00801A30 /* ArraySet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E31C510BAD00801A30 /* ArraySet.swift */; };
 		9A2997E91C510BAD00801A30 /* ArraySetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E41C510BAD00801A30 /* ArraySetSection.swift */; };
 		9A2997EA1C510BAD00801A30 /* ReactiveSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E51C510BAD00801A30 /* ReactiveSet.swift */; };
@@ -89,6 +87,8 @@
 		9ACB1FB91CDC69A20010555B /* NSObject+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F51C510BDB00801A30 /* NSObject+Extension.swift */; };
 		9ACB82781CE3914F00E0DE14 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ACB82771CE3914F00E0DE14 /* ReactiveCocoa.framework */; };
 		9ACB827A1CE3915300E0DE14 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ACB82791CE3915300E0DE14 /* Result.framework */; };
+		9AD114831D1CF1210067F20C /* ExistentialCollections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD114821D1CF1210067F20C /* ExistentialCollections.swift */; };
+		9AD114841D1CF1210067F20C /* ExistentialCollections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD114821D1CF1210067F20C /* ExistentialCollections.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -107,8 +107,7 @@
 		9A0D9A7E1C76ABA30013C976 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		9A0D9A801C76ABA80013C976 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../../Library/Developer/Xcode/DerivedData/LockyCenter-cpepxbyuqkwrtdfxxeiedodvbthy/Build/Products/Debug/ReactiveCocoa.framework"; sourceTree = "<group>"; };
 		9A0D9A821C76ABAD0013C976 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../../Library/Developer/Xcode/DerivedData/LockyCenter-cpepxbyuqkwrtdfxxeiedodvbthy/Build/Products/Debug/Result.framework"; sourceTree = "<group>"; };
-		9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AnyReactiveSet.swift; path = MantleData/AnyReactiveSet.swift; sourceTree = "<group>"; };
-		9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AnyReactiveSetBox.swift; path = MantleData/AnyReactiveSetBox.swift; sourceTree = "<group>"; };
+		9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ExistentialCollections+Private.swift"; path = "MantleData/ExistentialCollections+Private.swift"; sourceTree = "<group>"; };
 		9A2997E31C510BAD00801A30 /* ArraySet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ArraySet.swift; path = MantleData/ArraySet.swift; sourceTree = "<group>"; };
 		9A2997E41C510BAD00801A30 /* ArraySetSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ArraySetSection.swift; path = MantleData/ArraySetSection.swift; sourceTree = "<group>"; };
 		9A2997E51C510BAD00801A30 /* ReactiveSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveSet.swift; path = MantleData/ReactiveSet.swift; sourceTree = "<group>"; };
@@ -158,6 +157,7 @@
 		9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "StdlibCollections+Extension.swift"; path = "MantleData/StdlibCollections+Extension.swift"; sourceTree = "<group>"; };
 		9ACB82771CE3914F00E0DE14 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../Library/Developer/Xcode/DerivedData/Galleon-amxqryzgqhclowdedfkxtlacsnyz/Build/Products/Debug-iphonesimulator/ReactiveCocoa.framework"; sourceTree = "<group>"; };
 		9ACB82791CE3915300E0DE14 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../Library/Developer/Xcode/DerivedData/Galleon-amxqryzgqhclowdedfkxtlacsnyz/Build/Products/Debug-iphonesimulator/Result.framework"; sourceTree = "<group>"; };
+		9AD114821D1CF1210067F20C /* ExistentialCollections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ExistentialCollections.swift; path = MantleData/ExistentialCollections.swift; sourceTree = "<group>"; };
 		9AE9C0EB1C1186A800A3D1F3 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../ReactiveCocoa/ReactiveCocoa/build/Debug-iphoneos/ReactiveCocoa.framework"; sourceTree = "<group>"; };
 		9AE9C0ED1C1186AF00A3D1F3 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../ReactiveCocoa/ReactiveCocoa/Carthage/Checkouts/Result/build/Debug-iphoneos/Result.framework"; sourceTree = "<group>"; };
 		9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -283,8 +283,8 @@
 		9A6F328D1C468BE700F31983 /* Reactive Collection Protocols */ = {
 			isa = PBXGroup;
 			children = (
-				9A2997E11C510BAD00801A30 /* AnyReactiveSet.swift */,
-				9A2997E21C510BAD00801A30 /* AnyReactiveSetBox.swift */,
+				9AD114821D1CF1210067F20C /* ExistentialCollections.swift */,
+				9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */,
 				9A2997E51C510BAD00801A30 /* ReactiveSet.swift */,
 				9ACB1FAB1CDC69720010555B /* ReactiveSetSection.swift */,
 				9ACB1FA91CDC69720010555B /* ReactiveSetEvent.swift */,
@@ -511,13 +511,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AD114841D1CF1210067F20C /* ExistentialCollections.swift in Sources */,
 				9ACB1FB51CDC69A20010555B /* ReactiveSetEvent.swift in Sources */,
 				9A7A7B211CE381DB0030674B /* EditorPool.swift in Sources */,
 				9ACB1FB61CDC69A20010555B /* ReactiveSetIndex.swift in Sources */,
 				9ACB1FB71CDC69A20010555B /* ReactiveSetSection.swift in Sources */,
 				9ACB1FB91CDC69A20010555B /* NSObject+Extension.swift in Sources */,
-				9A0D9A841C76ABD30013C976 /* AnyReactiveSet.swift in Sources */,
-				9A0D9A851C76ABD30013C976 /* AnyReactiveSetBox.swift in Sources */,
+				9A0D9A851C76ABD30013C976 /* ExistentialCollections+Private.swift in Sources */,
 				9A0D9A861C76ABD30013C976 /* ArraySet.swift in Sources */,
 				9A0D9A871C76ABD30013C976 /* ArraySetSection.swift in Sources */,
 				9A511A411CDE47950098D30B /* ViewModelSetSection.swift in Sources */,
@@ -562,9 +562,10 @@
 				9ACB1FAE1CDC69720010555B /* ReactiveSetSection.swift in Sources */,
 				9A39A6701BC958E100FC86E1 /* ManagedObject+Extension.swift in Sources */,
 				9A2997FB1C510BE900801A30 /* Base.swift in Sources */,
+				9AD114831D1CF1210067F20C /* ExistentialCollections.swift in Sources */,
 				9A2D52C11D179CC900FEBC05 /* ManagedObjectID.swift in Sources */,
 				9ACB1FB11CDC698A0010555B /* Foundation+Extension.swift in Sources */,
-				9A2997E71C510BAD00801A30 /* AnyReactiveSetBox.swift in Sources */,
+				9A2997E71C510BAD00801A30 /* ExistentialCollections+Private.swift in Sources */,
 				9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */,
 				9A5577A01C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m in Sources */,
 				9A511A3B1CDE47730098D30B /* ObjectSetSection.swift in Sources */,
@@ -589,7 +590,6 @@
 				9A2997EA1C510BAD00801A30 /* ReactiveSet.swift in Sources */,
 				9A2997E91C510BAD00801A30 /* ArraySetSection.swift in Sources */,
 				9A2997F41C510BD100801A30 /* ObjectQuery.swift in Sources */,
-				9A2997E61C510BAD00801A30 /* AnyReactiveSet.swift in Sources */,
 				9A999FDA1CD64E3A009AA161 /* Editor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
