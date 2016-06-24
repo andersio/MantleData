@@ -1,22 +1,30 @@
 {
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "0F41998AF25F757D3E25F9652CDF160CB4513DBA",
   "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
 
   },
   "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "0F41998AF25F757D3E25F9652CDF160CB4513DBA" : 0,
     "51B210D0D41486D3ADD6940D57E4480BBD4DE4C5" : 0,
-    "E084C86B03F81D63323C9E7510697EA528A758C7" : 0,
-    "956D2B21DD155C49504BB67697A67F7C5351A353" : 0
+    "956D2B21DD155C49504BB67697A67F7C5351A353" : 0,
+    "E084C86B03F81D63323C9E7510697EA528A758C7" : 0
   },
   "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "76873DDA-B193-47D7-9703-CC6EC3972CCD",
   "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "0F41998AF25F757D3E25F9652CDF160CB4513DBA" : "MantleData\/",
     "51B210D0D41486D3ADD6940D57E4480BBD4DE4C5" : "Galleon\/Libraries\/ReactiveCocoa\/",
-    "E084C86B03F81D63323C9E7510697EA528A758C7" : "Galleon\/Libraries\/ReactiveCocoa\/Carthage\/Checkouts\/xcconfigs\/",
-    "956D2B21DD155C49504BB67697A67F7C5351A353" : "Galleon\/Libraries\/ReactiveCocoa\/Carthage\/Checkouts\/Result\/"
+    "956D2B21DD155C49504BB67697A67F7C5351A353" : "Galleon\/Libraries\/ReactiveCocoa\/Carthage\/Checkouts\/Result\/",
+    "E084C86B03F81D63323C9E7510697EA528A758C7" : "Galleon\/Libraries\/ReactiveCocoa\/Carthage\/Checkouts\/xcconfigs\/"
   },
   "DVTSourceControlWorkspaceBlueprintNameKey" : "MantleData",
   "DVTSourceControlWorkspaceBlueprintVersion" : 204,
   "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "MantleData.xcodeproj",
   "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:andersio\/MantleData.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "0F41998AF25F757D3E25F9652CDF160CB4513DBA"
+    },
     {
       "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/ReactiveCocoa\/ReactiveCocoa.git",
       "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
