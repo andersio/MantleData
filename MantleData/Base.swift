@@ -21,14 +21,13 @@ public class Base {
 
 			var deinitSignal: Signal<(), NoError>!
 
-			willDeinitObserver.modify { oldValue in
-				if let tuple = oldValue {
+			willDeinitObserver.modify { value in
+				if let tuple = value {
 					deinitSignal = tuple.0
-					return tuple
 				} else {
 					let (signal, observer) = Signal<(), NoError>.pipe()
 					deinitSignal = signal
-					return (signal, observer)
+					value = (signal, observer)
 				}
 			}
 
