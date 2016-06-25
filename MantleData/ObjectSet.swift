@@ -296,7 +296,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 						/// If the object ID is no longer temporary, find the position of the object.
 						/// Then update the object and the cache with the permanent ID.
 
-						let sectionIndex = indexOfSection(with: sectionName(of: object)!)!
+						let sectionIndex = index(of: sectionName(of: object)!)!
 						let objectIndex = sections[sectionIndex].storage.index(of: temporaryId,
 																																	 using: objectSortDescriptors,
 																																	 with: objectCache)!
@@ -387,7 +387,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 					sectionName = ReactiveSetSectionName()
 				}
 
-				if let index = indexOfSection(with: sectionName) {
+				if let index = index(of: sectionName) {
 					if let objectIndex = sections[index].storage.index(of: object.objectID,
 					                                                   using: objectSortDescriptors,
 					                                                   with: objectCache) {
@@ -427,7 +427,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 					sectionName = ReactiveSetSectionName()
 				}
 
-				if let index = indexOfSection(with: sectionName) {
+				if let index = index(of: sectionName) {
 					/// Use binary search, but compare against the previous values dictionary.
 					if let objectIndex = sections[index].storage.index(of: object.objectID,
 					                                                   using: objectSortDescriptors,
@@ -446,7 +446,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 					currentSectionName = _sectionName(of: object)
 
 					guard previousSectionName == currentSectionName else {
-						guard let previousSectionIndex = sections.indexOfSection(with: currentSectionName) else {
+						guard let previousSectionIndex = sections.index(of: currentSectionName) else {
 							preconditionFailure("current section name is supposed to exist, but not found.")
 						}
 
@@ -464,7 +464,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 					currentSectionName = ReactiveSetSectionName()
 				}
 
-				guard let currentSectionIndex = indexOfSection(with: currentSectionName) else {
+				guard let currentSectionIndex = index(of: currentSectionName) else {
 					preconditionFailure("current section name is supposed to exist, but not found.")
 				}
 
@@ -689,7 +689,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		/// MARK: Handle insertions.
 
 		func insert(_ ids: Set<NSManagedObjectID>, intoSectionFor name: ReactiveSetSectionName) {
-			if let sectionIndex = indexOfSection(with: name) {
+			if let sectionIndex = index(of: name) {
 				for id in ids {
 					sections[sectionIndex].storage.insert(id, using: objectSortDescriptors, with: objectCache)
 				}
@@ -711,7 +711,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 		for sectionIndex in sections.indices {
 			let sectionName = sections[sectionIndex].name
-			let previousSectionIndex = sectionSnapshots.indexOfSection(with: sectionName)
+			let previousSectionIndex = sectionSnapshots.index(of: sectionName)
 
 			if let previousSectionIndex = previousSectionIndex {
 				for id in inPlaceMovingObjects[previousSectionIndex] {
@@ -792,7 +792,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 extension ObjectSet: ReactiveSet {
 	public typealias Index = Int
-	public typealias Iterator = DefaultReactiveSetIterator<ObjectSetSection<E>>
+	public typealias Section = ObjectSetSection<E>
 
 	// Indexable
 
@@ -804,6 +804,10 @@ extension ObjectSet: ReactiveSet {
 		return sections.endIndex
 	}
 
+	public var elementsCount: Int {
+		return objectCache.count
+	}
+
 	public subscript(index: Int) -> ObjectSetSection<E> {
 		return sections[index]
 	}
@@ -813,10 +817,6 @@ extension ObjectSet: ReactiveSet {
 	}
 
 	// SequenceType
-
-	public func makeIterator() -> DefaultReactiveSetIterator<ObjectSetSection<E>> {
-		return DefaultReactiveSetIterator(for: self)
-	}
 
 	public func index(before i: Index) -> Index {
 		return i - 1
@@ -832,9 +832,9 @@ extension ObjectSet: ReactiveSet {
 		return _sectionName(of: object)
 	}
 
-	public func indexPath(of element: Iterator.Element.Iterator.Element) -> IndexPath? {
+	public func indexPath(of element: E) -> IndexPath? {
 		let sectionName = _sectionName(of: element)
-		if let sectionIndex = indexOfSection(with: sectionName) {
+		if let sectionIndex = index(of: sectionName) {
 			if let objectIndex = self[sectionIndex].storage.index(of: element.objectID, using: objectSortDescriptors, with: objectCache) {
 				return IndexPath(row: objectIndex, section: sectionIndex)
 			}

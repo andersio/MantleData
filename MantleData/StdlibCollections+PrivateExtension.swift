@@ -187,3 +187,9 @@ extension Collection where Iterator.Element: Hashable {
 		return Array(Set(self))
 	}
 }
+
+extension Collection where Iterator.Element: ReactiveSetSection {
+	public func index(of name: ReactiveSetSectionName) -> Index? {
+		return index { $0.name == name }
+	}
+}

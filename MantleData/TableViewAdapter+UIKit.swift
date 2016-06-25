@@ -141,7 +141,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					tableView.endUpdates()
 				}
 
-				if !self.isEmpty && self.set.objectCount == 0 {
+				if !self.isEmpty && self.set.elementsCount == 0 {
 					self.isEmpty = true
 					self.emptiedObserver?()
 				} else if self.isEmpty {
@@ -164,7 +164,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		let (reuseIdentifier, configurator) = cellConfigurators[isUniform ? 0 : (indexPath as NSIndexPath).section]!
 		let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier,
 		                                                       for: indexPath)
-		configurator(cell: cell, viewModel: set[(indexPath as NSIndexPath).section][(indexPath as NSIndexPath).row])
+		configurator(cell: cell, viewModel: set[indexPath])
 
 		return cell
 	}

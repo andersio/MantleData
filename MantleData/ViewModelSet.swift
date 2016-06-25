@@ -22,7 +22,7 @@ public final class ViewModelSet<U: ViewModel> {
 		return set.eventProducer
   }
 
-	public init<R: ReactiveSet where R.Iterator.Element.Iterator.Element == U.MappingObject>(_ set: R, factory: (U.MappingObject) -> U) {
+	public init<R: ReactiveSet where R.Iterator.Element: ReactiveSetSection, R.Section == R.Iterator.Element, R.Iterator.Element.Iterator.Element == U.MappingObject>(_ set: R, factory: (U.MappingObject) -> U) {
     self.set = _AnyReactiveSetBoxBase(set)
 		self.factory = factory
 	}
@@ -36,14 +36,17 @@ public final class ViewModelSet<U: ViewModel> {
 		return self
 	}
 
-	public var objectCount: Int {
-		return set.objectCount
+	public var elementsCount: Int {
+		return set.elementsCount
+	}
+
+	public subscript(position: IndexPath) -> U {
+		return factory(set[position.section][position.row])
 	}
 }
 
 extension ViewModelSet: Collection {
 	public typealias Index = Int
-	public typealias Iterator = AnyIterator<ViewModelSetSection<U>>
 
 	public var startIndex: Index {
 		return set.startIndex
@@ -53,17 +56,8 @@ extension ViewModelSet: Collection {
 		return set.endIndex
 	}
 
-	public subscript(position: Index) -> Iterator.Element {
+	public subscript(position: Index) -> ViewModelSetSection<U> {
 		return ViewModelSetSection(set[position], in: self)
-	}
-
-	public func makeIterator() -> Iterator {
-		var iterator = startIndex
-		let limit = endIndex
-		return AnyIterator {
-			defer { iterator = (iterator + 1) }
-			return iterator < limit ? self[iterator] : nil
-		}
 	}
 
 	public func index(after i: Index) -> Index {

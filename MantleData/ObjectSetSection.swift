@@ -8,7 +8,6 @@
 
 public struct ObjectSetSection<E: NSManagedObject>: ReactiveSetSection {
 	public typealias Index = Int
-	public typealias Iterator = AnyIterator<E>
 
 	public let name: ReactiveSetSectionName
 
@@ -46,16 +45,6 @@ public struct ObjectSetSection<E: NSManagedObject>: ReactiveSetSection {
 
 	public subscript(subRange: Range<Int>) -> BidirectionalSlice<ObjectSetSection<E>> {
 		return BidirectionalSlice(base: self, bounds: subRange)
-	}
-
-	public func makeIterator() -> AnyIterator<E> {
-		var index: Index? = startIndex
-		return AnyIterator {
-			return index.map { currentIndex in
-				defer { index = self.index(currentIndex, offsetBy: 1, limitedBy: self.endIndex) }
-				return self[currentIndex]
-			}
-		}
 	}
 
 	public func index(after i: Index) -> Index {

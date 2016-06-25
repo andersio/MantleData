@@ -8,7 +8,7 @@
 
 import ReactiveCocoa
 
-final internal class _AnyReactiveSetBoxBase<R: ReactiveSet where R.Iterator.Element: ReactiveSetSection>: _AnyReactiveSetBox<R.Iterator.Element.Iterator.Element> {
+final internal class _AnyReactiveSetBoxBase<R: ReactiveSet where R.Iterator.Element: ReactiveSetSection, R.Section.Iterator.Element == R.Iterator.Element.Iterator.Element>: _AnyReactiveSetBox<R.Section.Iterator.Element> {
 	private let set: R
 
 	override var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
@@ -24,42 +24,42 @@ final internal class _AnyReactiveSetBoxBase<R: ReactiveSet where R.Iterator.Elem
 	}
 
 	override var startIndex: Index {
-		return Index(converting: set.startIndex)
+		return 0
 	}
 
 	override var endIndex: Index {
-		return Index(converting: set.endIndex)
+		return Int(set.count.toIntMax())
 	}
 
-	override subscript(index: Index) -> AnyReactiveSetSection<R.Iterator.Element.Iterator.Element> {
-		let index = R.Index(converting: index)
+	override var elementsCount: Int {
+		return Int(set.elementsCount.toIntMax())
+	}
+
+	override subscript(index: Index) -> AnyReactiveSetSection<R.Section.Iterator.Element> {
+		let index = set.index(set.startIndex, offsetBy: R.IndexDistance(index.toIntMax()))
 		return AnyReactiveSetSection(set[index])
 	}
 
-	override subscript(subRange: Range<Index>) -> BidirectionalSlice<_AnyReactiveSetBox<R.Iterator.Element.Iterator.Element>> {
-		_unimplementedMethod()
-	}
-
-	override func makeIterator() -> DefaultReactiveSetIterator<AnyReactiveSetSection<R.Iterator.Element.Iterator.Element>> {
-		return DefaultReactiveSetIterator(for: self)
-	}
-
 	override func index(after i: Index) -> Index {
-		return Index(converting: set.index(after: R.Index(converting: i)))
+		return i + 1
 	}
 
-	override func sectionName(of object: Iterator.Element.Iterator.Element) -> ReactiveSetSectionName? {
+	override func index(before i: Index) -> Index {
+		return i - 1
+	}
+
+	override func sectionName(of object: Section.Iterator.Element) -> ReactiveSetSectionName? {
 		return set.sectionName(of: object)
 	}
 
-	override func indexPath(of element: Iterator.Element.Iterator.Element) -> IndexPath? {
+	override func indexPath(of element: Section.Iterator.Element) -> IndexPath? {
 		return set.indexPath(of: element)
 	}
 }
 
-internal class _AnyReactiveSetBox<E>: ReactiveSet {
+internal class _AnyReactiveSetBox<E> {
 	typealias Index = Int
-	typealias Iterator = DefaultReactiveSetIterator<AnyReactiveSetSection<E>>
+	typealias Section = AnyReactiveSetSection<E>
 
 	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
 		_abstractMethod_subclassMustImplement()
@@ -73,6 +73,10 @@ internal class _AnyReactiveSetBox<E>: ReactiveSet {
 		_abstractMethod_subclassMustImplement()
 	}
 
+	var elementsCount: Int {
+		_abstractMethod_subclassMustImplement()
+	}
+
 	func fetch(startTracking: Bool) throws {
 		_abstractMethod_subclassMustImplement()
 	}
@@ -81,11 +85,7 @@ internal class _AnyReactiveSetBox<E>: ReactiveSet {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	subscript(subRange: Range<Index>) -> BidirectionalSlice<_AnyReactiveSetBox<E>> {
-		_abstractMethod_subclassMustImplement()
-	}
-
-	func makeIterator() -> DefaultReactiveSetIterator<AnyReactiveSetSection<E>> {
+	subscript(subRange: Range<Index>) -> BidirectionalSlice<AnyBidirectionalCollection<E>> {
 		_abstractMethod_subclassMustImplement()
 	}
 
@@ -114,11 +114,11 @@ final internal class _AnyReactiveSetSectionBoxBase<S: ReactiveSetSection>: _AnyR
 	}
 
 	override var startIndex: Index {
-		return Index(converting: wrappedSection.startIndex)
+		return 0
 	}
 
 	override var endIndex: Index {
-		return Index(converting: wrappedSection.endIndex)
+		return Int(wrappedSection.count.toIntMax())
 	}
 
 	init(_ set: S) {
@@ -126,36 +126,21 @@ final internal class _AnyReactiveSetSectionBoxBase<S: ReactiveSetSection>: _AnyR
 	}
 
 	override subscript(index: Index) -> S.Iterator.Element {
-		let index = S.Index(converting: index)
+		let index = wrappedSection.index(wrappedSection.startIndex, offsetBy: S.IndexDistance(index.toIntMax()))
 		return wrappedSection[index]
 	}
 
-	override subscript(subRange: Range<Index>) -> BidirectionalSlice<_AnyReactiveSetSectionBox<S.Iterator.Element>> {
-		_unimplementedMethod()
-	}
-
-	override func makeIterator() -> Iterator {
-		var index: Index? = self.startIndex
-		return AnyIterator {
-			return index.map { currentIndex in
-				defer { index = self.index(currentIndex, offsetBy: 1, limitedBy: self.endIndex) }
-				return self[currentIndex]
-			}
-		}
-	}
-
 	override func index(after i: Index) -> Index {
-		return Index(converting: wrappedSection.index(after: S.Index(converting: i)))
+		return i + 1
 	}
 
 	override func index(before i: Index) -> Index {
-		return Index(converting: wrappedSection.index(before: S.Index(converting: i)))
+		return i - 1
 	}
 }
 
-internal class _AnyReactiveSetSectionBox<E>: ReactiveSetSection {
+internal class _AnyReactiveSetSectionBox<E> {
 	typealias Index = Int
-	typealias Iterator = AnyIterator<E>
 
 	var name: ReactiveSetSectionName {
 		_abstractMethod_subclassMustImplement()
@@ -170,14 +155,6 @@ internal class _AnyReactiveSetSectionBox<E>: ReactiveSetSection {
 	}
 
 	subscript(index: Index) -> E {
-		_abstractMethod_subclassMustImplement()
-	}
-
-	subscript(subRange: Range<Index>) -> BidirectionalSlice<_AnyReactiveSetSectionBox<E>> {
-		_abstractMethod_subclassMustImplement()
-	}
-
-	func makeIterator() -> Iterator {
 		_abstractMethod_subclassMustImplement()
 	}
 

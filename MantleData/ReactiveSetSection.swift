@@ -11,15 +11,7 @@ import Foundation
 /// Section of ReactiveSet
 
 public protocol ReactiveSetSection: BidirectionalCollection {
-	associatedtype Index: ReactiveSetIndex
-
 	var name: ReactiveSetSectionName { get }
-}
-
-extension ReactiveSetSection {
-	public subscript(index: Int) -> Iterator.Element {
-		return self[Index(converting: index)]
-	}
 }
 
 public func == <S: ReactiveSetSection>(left: S, right: S) -> Bool {

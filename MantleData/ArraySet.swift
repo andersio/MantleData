@@ -12,8 +12,7 @@ import ReactiveCocoa
 // Root
 final public class ArraySet<E: Equatable>: ReactiveSet {
 	public typealias Index = Int
-	public typealias IndexDistance = Int
-	public typealias Iterator = DefaultReactiveSetIterator<ArraySetSection<E>>
+	public typealias Section = ArraySetSection<E>
 
 	public let eventProducer: SignalProducer<ReactiveSetEvent, NoError>
 	private let eventObserver: Observer<ReactiveSetEvent, NoError>
@@ -44,8 +43,8 @@ final public class ArraySet<E: Equatable>: ReactiveSet {
 		return storage.endIndex
 	}
 
-	public func makeIterator() -> Iterator {
-		return DefaultReactiveSetIterator(for: self)
+	public var elementsCount: Int {
+		return reduce(0) { $0 + $1.count }
 	}
 
 	public func index(after i: Index) -> Index {
@@ -84,7 +83,7 @@ final public class ArraySet<E: Equatable>: ReactiveSet {
 		return nil
 	}
 
-	public func indexPath(of element: Iterator.Element.Iterator.Element) -> IndexPath? {
+	public func indexPath(of element: E) -> IndexPath? {
 		for (sectionIndex, section) in self.enumerated() {
 			for (rowIndex, row) in section.enumerated() {
 				if row == element {
@@ -96,7 +95,7 @@ final public class ArraySet<E: Equatable>: ReactiveSet {
 		return nil
 	}
 
-	internal func pushChanges(_ changes: ArraySetSectionChanges<Iterator.Element.Index>, from section: ArraySetSection<E>? = nil) {
+	internal func pushChanges(_ changes: ArraySetSectionChanges<Section.Index>, from section: ArraySetSection<E>? = nil) {
 		if let section = section {
 			let sectionIndex = storage.index(of: section)!
 			eventObserver.sendNext(.updated(changes.reactiveSetChanges(for: sectionIndex)))
@@ -108,7 +107,7 @@ final public class ArraySet<E: Equatable>: ReactiveSet {
 	}
 
 	deinit {
-		replaceSubrange(0 ..< storage.count, with: [])
+		replaceSubrange(startIndex ..< endIndex, with: [])
 		eventObserver.sendCompleted()
 	}
 }
@@ -116,20 +115,20 @@ final public class ArraySet<E: Equatable>: ReactiveSet {
 extension ArraySet: MutableCollection { }
 
 extension ArraySet: RangeReplaceableCollection {
-	public func append(_ newElement: Iterator.Element) {
+	public func append(_ newElement: Section) {
 		replaceSubrange(endIndex ..< endIndex, with: [newElement])
 	}
 
-	public func append<S : Sequence where S.Iterator.Element == Iterator.Element>(contentsOf newElements: S) {
+	public func append<S : Sequence where S.Iterator.Element == Section>(contentsOf newElements: S) {
 		let elements =  Array(newElements)
 		replaceSubrange(endIndex ..< endIndex, with: elements)
 	}
 
-	public func insert(_ newElement: Iterator.Element, at i: Index) {
+	public func insert(_ newElement: Section, at i: Index) {
 		replaceSubrange(i ..< i, with: [newElement])
 	}
 
-	public func insert<C : Collection where C.Iterator.Element == Iterator.Element>(contentsOf newElements: C, at i: Index) {
+	public func insert<C : Collection where C.Iterator.Element == Section>(contentsOf newElements: C, at i: Index) {
 		let elements = Array(newElements)
 		replaceSubrange(i ..< i, with: elements)
 	}
@@ -138,16 +137,17 @@ extension ArraySet: RangeReplaceableCollection {
 		if keepCapacity {
 			reserveCapacity(count)
 		}
-		replaceSubrange(0 ..< endIndex, with: [])
+
+		replaceSubrange(startIndex ..< endIndex, with: [])
 	}
 
-	public func remove(at index: Index) -> Iterator.Element {
+	public func remove(at index: Index) -> Section {
 		let element = storage[index]
-		replaceSubrange(index ..< index + 1, with: [])
+		replaceSubrange(index ..< self.index(after: index), with: [])
 		return element
 	}
 
-	public func removeFirst() -> Iterator.Element {
+	public func removeFirst() -> Section {
 		let element = storage[0]
 		_ = remove(at: 0)
 		return element
@@ -161,7 +161,7 @@ extension ArraySet: RangeReplaceableCollection {
 		replaceSubrange(subRange, with: [])
 	}
 
-	public func replaceSubrange<C : Collection where C.Iterator.Element == Iterator.Element>(_ subRange: Range<Index>, with newElements: C) {
+	public func replaceSubrange<C : Collection where C.Iterator.Element == Section>(_ subRange: Range<Index>, with newElements: C) {
 		func dispose(_ range: CountableRange<Index>) {
 			for position in range {
 				if let disposable = storage[position].disposable where !disposable.disposed {
@@ -171,7 +171,7 @@ extension ArraySet: RangeReplaceableCollection {
 			}
 		}
 
-		func register(_ sections: ArraySlice<Iterator.Element>, from startIndex: Index) {
+		func register(_ sections: ArraySlice<Section>, from startIndex: Index) {
 			for section in sections {
 				let disposable = section.eventProducer
 					.startWithNext { [unowned self] event in
@@ -231,7 +231,7 @@ extension ArraySet: RangeReplaceableCollection {
 		pushChanges(changes)
 	}
 
-	public func reserveCapacity(_ n: IndexDistance) {
+	public func reserveCapacity(_ n: Int) {
 		storage.reserveCapacity(n)
 	}
 }

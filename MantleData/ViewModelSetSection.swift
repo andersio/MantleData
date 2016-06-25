@@ -8,7 +8,6 @@
 
 public struct ViewModelSetSection<U: ViewModel>: ReactiveSetSection {
 	public typealias Index = Int
-	public typealias Iterator = DefaultReactiveSetSectionIterator<U>
 
 	private let wrappingSection: AnyReactiveSetSection<U.MappingObject>
 	private unowned var parentSet: ViewModelSet<U>
@@ -36,10 +35,6 @@ public struct ViewModelSetSection<U: ViewModel>: ReactiveSetSection {
 
 	public subscript(subRange: Range<Int>) -> BidirectionalSlice<ViewModelSetSection> {
 		return BidirectionalSlice(base: self, bounds: subRange)
-	}
-
-	public func makeIterator() -> DefaultReactiveSetSectionIterator<U> {
-		return DefaultReactiveSetSectionIterator(for: self)
 	}
 
 	public func index(after i: Int) -> Int {

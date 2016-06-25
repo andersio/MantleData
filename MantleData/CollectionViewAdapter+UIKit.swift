@@ -177,7 +177,7 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 						}
 
 
-						if !self.isEmpty && self.set.objectCount == 0 {
+						if !self.isEmpty && self.set.elementsCount == 0 {
 							self.isEmpty = true
 							self.emptiedObserver?()
 						} else if self.isEmpty {
