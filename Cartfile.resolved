@@ -1,2 +1,2 @@
-github "andersio/Result" "db9d141ef4ce17f10be9cc6c03e5732b127e881d"
-github "andersio/ReactiveCocoa" "8c62ac3114166de397192ffef065cf0c837141ad"
+github "liscio/Result" "e96316e6afabd5e1f1389571babc3cfee5edb5b9"
+github "ReactiveCocoa/ReactiveCocoa" "dc13c5736adf9657d193c14f61ade2172aa5bfc1"
