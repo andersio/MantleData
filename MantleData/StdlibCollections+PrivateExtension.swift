@@ -9,6 +9,12 @@
 import Foundation
 import ReactiveCocoa
 
+extension SignedInteger {
+	internal init<I: SignedInteger>(unsafeCasting integer: I) {
+		self.init(integer.toIntMax())
+	}
+}
+
 internal enum BinarySearchResult<Index> {
 	case found(at: Index)
 	case notFound(next: Index)

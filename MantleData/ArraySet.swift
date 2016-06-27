@@ -10,7 +10,7 @@ import Foundation
 import ReactiveCocoa
 
 // Root
-final public class ArraySet<E: Equatable>: ReactiveSet {
+final public class ArraySet<E: Equatable>: QueryableReactiveSet {
 	public typealias Index = Int
 	public typealias Section = ArraySetSection<E>
 
@@ -31,7 +31,7 @@ final public class ArraySet<E: Equatable>: ReactiveSet {
 				values: []) })
 	}
 
-	public func fetch(startTracking: Bool) throws {
+	public func fetch(trackingChanges startTracking: Bool) throws {
 		eventObserver.sendNext(.reloaded)
 	}
 

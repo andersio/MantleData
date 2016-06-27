@@ -11,7 +11,17 @@ import Foundation
 /// Section of ReactiveSet
 
 public protocol ReactiveSetSection: BidirectionalCollection {
+	associatedtype Index: SignedInteger
+
+	static var uniformDistance: IndexDistance { get }
+
 	var name: ReactiveSetSectionName { get }
+}
+
+extension ReactiveSetSection {
+	public static var uniformDistance: IndexDistance {
+		return 1
+	}
 }
 
 public func == <S: ReactiveSetSection>(left: S, right: S) -> Bool {

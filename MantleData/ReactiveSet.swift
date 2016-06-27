@@ -8,23 +8,48 @@
 
 import ReactiveCocoa
 
-/// ReactiveSet
-public protocol ReactiveSet: class, BidirectionalCollection {
-	associatedtype Section: ReactiveSetSection
+/// ReactiveSet represents a sectioned collection that can be observed for changes.
+///
+/// QueryableReactiveSet extends ReactiveSet to require the collection to be able
+/// to reversely lookup the index path and the section name from any given element.
+///
+/// Implementations should uniformly index its elements with the distance specified
+/// by `ReactiveSet.Type.uniformDistance`, which is 1 by default.
 
-	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> { get }
-	var elementsCount: IndexDistance { get }
-
-	func fetch(startTracking: Bool) throws
+public protocol QueryableReactiveSet: ReactiveSet {
 	func sectionName(of element: Section.Iterator.Element) -> ReactiveSetSectionName?
 	func indexPath(of element: Section.Iterator.Element) -> IndexPath?
 }
 
+public protocol ReactiveSet: BidirectionalCollection {
+	associatedtype Section: ReactiveSetSection
+	associatedtype Index: SignedInteger
+
+	static var uniformDistance: IndexDistance { get }
+
+	var eventProducer: SignalProducer<ReactiveSetEvent, NoError> { get }
+	var elementsCount: IndexDistance { get }
+
+	func fetch(trackingChanges: Bool) throws
+	func index(of name: ReactiveSetSectionName) -> Index?
+
+	subscript(name: ReactiveSetSectionName) -> Section? { get }
+	subscript(indexPath: IndexPath) -> Section.Iterator.Element { get }
+}
+
+extension ReactiveSet {
+	public static var uniformDistance: IndexDistance {
+		return 1
+	}
+}
+
 extension ReactiveSet where Iterator.Element: ReactiveSetSection, Iterator.Element == Section {
-	public subscript(index: Int) -> Section {
-		let offset = IndexDistance(index.toIntMax())
-		let convertedIndex = self.index(startIndex, offsetBy: offset)
-		return self[convertedIndex]
+	public func fetch() throws {
+		try fetch(trackingChanges: false)
+	}
+
+	public func index(of name: ReactiveSetSectionName) -> Index? {
+		return self.index { $0.name == name }
 	}
 
 	public subscript(name: ReactiveSetSectionName) -> Section? {
@@ -36,24 +61,9 @@ extension ReactiveSet where Iterator.Element: ReactiveSetSection, Iterator.Eleme
 	}
 
 	public subscript(indexPath: IndexPath) -> Section.Iterator.Element {
-		let sectionOffset = IndexDistance(indexPath.section.toIntMax())
-		let sectionIndex = self.index(startIndex, offsetBy: sectionOffset)
-
-		let rowOffset = Section.IndexDistance(indexPath.row.toIntMax())
-		let rowIndex = self[sectionIndex].index(self[sectionIndex].startIndex, offsetBy: rowOffset)
+		let sectionIndex = Index(unsafeCasting: indexPath.section)
+		let rowIndex = Section.Index(unsafeCasting: indexPath.row)
 
 		return self[sectionIndex][rowIndex]
-	}
-
-	public var objectCount: Section.IndexDistance {
-		return reduce(0, combine: { $0 + $1.count })
-	}
-
-	public func fetch() throws {
-		try fetch(startTracking: false)
-	}
-
-	public func index(of name: ReactiveSetSectionName) -> Index? {
-		return self.index { $0.name == name }
 	}
 }

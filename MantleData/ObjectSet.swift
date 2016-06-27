@@ -141,8 +141,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		}
 	}
 
-	public func fetch(startTracking: Bool = false) throws {
-		if startTracking && !isTracking {
+	public func fetch(trackingChanges shouldTrackChanges: Bool = false) throws {
+		if shouldTrackChanges && !isTracking {
 			isTracking = true
 		}
 
@@ -790,7 +790,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	}
 }
 
-extension ObjectSet: ReactiveSet {
+extension ObjectSet: QueryableReactiveSet {
 	public typealias Index = Int
 	public typealias Section = ObjectSetSection<E>
 

@@ -8,44 +8,9 @@
 
 import ReactiveCocoa
 
-final internal class _AnyReactiveSetBoxBase<R: ReactiveSet where R.Iterator.Element: ReactiveSetSection, R.Section.Iterator.Element == R.Iterator.Element.Iterator.Element>: _AnyReactiveSetBox<R.Section.Iterator.Element> {
-	private let set: R
-
-	override var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
-		return set.eventProducer
-	}
-
-	init(_ set: R) {
-		self.set = set
-	}
-
-	override func fetch(startTracking: Bool) throws {
-		try set.fetch(startTracking: startTracking)
-	}
-
-	override var startIndex: Index {
-		return 0
-	}
-
-	override var endIndex: Index {
-		return Int(set.count.toIntMax())
-	}
-
-	override var elementsCount: Int {
-		return Int(set.elementsCount.toIntMax())
-	}
-
-	override subscript(index: Index) -> AnyReactiveSetSection<R.Section.Iterator.Element> {
-		let index = set.index(set.startIndex, offsetBy: R.IndexDistance(index.toIntMax()))
-		return AnyReactiveSetSection(set[index])
-	}
-
-	override func index(after i: Index) -> Index {
-		return i + 1
-	}
-
-	override func index(before i: Index) -> Index {
-		return i - 1
+internal class _AnyQueryableReactiveSetBoxBase<R: QueryableReactiveSet where R.Iterator.Element: ReactiveSetSection, R.Section.Iterator.Element == R.Iterator.Element.Iterator.Element>: _AnyReactiveSetBoxBase<R> {
+	override init(_ set: R) {
+		super.init(set)
 	}
 
 	override func sectionName(of object: Section.Iterator.Element) -> ReactiveSetSectionName? {
@@ -54,6 +19,49 @@ final internal class _AnyReactiveSetBoxBase<R: ReactiveSet where R.Iterator.Elem
 
 	override func indexPath(of element: Section.Iterator.Element) -> IndexPath? {
 		return set.indexPath(of: element)
+	}
+}
+
+internal class _AnyReactiveSetBoxBase<R: ReactiveSet where R.Iterator.Element: ReactiveSetSection, R.Section.Iterator.Element == R.Iterator.Element.Iterator.Element>: _AnyReactiveSetBox<R.Section.Iterator.Element> {
+	private let set: R
+	private let uniformDistance: Int
+
+	override var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
+		return set.eventProducer
+	}
+
+	init(_ set: R) {
+		self.set = set
+		self.uniformDistance = Int(R.uniformDistance.toIntMax())
+	}
+
+	override func fetch(trackingChanges shouldTrackChanges: Bool) throws {
+		try set.fetch(trackingChanges: shouldTrackChanges)
+	}
+
+	override var startIndex: Index {
+		return Int(unsafeCasting: set.startIndex)
+	}
+
+	override var endIndex: Index {
+		return Int(unsafeCasting: set.endIndex)
+	}
+
+	override var elementsCount: Int {
+		return Int(unsafeCasting: set.elementsCount)
+	}
+
+	override subscript(index: Index) -> AnyReactiveSetSection<R.Section.Iterator.Element> {
+		let index = set.index(set.startIndex, offsetBy: R.IndexDistance(index.toIntMax()))
+		return AnyReactiveSetSection(set[index])
+	}
+
+	override func index(after i: Index) -> Index {
+		return i + uniformDistance
+	}
+
+	override func index(before i: Index) -> Index {
+		return i - uniformDistance
 	}
 }
 
@@ -77,7 +85,7 @@ internal class _AnyReactiveSetBox<E> {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	func fetch(startTracking: Bool) throws {
+	func fetch(trackingChanges shouldTrackChanges: Bool) throws {
 		_abstractMethod_subclassMustImplement()
 	}
 
@@ -107,35 +115,37 @@ internal class _AnyReactiveSetBox<E> {
 }
 
 final internal class _AnyReactiveSetSectionBoxBase<S: ReactiveSetSection>: _AnyReactiveSetSectionBox<S.Iterator.Element> {
-	private let wrappedSection: S
+	private let base: S
+	private let uniformDistance: Int
 
 	override var name: ReactiveSetSectionName {
-		return wrappedSection.name
+		return base.name
 	}
 
 	override var startIndex: Index {
-		return 0
+		return Int(unsafeCasting: base.startIndex)
 	}
 
 	override var endIndex: Index {
-		return Int(wrappedSection.count.toIntMax())
+		return Int(unsafeCasting: base.endIndex)
 	}
 
 	init(_ set: S) {
-		self.wrappedSection = set
+		self.base = set
+		self.uniformDistance = Int(unsafeCasting: S.uniformDistance)
 	}
 
 	override subscript(index: Index) -> S.Iterator.Element {
-		let index = wrappedSection.index(wrappedSection.startIndex, offsetBy: S.IndexDistance(index.toIntMax()))
-		return wrappedSection[index]
+		let index = base.index(base.startIndex, offsetBy: S.IndexDistance(index.toIntMax()))
+		return base[index]
 	}
 
 	override func index(after i: Index) -> Index {
-		return i + 1
+		return i + uniformDistance
 	}
 
 	override func index(before i: Index) -> Index {
-		return i - 1
+		return i - uniformDistance
 	}
 }
 
