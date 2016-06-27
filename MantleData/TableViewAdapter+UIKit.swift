@@ -15,7 +15,7 @@ public enum AdapterSectionRegistration {
 }
 
 final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSource {
-	private let set: ViewModelSet<V>
+	private let set: ViewModelMappingSet<V>
 
 	private var cellConfigurators: [(reuseIdentifier: String, configurator: (cell: UITableViewCell, viewModel: V) -> Void)?]
 	private var isUniform = false
@@ -32,7 +32,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	public var emptiedObserver: (() -> Void)?
 	public var unemptiedObserver: (() -> Void)?
 
-	public init(set: ViewModelSet<V>) {
+	public init(set: ViewModelMappingSet<V>) {
 		self.set = set
 		self.cellConfigurators = []
 	}

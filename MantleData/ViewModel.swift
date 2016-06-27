@@ -10,5 +10,5 @@ import Foundation
 import CoreData
 
 public protocol ViewModel {
-	associatedtype MappingObject: Equatable
+	associatedtype MappingObject
 }

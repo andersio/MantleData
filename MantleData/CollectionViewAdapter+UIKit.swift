@@ -15,7 +15,7 @@ public enum CollectionViewSupplementary {
 }
 
 final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionViewDataSource {
-	private let set: ViewModelSet<V>
+	private let set: ViewModelMappingSet<V>
 
 	private var cellConfigurators: [(reuseIdentifier: String, configurator: (cell: UICollectionViewCell, viewModel: V) -> Void)?]
 	private var cellIsUniform = false
@@ -32,7 +32,7 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 	public var emptiedObserver: (() -> Void)?
 	public var unemptiedObserver: (() -> Void)?
 
-	public init(set: ViewModelSet<V>) {
+	public init(set: ViewModelMappingSet<V>) {
 		self.set = set
 		self.cellConfigurators = []
 		self.headerCellConfigurators = []
