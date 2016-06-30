@@ -24,7 +24,7 @@ final public class ArraySet<E: Equatable>: QueryableReactiveSet {
 	}
 
 	public init(sectionCount: Int) {
-		(eventProducer, eventObserver) = SignalProducer.buffer(0)
+		(eventProducer, eventObserver) = SignalProducer.buffer(upTo: 0)
 
 		self.append(contentsOf: (0 ..< sectionCount)
 			.map { _ in ArraySetSection(name: ReactiveSetSectionName(),
@@ -164,7 +164,7 @@ extension ArraySet: RangeReplaceableCollection {
 	public func replaceSubrange<C : Collection where C.Iterator.Element == Section>(_ subRange: Range<Index>, with newElements: C) {
 		func dispose(_ range: CountableRange<Index>) {
 			for position in range {
-				if let disposable = storage[position].disposable where !disposable.disposed {
+				if let disposable = storage[position].disposable where !disposable.isDisposed {
 					disposable.dispose()
 					storage[position].disposable = nil
 				}

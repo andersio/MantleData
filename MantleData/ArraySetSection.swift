@@ -22,7 +22,7 @@ final public class ArraySetSection<E: Equatable> {
 	public init(name: ReactiveSetSectionName, values: [E]) {
 		self.name = name
 		self.storage = values
-		(eventProducer, eventObserver) = SignalProducer.buffer(0)
+		(eventProducer, eventObserver) = SignalProducer.buffer(upTo: 0)
 	}
 
 	public func fetch() throws {

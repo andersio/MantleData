@@ -96,7 +96,7 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 	}
 }
 
-final public class ManagedObjectProperty<_Value: CocoaBridgeable where _Value._Inner: CocoaBridgeable>: MutablePropertyType {
+final public class ManagedObjectProperty<_Value: CocoaBridgeable where _Value._Inner: CocoaBridgeable>: MutablePropertyProtocol {
 	public typealias Value = _Value
 	private let object: NSManagedObject
 	private let keyPath: String

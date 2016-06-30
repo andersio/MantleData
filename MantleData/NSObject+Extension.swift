@@ -24,11 +24,11 @@ extension NSObject {
 	}
 
 	public func bind<Producer: SignalProducerProtocol where Producer.Value: AnyObject>(keyPath path: String, onMainQueueFrom producer: Producer) {
-		bind(keyPath: path, from: producer.observeOn(UIScheduler()))
+		bind(keyPath: path, from: producer.observe(on: UIScheduler()))
 	}
 
 	public func bind<Producer: SignalProducerProtocol where Producer.Value: CocoaBridgeable>(keyPath path: String, onMainQueueFrom producer: Producer) {
-		bind(keyPath: path, from: producer.observeOn(UIScheduler()))
+		bind(keyPath: path, from: producer.observe(on: UIScheduler()))
 	}
 
 	public var willDeinitProducer: SignalProducer<(), NoError> {

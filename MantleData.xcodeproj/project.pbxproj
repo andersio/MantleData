@@ -188,7 +188,7 @@
 				9ACB1FA41CDC645F0010555B /* Reactive Collection Types */,
 				9A3A776C1BC96A1700ADFFE0 /* Objects */,
 				9A7A7B251CE382730030674B /* Editor */,
-				9A7A7B261CE3828F0030674B /* UIKit */,
+				9A7A7B261CE3828F0030674B /* Platform Specific Bindings */,
 				9A3A776D1BC96AB900ADFFE0 /* Utilities */,
 				9A3A77711BC96BD200ADFFE0 /* Supporting FIles */,
 			);
@@ -265,7 +265,7 @@
 			name = Editor;
 			sourceTree = "<group>";
 		};
-		9A7A7B261CE3828F0030674B /* UIKit */ = {
+		9A7A7B261CE3828F0030674B /* Platform Specific Bindings */ = {
 			isa = PBXGroup;
 			children = (
 				9A7A7B221CE381E90030674B /* UIKit+Editable.swift */,
@@ -273,7 +273,7 @@
 				9A39A65A1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift */,
 				9A7DD72F1CE7209700161A78 /* CollectionViewAdapter+UIKit.swift */,
 			);
-			name = UIKit;
+			name = "Platform Specific Bindings";
 			sourceTree = "<group>";
 		};
 		9AA736C61CD0A0A900EE2C26 /* MantleDataTests */ = {
