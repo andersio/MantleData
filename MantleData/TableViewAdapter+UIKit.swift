@@ -29,8 +29,11 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	private var sectionNameMapper: ((position: Int, persistedName: String?) -> String?)?
 
 	private var isEmpty: Bool = true
-	public var emptiedObserver: (() -> Void)?
-	public var unemptiedObserver: (() -> Void)?
+	private var emptiedObserver: (() -> Void)?
+	private var unemptiedObserver: (() -> Void)?
+	private var insertionHandler: ((IndexPath) -> Void)?
+	private var deletionHandler: ((IndexPath) -> Void)?
+	private var editabilityHandler: ((IndexPath) -> Bool)?
 
 	public init(set: ViewModelMappingSet<V>) {
 		self.set = set
@@ -83,9 +86,16 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		return self
 	}
 
-	public func on(emptied: (() -> Void)?, unemptied: (() -> Void)?) -> Self {
+	public func on(emptied: (() -> Void)? = nil, unemptied: (() -> Void)? = nil, inserting: ((IndexPath) -> Void)? = nil, deleting: ((IndexPath) -> Void)? = nil) -> Self {
 		emptiedObserver = emptied ?? emptiedObserver
 		unemptiedObserver = unemptied ?? unemptiedObserver
+		insertionHandler = inserting ?? insertionHandler
+		deletionHandler = deleting ?? deletionHandler
+		return self
+	}
+
+	public func filterEditable(_ predicate: (IndexPath) -> Bool) -> Self {
+		editabilityHandler = predicate
 		return self
 	}
 
@@ -171,5 +181,22 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 
 	public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 		return set[section].count
+	}
+
+	public func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+		switch editingStyle {
+		case .insert:
+			insertionHandler?(indexPath)
+
+		case .delete:
+			deletionHandler?(indexPath)
+
+		case .none:
+			fatalError("Unexpected editing style received from UITableView.")
+		}
+	}
+
+	public func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+		return editabilityHandler?(indexPath) ?? true
 	}
 }
