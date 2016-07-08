@@ -261,11 +261,10 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		temporaryObjects[object] = object.objectID
 
 		if !isAwaitingContextSave {
-			NotificationCenter.default()
-				.addObserver(self,
-										 selector: #selector(handle(contextDidSaveNotification:)),
-										 name: NSNotification.Name.NSManagedObjectContextDidSave,
-										 object: context)
+			NotificationCenter.default
+				.rac_notifications(for: NSNotification.Name.NSManagedObjectContextDidSave, object: context)
+				.takeFirst(1)
+				.startWithNext(handle(contextDidSaveNotification:))
 
 			isAwaitingContextSave = true
 		}
@@ -303,11 +302,6 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		}
 
 		temporaryObjects = [:]
-
-		NotificationCenter.default()
-			.removeObserver(self,
-										  name: NSNotification.Name.NSManagedObjectContextDidSave,
-										  object: context)
 		isAwaitingContextSave = false
 	}
 
