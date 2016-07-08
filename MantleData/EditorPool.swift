@@ -13,19 +13,21 @@ import ReactiveCocoa
 /// at the time the context is being saved.
 ///
 /// - Warning: Since the `Editor` is not thread-safe, this class inherits the caveat.
-public class EditorPool {
+public class EditorPool: Base {
 	private var editors: [EditorPoolToken: _EditorProtocol]
 	private weak var context: NSManagedObjectContext?
 
-	public init(autoCommitOnSaveIn context: NSManagedObjectContext? = nil) {
+	public init(autoCommitIn context: NSManagedObjectContext? = nil) {
 		editors = [:]
+		super.init()
 
 		if let context = context {
 			self.context = context
-			NotificationCenter.default().addObserver(self,
-			                                                 selector: #selector(commit),
-			                                                 name: NSNotification.Name.NSManagedObjectContextWillSave,
-			                                                 object: context)
+
+			NotificationCenter.default
+				.rac_notifications(for: .NSManagedObjectContextWillSave, object: context)
+				.take(until: willDeinitProducer.zip(with: context.willDeinitProducer))
+				.startWithNext(commit)
 		}
 	}
 
@@ -46,17 +48,9 @@ public class EditorPool {
 		}
 	}
 
-	@objc public func commit() {
+	@objc public func commit(_ notification: Notification) {
 		for editor in editors.values {
 			editor.commit()
-		}
-	}
-
-	deinit {
-		if let context = context {
-			NotificationCenter.default().removeObserver(self,
-																													name: NSNotification.Name.NSManagedObjectContextWillSave,
-																													object: context)
 		}
 	}
 }
