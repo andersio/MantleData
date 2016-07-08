@@ -76,20 +76,11 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	private var isTracking: Bool = false {
 		willSet {
 			if !isTracking && newValue {
-				NotificationCenter.default().addObserver(self,
-				                                                 selector: #selector(ObjectSet.process(objectsDidChangeNotification:)),
-				                                                 name: NSNotification.Name.NSManagedObjectContextObjectsDidChange,
-				                                                 object: context)
-
-				context.willDeinitProducer
-					.takeUntil(willDeinitProducer)
-					.startWithCompleted { [weak self] in
-						if let strongSelf = self {
-							NotificationCenter.default().removeObserver(strongSelf,
-																																	name: Notification.Name.NSManagedObjectContextObjectsDidChange,
-																																	object: strongSelf.context)
-						}
-				}
+				NotificationCenter.default
+					.rac_notifications(for: .NSManagedObjectContextObjectsDidChange,
+					                   object: context)
+					.take(until: context.willDeinitProducer.zip(with: willDeinitProducer))
+					.startWithNext(process(objectsDidChangeNotification:))
 			}
 		}
 	}
