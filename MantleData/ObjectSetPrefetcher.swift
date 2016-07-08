@@ -203,7 +203,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 				prefetchedRange = currentPosition - halfOfBatch + 1 ..< currentPosition + halfOfBatch
 			}
 		} catch let error {
-			print("LinearBatchingPrefetcher<\(String(E))>: cannot execute batch of prefetch at row \(position.row) in section \(position.section). Error: \(error)")
+			print("LinearBatchingPrefetcher<\(String(E.self))>: cannot execute batch of prefetch at row \(position.row) in section \(position.section). Error: \(error)")
 		}
 	}
 
@@ -241,7 +241,7 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E
 			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest) as! [E]
 			retainingPool.formUnion(prefetchedObjects)
 		} catch let error {
-			print("GreedyPrefetcher<\(String(E))>: cannot execute a prefetch. Error: \(error)")
+			print("GreedyPrefetcher<\(String(E.self))>: cannot execute a prefetch. Error: \(error)")
 		}
 	}
 
@@ -263,7 +263,7 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E
 			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest) as! [E]
 			retainingPool.formUnion(prefetchedObjects)
 		} catch let error {
-			print("GreedyPrefetcher<\(String(E))>: cannot execute a prefetch. Error: \(error)")
+			print("GreedyPrefetcher<\(String(E.self))>: cannot execute a prefetch. Error: \(error)")
 		}
 	}
 }

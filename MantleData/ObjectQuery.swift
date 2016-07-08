@@ -23,9 +23,9 @@ public class ObjectQuery<E: NSManagedObject> {
 	var hasGroupByKeyPath = false
 
 	public init(context: NSManagedObjectContext) {
-		guard let entityDescription = NSEntityDescription.entity(forEntityName: String(Entity),
+		guard let entityDescription = NSEntityDescription.entity(forEntityName: String(Entity.self),
 		                                                                in: context) else {
-			preconditionFailure("Failed to create entity description of entity `\(String(Entity))`.")
+			preconditionFailure("Failed to create entity description of entity `\(String(Entity.self))`.")
 		}
 
 		let fetchRequest = NSFetchRequest<Entity>()
@@ -253,8 +253,8 @@ extension ObjectQuery {
 	}
 
 	public func update(_ dictionary: [String: NSExpression]) throws {
-		guard let entityDescription = NSEntityDescription.entity(forEntityName: String(Entity), in: context) else {
-			preconditionFailure("Failed to create entity description of entity `\(String(Entity))`.")
+		guard let entityDescription = NSEntityDescription.entity(forEntityName: String(Entity.self), in: context) else {
+			preconditionFailure("Failed to create entity description of entity `\(String(Entity.self))`.")
 		}
 
 		let updateRequest = NSBatchUpdateRequest(entity: entityDescription)

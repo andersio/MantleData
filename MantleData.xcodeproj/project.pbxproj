@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9A0A28081D21027800DE173E /* Adapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0A28071D21027800DE173E /* Adapter.swift */; };
+		9A0A28091D21027800DE173E /* Adapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0A28071D21027800DE173E /* Adapter.swift */; };
 		9A0D9A851C76ABD30013C976 /* ExistentialCollections+Private.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */; };
 		9A0D9A861C76ABD30013C976 /* ArraySet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E31C510BAD00801A30 /* ArraySet.swift */; };
 		9A0D9A871C76ABD30013C976 /* ArraySetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E41C510BAD00801A30 /* ArraySetSection.swift */; };
@@ -94,6 +96,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9A0A28071D21027800DE173E /* Adapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Adapter.swift; path = MantleData/Adapter.swift; sourceTree = "<group>"; };
 		9A0D9A761C76AB9A0013C976 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A0D9A7A1C76AB9A0013C976 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ExistentialCollections+Private.swift"; path = "MantleData/ExistentialCollections+Private.swift"; sourceTree = "<group>"; };
@@ -272,6 +275,7 @@
 				9A974BAF1CC7B88C00395E2D /* UIKit+Bindings.swift */,
 				9A39A65A1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift */,
 				9A7DD72F1CE7209700161A78 /* CollectionViewAdapter+UIKit.swift */,
+				9A0A28071D21027800DE173E /* Adapter.swift */,
 			);
 			name = "Platform Specific Bindings";
 			sourceTree = "<group>";
@@ -488,6 +492,7 @@
 				9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */,
 				9A0D9A881C76ABD30013C976 /* ReactiveSet.swift in Sources */,
 				9A0D9A891C76ABD30013C976 /* ObjectSet.swift in Sources */,
+				9A0A28091D21027800DE173E /* Adapter.swift in Sources */,
 				9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
 				9ACB1FB41CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */,
 				9A0D9A8A1C76ABD30013C976 /* ViewModel.swift in Sources */,
@@ -527,6 +532,7 @@
 				9A39A6701BC958E100FC86E1 /* ManagedObject+Extension.swift in Sources */,
 				9A2997FB1C510BE900801A30 /* Base.swift in Sources */,
 				9AD114831D1CF1210067F20C /* ExistentialCollections.swift in Sources */,
+				9A0A28081D21027800DE173E /* Adapter.swift in Sources */,
 				9A2D52C11D179CC900FEBC05 /* ManagedObjectID.swift in Sources */,
 				9ACB1FB11CDC698A0010555B /* Foundation+Extension.swift in Sources */,
 				9A2997E71C510BAD00801A30 /* ExistentialCollections+Private.swift in Sources */,

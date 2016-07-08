@@ -13,7 +13,7 @@ final public class ArraySetSection<E: Equatable> {
 	private var storage: Array<E>
 
 	private let eventObserver: Observer<ArraySetSectionEvent<Index>, NoError>
-	internal let eventProducer: SignalProducer<ArraySetSectionEvent<Index>, NoError>
+	internal let eventSignal: Signal<ArraySetSectionEvent<Index>, NoError>
 
 	internal var disposable: Disposable?
 
@@ -22,7 +22,7 @@ final public class ArraySetSection<E: Equatable> {
 	public init(name: ReactiveSetSectionName, values: [E]) {
 		self.name = name
 		self.storage = values
-		(eventProducer, eventObserver) = SignalProducer.buffer(upTo: 0)
+		(eventSignal, eventObserver) = Signal.pipe()
 	}
 
 	public func fetch() throws {

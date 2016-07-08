@@ -8,15 +8,19 @@
 
 import Foundation
 import CoreData
+import ReactiveCocoa
 
-public let objectContextWillMergeChangesNotification = "MDContextWillMergeChangesNotification"
+extension Notification.Name {
+	@nonobjc public static let objectContextWillMergeChanges = Notification.Name(rawValue: "MDContextWillMergeChangesNotification")
 
-private let didBatchUpdateNotification = "MDDidBatchUpdate"
-private let willBatchDeleteNotification = "MDWillBatchDelete"
-private let didBatchDeleteNotification = "MDDidBatchDelete"
-private let batchRequestResultIDArrayKey = "MDResultIDs"
+	@nonobjc static let didBatchUpdate = Notification.Name(rawValue: "MDDidBatchUpdate")
+	@nonobjc static let willBatchDelete = Notification.Name(rawValue: "MDWillBatchDelete")
+	@nonobjc static let didBatchDelete = Notification.Name(rawValue: "MDDidBatchDelete")
+}
 
 extension NSManagedObjectContext {
+	@nonobjc static let batchRequestResultIDArrayKey = Notification.Name(rawValue: "MDResultIDs")
+
 	public enum ContextParent {
 		case persistentStore(NSPersistentStoreCoordinator)
 		case context(NSManagedObjectContext)
@@ -34,45 +38,30 @@ extension NSManagedObjectContext {
 		}
 	}
 
-	public func observeSavedChanges(from other: NSManagedObjectContext) {
-		NotificationCenter.default()
-			.addObserver(self,
-			             selector: #selector(NSManagedObjectContext.handleExternalChanges(_:)),
-			             name: NSNotification.Name.NSManagedObjectContextDidSave,
-			             object: other)
+	@discardableResult
+	public func observeSavedChanges(from other: NSManagedObjectContext) -> Disposable {
+		return NotificationCenter.default
+			.rac_notifications(for: .NSManagedObjectContextDidSave, object: other)
+			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer))
+			.startWithNext(handleExternalChanges(_:))
 	}
 
-	public func stopObservingSavedChanges(from other: NSManagedObjectContext) {
-		NotificationCenter.default()
-			.removeObserver(self,
-			                name: NSNotification.Name.NSManagedObjectContextDidSave,
-			                object: other)
-	}
+	@discardableResult
+	public func observeBatchChanges(from other: NSManagedObjectContext) -> Disposable {
+		let disposable = CompositeDisposable()
+		let defaultCenter = NotificationCenter.default
 
-	public func observeBatchChanges(from other: NSManagedObjectContext) {
-		let defaultCenter = NotificationCenter.default()
+		disposable += defaultCenter
+			.rac_notifications(for: .didBatchUpdate, object: other)
+			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer))
+			.startWithNext(handleExternalBatchUpdate(_:))
 
-		defaultCenter.addObserver(self,
-		                          selector: #selector(NSManagedObjectContext.handleExternalBatchUpdate(_:)),
-		                          name: didBatchUpdateNotification,
-		                          object: other)
+		disposable += defaultCenter
+			.rac_notifications(for: .willBatchDelete, object: other)
+			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer))
+			.startWithNext(preprocessBatchDelete(_:))
 
-		defaultCenter.addObserver(self,
-		                          selector: #selector(NSManagedObjectContext.preprocessBatchDelete(_:)),
-		                          name: willBatchDeleteNotification,
-		                          object: other)
-	}
-
-	public func stopObservingBatchChanges(from other: NSManagedObjectContext) {
-		let defaultCenter = NotificationCenter.default()
-
-		defaultCenter.removeObserver(self,
-		                             name: NSNotification.Name(rawValue: willBatchDeleteNotification),
-		                             object: other)
-
-		defaultCenter.removeObserver(self,
-		                             name: NSNotification.Name(rawValue: didBatchUpdateNotification),
-		                             object: other)
+		return disposable
 	}
 
 	/// Enqueue a block to the context.
@@ -102,10 +91,10 @@ extension NSManagedObjectContext {
 
 		updateObjectsWith(objectIDs)
 
-		NotificationCenter.default()
-			.post(name: Notification.Name(rawValue: didBatchUpdateNotification),
-			                      object: self,
-			                      userInfo: [batchRequestResultIDArrayKey: objectIDs])
+		NotificationCenter.default
+			.post(name: .didBatchUpdate,
+			      object: self,
+						userInfo: [NSManagedObjectContext.batchRequestResultIDArrayKey: objectIDs])
 	}
 
 	/// Batch delete objects, and update other contexts asynchronously.
@@ -121,10 +110,10 @@ extension NSManagedObjectContext {
 
 		deleteObjects(with: affectingObjectIDs)
 
-		NotificationCenter.default()
-			.post(name: Notification.Name(rawValue: willBatchDeleteNotification),
-			                      object: self,
-			                      userInfo: [batchRequestResultIDArrayKey: affectingObjectIDs])
+		NotificationCenter.default
+			.post(name: .willBatchDelete,
+			      object: self,
+			      userInfo: [NSManagedObjectContext.batchRequestResultIDArrayKey: affectingObjectIDs])
 
 		request.resultType = .resultTypeCount
 
@@ -138,10 +127,10 @@ extension NSManagedObjectContext {
 
 		precondition(count.intValue == affectingObjectIDs.count)
 
-		NotificationCenter.default()
-			.post(name: Notification.Name(rawValue: didBatchDeleteNotification),
-			                      object: self,
-			                      userInfo: [batchRequestResultIDArrayKey: affectingObjectIDs])
+		NotificationCenter.default
+			.post(name: .didBatchDelete,
+			      object: self,
+			      userInfo: [NSManagedObjectContext.batchRequestResultIDArrayKey: affectingObjectIDs])
 
 	}
 
@@ -158,8 +147,8 @@ extension NSManagedObjectContext {
 		// breaks infinite staleness guarantee??
 		let objects = resultIDs.flatMap { registeredObject(for: $0) }
 
-		NotificationCenter.default()
-			.post(name: Notification.Name(rawValue: objectContextWillMergeChangesNotification),
+		NotificationCenter.default
+			.post(name: .objectContextWillMergeChanges,
 			                      object: self,
 			                      userInfo: nil)
 
@@ -251,8 +240,8 @@ extension NSManagedObjectContext {
 		                                                                          localCoordinator: &localCoordinator)
 
 		sync {
-			NotificationCenter.default()
-				.post(name: Notification.Name(rawValue: objectContextWillMergeChangesNotification),
+			NotificationCenter.default
+				.post(name: .objectContextWillMergeChanges,
 					object: self,
 					userInfo: nil)
 
@@ -267,7 +256,7 @@ extension NSManagedObjectContext {
 
 	@objc private func preprocessBatchDelete(_ notification: Notification) {
 		sync {
-			guard let resultIDs = (notification as NSNotification).userInfo?[batchRequestResultIDArrayKey] as? [NSManagedObjectID] else {
+			guard let resultIDs = (notification as NSNotification).userInfo?[NSManagedObjectContext.batchRequestResultIDArrayKey] as? [NSManagedObjectID] else {
 				return
 			}
 
@@ -277,7 +266,7 @@ extension NSManagedObjectContext {
 
 	@objc private func handleExternalBatchUpdate(_ notification: Notification) {
 		sync {
-			guard let resultIDs = (notification as NSNotification).userInfo?[batchRequestResultIDArrayKey] as? [NSManagedObjectID] else {
+			guard let resultIDs = (notification as NSNotification).userInfo?[NSManagedObjectContext.batchRequestResultIDArrayKey] as? [NSManagedObjectID] else {
 				return
 			}
 			

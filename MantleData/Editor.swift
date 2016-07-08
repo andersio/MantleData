@@ -31,8 +31,8 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 	private var targetSetter: ((TargetValue) -> Void)!
 
 	private let _cache: MutableProperty<SourceValue>
-	public var cache: Property<SourceValue> {
-		return Property(_cache)
+	public var cache: AnyProperty<SourceValue> {
+		return AnyProperty(_cache)
 	}
 
 	private let mergePolicy: EditorMergePolicy<SourceValue, TargetValue>
@@ -111,7 +111,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 			_cache.value = targetValue
 
 			source.signal
-				.takeUntil(resetSignal)
+				.take(until: resetSignal)
 				.observeNext { [unowned self] newSourceValue in
 					/// conflict
 					let currenttargetValue = self.transform.targetToSource(self.targetGetter())

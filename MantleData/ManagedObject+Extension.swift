@@ -82,14 +82,14 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 	}
 
 	public func finding(ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
-		assert(ID.entity.name == String(Self), "Entity does not match with the ID.")
+		assert(ID.entity.name == String(Self.self), "Entity does not match with the ID.")
 		return context.object(with: ID) as! Self
 	}
 
 	public func finding(IDs: [NSManagedObjectID], in context: NSManagedObjectContext) -> [Self] {
 		var objects = [Self]()
 		for ID in IDs {
-			assert(ID.entity.name == String(Self), "Entity does not match with the ID.")
+			assert(ID.entity.name == String(Self.self), "Entity does not match with the ID.")
 			objects.append(context.object(with: ID) as! Self)
 		}
 		return objects

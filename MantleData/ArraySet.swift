@@ -14,7 +14,11 @@ final public class ArraySet<E: Equatable>: QueryableReactiveSet {
 	public typealias Index = Int
 	public typealias Section = ArraySetSection<E>
 
-	public let eventProducer: SignalProducer<ReactiveSetEvent, NoError>
+	public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
+		return SignalProducer(signal: eventSignal)
+	}
+
+	public let eventSignal: Signal<ReactiveSetEvent, NoError>
 	private let eventObserver: Observer<ReactiveSetEvent, NoError>
 
 	private var storage: [ArraySetSection<E>] = []
@@ -24,7 +28,7 @@ final public class ArraySet<E: Equatable>: QueryableReactiveSet {
 	}
 
 	public init(sectionCount: Int) {
-		(eventProducer, eventObserver) = SignalProducer.buffer(upTo: 0)
+		(eventSignal, eventObserver) = Signal.pipe()
 
 		self.append(contentsOf: (0 ..< sectionCount)
 			.map { _ in ArraySetSection(name: ReactiveSetSectionName(),
@@ -173,8 +177,8 @@ extension ArraySet: RangeReplaceableCollection {
 
 		func register(_ sections: ArraySlice<Section>, from startIndex: Index) {
 			for section in sections {
-				let disposable = section.eventProducer
-					.startWithNext { [unowned self] event in
+				let disposable = section.eventSignal
+					.observeNext { [unowned self] event in
 						switch event {
 						case .reloaded:
 							break
@@ -182,7 +186,7 @@ extension ArraySet: RangeReplaceableCollection {
 						case let .updated(changes):
 							self.pushChanges(changes, from: section)
 						}
-				}
+					}
 
 				section.disposable = disposable
 			}
