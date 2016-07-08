@@ -15,7 +15,7 @@ extension Observer {
 	}
 }
 
-public class AnyMutableProperty<Value>: MutablePropertyType {
+public class AnyMutableProperty<Value>: MutablePropertyProtocol {
 	private let _value: () -> Value
 	private let _valueSetter: (Value) -> Void
 	private let _producer: () -> SignalProducer<Value, NoError>
@@ -35,7 +35,7 @@ public class AnyMutableProperty<Value>: MutablePropertyType {
 	}
 
 	/// Initializes a property as a read-only view of the given property.
-	public init<P: MutablePropertyType where P.Value == Value>(_ property: P) {
+	public init<P: MutablePropertyProtocol where P.Value == Value>(_ property: P) {
 		_value = { property.value }
 		_valueSetter = { property.value = $0 }
 		_producer = { property.producer }

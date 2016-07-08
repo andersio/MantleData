@@ -27,7 +27,7 @@ extension UIView {
 	public var rxBackgroundColor: (SignalProducer<UIColor?, NoError>) -> Void {
 		return { producer in
 			producer
-				.takeUntil(self.willDeinitProducer)
+				.take(until: self.willDeinitProducer)
 				.startWithNext { [unowned self] color in
 					self.backgroundColor = color
 				}
@@ -39,7 +39,7 @@ extension UILabel {
 	public var rxText: (SignalProducer<String?, NoError>) -> Void {
 		return { producer in
 			producer
-				.takeUntil(self.willDeinitProducer)
+				.take(until: self.willDeinitProducer)
 				.startWithNext { [unowned self] text in
 					self.text = text
 				}

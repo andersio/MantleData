@@ -134,7 +134,7 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 		collectionView.dataSource = self
 
 		return set.eventProducer
-			.takeUntil(collectionView.willDeinitProducer)
+			.take(until: collectionView.willDeinitProducer)
 			.startWithNext { [unowned collectionView] event in
 				switch event {
 				case .reloaded:

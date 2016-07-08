@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import protocol ReactiveCocoa.OptionalType
 
 extension Collection where Iterator.Element == SortDescriptor {
 	public func compare<E: NSObject>(_ element: E, to anotherElement: E) -> ComparisonResult {

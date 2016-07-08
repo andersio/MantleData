@@ -73,7 +73,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		return self
 	}
 
-	public func mapSectionName(using transform: (position: Int, persistedName: String?) -> String?) -> Self {
+	public func mapSectionName(_ transform: (position: Int, persistedName: String?) -> String?) -> Self {
 		sectionNameMapper = transform
 		return self
 	}
@@ -96,7 +96,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		tableView.dataSource = self
 
 		return set.eventProducer
-			.takeUntil(tableView.willDeinitProducer)
+			.take(until: tableView.willDeinitProducer)
 			.startWithNext { [unowned tableView] event in
 				switch event {
 				case .reloaded:

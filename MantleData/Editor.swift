@@ -8,7 +8,7 @@
 
 import ReactiveCocoa
 
-/// `Editor` takes any `MutablePropertyType` conforming types as its source, and
+/// `Editor` takes any `MutablePropertyProtocol` conforming types as its source, and
 /// exposes a two-way binding interface for UIControl.
 ///
 /// `Editor` would maintain a cached copy of the value. shall any conflict or
@@ -40,7 +40,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 	private var hasUserInitiatedChanges = false
 	private var observerDisposable: CompositeDisposable
 
-	public required init<Property: MutablePropertyType where Property.Value == SourceValue>(source property: Property, mergePolicy: EditorMergePolicy<SourceValue, TargetValue>, transform: EditorTransform<SourceValue, TargetValue>) {
+	public required init<Property: MutablePropertyProtocol where Property.Value == SourceValue>(source property: Property, mergePolicy: EditorMergePolicy<SourceValue, TargetValue>, transform: EditorTransform<SourceValue, TargetValue>) {
 		self.source = AnyMutableProperty(property)
 		self.mergePolicy = mergePolicy
 		self.transform = transform
@@ -111,7 +111,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 			_cache.value = targetValue
 
 			source.signal
-				.takeUntil(resetSignal)
+				.take(until: resetSignal)
 				.observeNext { [unowned self] newSourceValue in
 					/// conflict
 					let currenttargetValue = self.transform.targetToSource(self.targetGetter())
@@ -146,11 +146,11 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 public protocol EditorProtocol {
 	associatedtype _SourceValue: Equatable
 	associatedtype _TargetValue: Equatable
-	init<Property: MutablePropertyType where Property.Value == _SourceValue>(source property: Property, mergePolicy: EditorMergePolicy<_SourceValue, _TargetValue>, transform: EditorTransform<_SourceValue, _TargetValue>)
+	init<Property: MutablePropertyProtocol where Property.Value == _SourceValue>(source property: Property, mergePolicy: EditorMergePolicy<_SourceValue, _TargetValue>, transform: EditorTransform<_SourceValue, _TargetValue>)
 }
 
 extension EditorProtocol where _SourceValue == _TargetValue {
-	public init<Property: MutablePropertyType where Property.Value == _SourceValue>(source property: Property, mergePolicy: EditorMergePolicy<_SourceValue, _TargetValue>) {
+	public init<Property: MutablePropertyProtocol where Property.Value == _SourceValue>(source property: Property, mergePolicy: EditorMergePolicy<_SourceValue, _TargetValue>) {
 		self.init(source: property, mergePolicy: mergePolicy, transform: EditorTransform())
 	}
 }
