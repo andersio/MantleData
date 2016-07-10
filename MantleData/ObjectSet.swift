@@ -77,9 +77,9 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		willSet {
 			if !isTracking && newValue {
 				NotificationCenter.default
-					.rac_notifications(for: .NSManagedObjectContextObjectsDidChange,
+					.rac_notifications(forName: .NSManagedObjectContextObjectsDidChange,
 					                   object: context)
-					.take(until: context.willDeinitProducer.zip(with: willDeinitProducer))
+					.take(until: context.willDeinitProducer.zip(with: willDeinitProducer).map { _ in })
 					.startWithNext(process(objectsDidChangeNotification:))
 			}
 		}
@@ -262,8 +262,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 		if !isAwaitingContextSave {
 			NotificationCenter.default
-				.rac_notifications(for: NSNotification.Name.NSManagedObjectContextDidSave, object: context)
-				.takeFirst(1)
+				.rac_notifications(forName: NSNotification.Name.NSManagedObjectContextDidSave, object: context)
+				.take(first: 1)
 				.startWithNext(handle(contextDidSaveNotification:))
 
 			isAwaitingContextSave = true

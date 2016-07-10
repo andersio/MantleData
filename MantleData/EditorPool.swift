@@ -25,8 +25,8 @@ public class EditorPool: Base {
 			self.context = context
 
 			NotificationCenter.default
-				.rac_notifications(for: .NSManagedObjectContextWillSave, object: context)
-				.take(until: willDeinitProducer.zip(with: context.willDeinitProducer))
+				.rac_notifications(forName: .NSManagedObjectContextWillSave, object: context)
+				.take(until: willDeinitProducer.zip(with: context.willDeinitProducer).map { _ in })
 				.startWithNext(commit)
 		}
 	}

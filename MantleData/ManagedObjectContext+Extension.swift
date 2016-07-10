@@ -41,8 +41,8 @@ extension NSManagedObjectContext {
 	@discardableResult
 	public func observeSavedChanges(from other: NSManagedObjectContext) -> Disposable {
 		return NotificationCenter.default
-			.rac_notifications(for: .NSManagedObjectContextDidSave, object: other)
-			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer))
+			.rac_notifications(forName: .NSManagedObjectContextDidSave, object: other)
+			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer).map { _ in })
 			.startWithNext(handleExternalChanges(_:))
 	}
 
@@ -52,13 +52,13 @@ extension NSManagedObjectContext {
 		let defaultCenter = NotificationCenter.default
 
 		disposable += defaultCenter
-			.rac_notifications(for: .didBatchUpdate, object: other)
-			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer))
+			.rac_notifications(forName: .didBatchUpdate, object: other)
+			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer).map { _ in })
 			.startWithNext(handleExternalBatchUpdate(_:))
 
 		disposable += defaultCenter
-			.rac_notifications(for: .willBatchDelete, object: other)
-			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer))
+			.rac_notifications(forName: .willBatchDelete, object: other)
+			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer).map { _ in })
 			.startWithNext(preprocessBatchDelete(_:))
 
 		return disposable
