@@ -62,7 +62,6 @@
 		9A7A7B241CE381E90030674B /* UIKit+Editable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B221CE381E90030674B /* UIKit+Editable.swift */; };
 		9A7DD7301CE7209700161A78 /* CollectionViewAdapter+UIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7DD72F1CE7209700161A78 /* CollectionViewAdapter+UIKit.swift */; };
 		9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
-		9A974BB01CC7B88C00395E2D /* UIKit+Bindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A974BAF1CC7B88C00395E2D /* UIKit+Bindings.swift */; };
 		9A999FDA1CD64E3A009AA161 /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A999FD91CD64E3A009AA161 /* Editor.swift */; };
 		9A999FDB1CD64E3A009AA161 /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A999FD91CD64E3A009AA161 /* Editor.swift */; };
 		9AA736C81CD0A0A900EE2C26 /* ConflictResolvingSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA736C71CD0A0A900EE2C26 /* ConflictResolvingSpec.swift */; };
@@ -130,7 +129,6 @@
 		9A7A7B1F1CE381DB0030674B /* EditorPool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = EditorPool.swift; path = MantleData/EditorPool.swift; sourceTree = "<group>"; };
 		9A7A7B221CE381E90030674B /* UIKit+Editable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKit+Editable.swift"; path = "MantleData/UIKit+Editable.swift"; sourceTree = "<group>"; };
 		9A7DD72F1CE7209700161A78 /* CollectionViewAdapter+UIKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "CollectionViewAdapter+UIKit.swift"; path = "MantleData/CollectionViewAdapter+UIKit.swift"; sourceTree = "<group>"; };
-		9A974BAF1CC7B88C00395E2D /* UIKit+Bindings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKit+Bindings.swift"; path = "MantleData/UIKit+Bindings.swift"; sourceTree = "<group>"; };
 		9A999FD91CD64E3A009AA161 /* Editor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Editor.swift; path = MantleData/Editor.swift; sourceTree = "<group>"; };
 		9AA736C51CD0A0A900EE2C26 /* MantleDataTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MantleDataTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AA736C71CD0A0A900EE2C26 /* ConflictResolvingSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictResolvingSpec.swift; sourceTree = "<group>"; };
@@ -272,7 +270,6 @@
 			isa = PBXGroup;
 			children = (
 				9A7A7B221CE381E90030674B /* UIKit+Editable.swift */,
-				9A974BAF1CC7B88C00395E2D /* UIKit+Bindings.swift */,
 				9A39A65A1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift */,
 				9A7DD72F1CE7209700161A78 /* CollectionViewAdapter+UIKit.swift */,
 				9A0A28071D21027800DE173E /* Adapter.swift */,
@@ -539,7 +536,6 @@
 				9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */,
 				9A5577A01C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m in Sources */,
 				9A511A3B1CDE47730098D30B /* ObjectSetSection.swift in Sources */,
-				9A974BB01CC7B88C00395E2D /* UIKit+Bindings.swift in Sources */,
 				9ACB1FAC1CDC69720010555B /* ReactiveSetEvent.swift in Sources */,
 				9A2997E81C510BAD00801A30 /* ArraySet.swift in Sources */,
 				9A2997F31C510BD100801A30 /* ManagedObjectContext+Extension.swift in Sources */,
