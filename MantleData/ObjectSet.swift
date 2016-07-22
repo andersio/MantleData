@@ -35,18 +35,6 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	public let shouldExcludeUpdatedRows: Bool
 	public let sectionNameKeyPath: String?
 
-	/*public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
-		return SignalProducer { observer, disposable in
-			if self.eventSignal == nil {
-				let (signal, observer) = Signal<ReactiveSetEvent, NoError>.pipe()
-				self.eventSignal = signal
-				self.eventObserver = observer
-			}
-
-			disposable += self.eventSignal!.observe(observer)
-		}
-	}*/
-
 	private(set) public weak var context: NSManagedObjectContext!
 
 	internal var sections: [ObjectSetSection<E>] = []
