@@ -42,7 +42,7 @@ public final class ViewModelMappingSet<U: ViewModel>: SectionedCollection {
 		return set.index(before: i)
 	}
 
-	public func fetch(trackingChanges shouldTrackChanges: Bool = false) throws {
+	public func fetch(trackingChanges shouldTrackChanges: Bool = true) throws {
 		try set.fetch(trackingChanges: shouldTrackChanges)
 	}
 
