@@ -863,7 +863,7 @@ extension ObjectSet: SectionedCollection {
 			return count
 		} else {
 			let loopStart = sections.index(after: end.section)
-			var count = (start.row - sections[start.section].startIndex) + (sections[end.section].endIndex - end.row - 1)
+			var count = (start.row - sections[start.section].startIndex + 1) + (sections[end.section].endIndex - end.row)
 
 			for i in loopStart ..< start.section {
 				count += sections[i].count
