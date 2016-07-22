@@ -13,6 +13,7 @@ public protocol SectionedCollectionIndex: Comparable {
 	var row: Int { get }
 
 	init<I: SectionedCollectionIndex>(_ index: I)
+	init(row: Int, section: Int)
 }
 
 extension IndexPath: SectionedCollectionIndex {
@@ -36,5 +37,9 @@ public protocol SectionedCollection: class, BidirectionalCollection {
 extension SectionedCollection {
 	public var eventsProducer: SignalProducer<SectionedCollectionEvent, NoError> {
 		return SignalProducer(signal: events)
+	}
+
+	public subscript(section section: Int, row row: Int) -> Iterator.Element {
+		return self[Index(row: row, section: section)]
 	}
 }
