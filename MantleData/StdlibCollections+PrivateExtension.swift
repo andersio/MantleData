@@ -9,6 +9,16 @@
 import Foundation
 import ReactiveCocoa
 
+extension String {
+	public static func compareSectionNames(_ first: String?, with second: String?) -> ComparisonResult {
+		guard let unwrappedFirst = first, unwrappedSecond = second else {
+			return first == nil ? (first == second ? .orderedSame : .orderedAscending) : .orderedDescending
+		}
+
+		return unwrappedFirst.compare(unwrappedSecond)
+	}
+}
+
 extension SignedInteger {
 	internal init<I: SignedInteger>(unsafeCasting integer: I) {
 		self.init(integer.toIntMax())
@@ -107,22 +117,6 @@ extension RangeReplaceableCollection where Iterator.Element == NSManagedObjectID
 	}
 }
 
-extension RangeReplaceableCollection where Iterator.Element: ReactiveSetSection {
-	internal mutating func insert(_ section: Iterator.Element,
-	                              name: ReactiveSetSectionName,
-	                              ordering: ComparisonResult) -> Index {
-		let position: Index
-		if let searchResult = self.index(where: { $0.name.compare(to: name) != ordering }) {
-			position = searchResult
-		} else {
-			position = ordering == .orderedAscending ? startIndex : endIndex
-		}
-
-		insert(section, at: position)
-		return position
-	}
-}
-
 extension Collection where Iterator.Element: Comparable, Index == Int {
 	internal func binarySearch(_ element: Iterator.Element, ascending: Bool) -> BinarySearchResult<Index> {
 		var low = startIndex
@@ -191,11 +185,5 @@ extension Dictionary where Value: protocol<ArrayLiteralConvertible, RangeReplace
 extension Collection where Iterator.Element: Hashable {
 	internal func uniquing() -> [Iterator.Element] {
 		return Array(Set(self))
-	}
-}
-
-extension Collection where Iterator.Element: ReactiveSetSection {
-	public func index(of name: ReactiveSetSectionName) -> Index? {
-		return index { $0.name == name }
 	}
 }

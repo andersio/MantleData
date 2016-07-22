@@ -20,10 +20,10 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 	private var cellConfigurators: [(reuseIdentifier: String, configurator: (cell: UICollectionViewCell, viewModel: V) -> Void)?]
 	private var cellIsUniform = false
 
-	private var headerCellConfigurators: [(reuseIdentifier: String, configurator: (view: UICollectionReusableView, sectionName: ReactiveSetSectionName) -> Void)?]
+	private var headerCellConfigurators: [(reuseIdentifier: String, configurator: (view: UICollectionReusableView, sectionName: String?) -> Void)?]
 	private var headerCellIsUniform = false
 
-	private var footerCellConfigurators: [(reuseIdentifier: String, configurator: (view: UICollectionReusableView, sectionName: ReactiveSetSectionName) -> Void)?]
+	private var footerCellConfigurators: [(reuseIdentifier: String, configurator: (view: UICollectionReusableView, sectionName: String?) -> Void)?]
 	private var footerCellIsUniform = false
 
 	private var shouldReloadRowsForUpdatedObjects = false
@@ -79,7 +79,7 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 	public func registerHeader<View: UICollectionReusableView>(for type: AdapterSectionRegistration,
 	                               with reuseIdentifier: String,
 	                                    class: View.Type,
-	                                    applying cellConfigurator: (view: View, sectionName: ReactiveSetSectionName) -> Void) -> Self {
+	                                    applying cellConfigurator: (view: View, sectionName: String?) -> Void) -> Self {
 		switch type {
 		case let .section(index):
 			assert(index >= 0, "section index must be greater than or equal to zero.")
@@ -98,7 +98,7 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 	public func registerFooter<View: UICollectionReusableView>(for type: AdapterSectionRegistration,
 	                               with reuseIdentifier: String,
 	                                    class: View.Type,
-																 applying cellConfigurator: (view: View, sectionName: ReactiveSetSectionName) -> Void) -> Self {
+																 applying cellConfigurator: (view: View, sectionName: String?) -> Void) -> Self {
 		switch type {
 		case let .section(index):
 			assert(index >= 0, "section index must be greater than or equal to zero.")
@@ -133,7 +133,7 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 		defer { try! set.fetch() }
 		collectionView.dataSource = self
 
-		return set.eventProducer
+		return set.eventsProducer
 			.take(until: collectionView.willDeinitProducer)
 			.startWithNext { [unowned collectionView] event in
 				switch event {
@@ -144,26 +144,15 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 					collectionView.performBatchUpdates({
 
 						if let indices = changes.deletedSections {
-							let indexSet = IndexSet(converting: indices)
-							collectionView.deleteSections(indexSet)
-						}
-
-						if let indices = changes.reloadedSections {
-							let indexSet = IndexSet(converting: indices)
-							collectionView.reloadSections(indexSet)
+							collectionView.deleteSections(indices)
 						}
 
 						if let indexPaths = changes.deletedRows {
 							collectionView.deleteItems(at: indexPaths)
 						}
 
-						if self.shouldReloadRowsForUpdatedObjects, let indexPaths = changes.updatedRows {
-							collectionView.reloadItems(at: indexPaths)
-						}
-
 						if let indices = changes.insertedSections {
-							let indexSet = IndexSet(converting: indices)
-							collectionView.insertSections(indexSet)
+							collectionView.insertSections(indices)
 						}
 
 						if let indexPathPairs = changes.movedRows {
@@ -177,13 +166,13 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 						}
 
 
-						if !self.isEmpty && self.set.elementsCount == 0 {
-							self.isEmpty = true
-							self.emptiedObserver?()
-						} else if self.isEmpty {
-							self.isEmpty = false
-							self.unemptiedObserver?()
-						}
+//						if !self.isEmpty && self.set.elementsCount == 0 {
+//							self.isEmpty = true
+//							self.emptiedObserver?()
+//						} else if self.isEmpty {
+//							self.isEmpty = false
+//							self.unemptiedObserver?()
+//						}
 					}, completion: nil)
 				}
 		}
@@ -194,7 +183,7 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 	}
 
 	public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-		let sectionName = set[(indexPath as NSIndexPath).section].name
+		let sectionName = set.sectionName(for: indexPath.section)
 
 		if kind == UICollectionElementKindSectionHeader {
 			let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
@@ -215,12 +204,12 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 		let (reuseIdentifier, configurator) = cellConfigurators[cellIsUniform ? 0 : (indexPath as NSIndexPath).section]!
 		let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier,
 		                                                                 for: indexPath)
-		configurator(cell: cell, viewModel: set[(indexPath as NSIndexPath).section][(indexPath as NSIndexPath).row])
+		configurator(cell: cell, viewModel: set[indexPath])
 
 		return cell
 	}
 
 	public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-		return set[section].count
+		return set.rowCount(for: section)
 	}
 }

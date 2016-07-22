@@ -38,6 +38,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	public init(set: ViewModelMappingSet<V>) {
 		self.set = set
 		self.cellConfigurators = []
+		super.init()
 	}
 
 	private func ensureArraySize(for index: Int) {
@@ -104,8 +105,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	public func bind(_ tableView: UITableView) -> Disposable {
 		defer { try! set.fetch() }
 		tableView.dataSource = self
-
-		return set.eventProducer
+		return set.eventsProducer
 			.take(until: tableView.willDeinitProducer)
 			.startWithNext { [unowned tableView] event in
 				switch event {
@@ -116,26 +116,15 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					tableView.beginUpdates()
 
 					if let indices = changes.deletedSections {
-						let indexSet = IndexSet(converting: indices)
-						tableView.deleteSections(indexSet, with: self.deletingAnimation)
-					}
-
-					if let indices = changes.reloadedSections {
-						let indexSet = IndexSet(converting: indices)
-						tableView.reloadSections(indexSet, with: self.updatingAnimation)
+						tableView.deleteSections(indices, with: self.deletingAnimation)
 					}
 
 					if let indexPaths = changes.deletedRows {
 						tableView.deleteRows(at: indexPaths, with: self.deletingAnimation)
 					}
 
-					if self.shouldReloadRowsForUpdatedObjects, let indexPaths = changes.updatedRows {
-						tableView.reloadRows(at: indexPaths, with: self.updatingAnimation)
-					}
-
 					if let indices = changes.insertedSections {
-						let indexSet = IndexSet(converting: indices)
-						tableView.insertSections(indexSet, with: self.insertingAnimation)
+						tableView.insertSections(indices, with: self.insertingAnimation)
 					}
 
 					if let indexPathPairs = changes.movedRows {
@@ -151,14 +140,14 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					tableView.endUpdates()
 				}
 
-				if !self.isEmpty && self.set.elementsCount == 0 {
-					self.isEmpty = true
-					self.emptiedObserver?()
-				} else if self.isEmpty {
-					self.isEmpty = false
-					self.unemptiedObserver?()
-				}
-		}
+	//			if !self.isEmpty && self.set.elementsCount == 0 {
+		//			self.isEmpty = true
+			//		self.emptiedObserver?()
+				//} else if self.isEmpty {
+	//				self.isEmpty = false
+		//			self.unemptiedObserver?()
+			//	}
+			}
 	}
 
 	public func numberOfSections(in tableView: UITableView) -> Int {
@@ -166,7 +155,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	}
 
 	public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-		let sectionName = set[section].name.value
+		let sectionName = set.sectionName(for: section)
 		return sectionNameMapper?(position: section, persistedName: sectionName) ?? sectionName
 	}
 
@@ -180,7 +169,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	}
 
 	public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		return set[section].count
+		return set.rowCount(for: section)
 	}
 
 	public func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {

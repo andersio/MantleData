@@ -10,42 +10,23 @@ import Foundation
 
 /// Events of ReactiveSet
 
-public enum ReactiveSetEvent {
+public enum SectionedCollectionEvent {
 	case reloaded
-	case updated(ReactiveSetChanges)
+	case updated(SectionedCollectionChanges)
 }
 
 /// Change Descriptor of ReactiveSet
 
-public struct ReactiveSetChanges {
+public struct SectionedCollectionChanges {
 	public var deletedRows: [IndexPath]?
 	public var insertedRows: [IndexPath]?
 	public var movedRows: [(from: IndexPath, to: IndexPath)]?
-	public var updatedRows: [IndexPath]?
 
-	public var insertedSections: [Int]?
-	public var deletedSections: [Int]?
-	public var reloadedSections: [Int]?
-
-	public init(insertedRows: [IndexPath]? = nil,
-	            deletedRows: [IndexPath]? = nil,
-	            movedRows: [(from: IndexPath, to: IndexPath)]? = nil,
-	            updatedRows: [IndexPath]? = nil,
-	            insertedSections: [Int]? = nil,
-	            deletedSections: [Int]? = nil,
-	            reloadedSections: [Int]? = nil) {
-		self.insertedRows = insertedRows
-		self.deletedRows = deletedRows
-		self.movedRows = movedRows
-		self.updatedRows = updatedRows
-
-		self.insertedSections = insertedSections
-		self.deletedSections = deletedSections
-		self.reloadedSections = reloadedSections
-	}
+	public var deletedSections: IndexSet?
+	public var insertedSections: IndexSet?
 }
 
-extension ReactiveSetEvent: CustomStringConvertible {
+extension SectionedCollectionEvent: CustomStringConvertible {
 	public var description: String {
 		switch self {
 		case .reloaded:
@@ -57,16 +38,16 @@ extension ReactiveSetEvent: CustomStringConvertible {
 	}
 }
 
-extension ReactiveSetEvent: CustomDebugStringConvertible {
+extension SectionedCollectionEvent: CustomDebugStringConvertible {
 	public var debugDescription: String {
 		return description
 	}
 }
 
-extension ReactiveSetChanges: CustomStringConvertible {
+extension SectionedCollectionChanges: CustomStringConvertible {
 	public var description: String {
 		var strings = [String]()
-		strings.append("ReactiveSetChanges")
+		strings.append("SectionedReactiveCollectionChanges")
 
 		if let indexPaths = insertedRows {
 			strings.append("> \(indexPaths.count) row(s) inserted\n")
@@ -80,23 +61,19 @@ extension ReactiveSetChanges: CustomStringConvertible {
 			strings.append( "> \(indexPaths.count) row(s) moved\n")
 		}
 
-		if let indexPaths = updatedRows {
-			strings.append( "> \(indexPaths.count) row(s) updated\n")
+		if let indices = insertedSections {
+			strings.append("> \(indices.count) section(s) inserted\n")
 		}
 
-		if let indexPaths = insertedSections {
-			strings.append( "> \(indexPaths.count) section(s) inserted\n")
+		if let indices = deletedSections {
+			strings.append( "> \(indices.count) section(s) deleted\n")
 		}
 
-		if let indexPaths = deletedSections {
-			strings.append( "> \(indexPaths.count) section(s) deleted\n")
-		}
-		
 		return strings.joined(separator: "\n")
 	}
 }
 
-extension ReactiveSetChanges: CustomDebugStringConvertible {
+extension SectionedCollectionChanges: CustomDebugStringConvertible {
 	public var debugDescription: String {
 		return description
 	}

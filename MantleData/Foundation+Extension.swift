@@ -23,12 +23,3 @@ import Foundation
 		}
 	}
 #endif
-
-extension IndexSet {
-	public init<Index: ReactiveSetIndex>(converting indices: [Index]) {
-		self.init()
-		for index in indices {
-			insert(index.toInt())
-		}
-	}
-}

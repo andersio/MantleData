@@ -10,55 +10,28 @@ import ReactiveCocoa
 
 /// `ViewModelSet` is a type-erased collection view to a `ReactiveSet` implementation, which
 /// maps view models of type `U` from the underlying set of `U.MappingObject` objects.
-public struct ViewModelMappingSet<U: ViewModel>: ReactiveSet {
-	public typealias Index = Int
-	public typealias Section = ViewModelMappingSetSection<U>
+public final class ViewModelMappingSet<U: ViewModel>: SectionedCollection {
+	public typealias Index = IndexPath
 
-	internal var sectionNameMapper: ((ReactiveSetSectionName) -> ReactiveSetSectionName)?
-  private let set: _AnyReactiveSetBox<U.MappingObject>
+	public var sectionNameTransform: ((String?) -> String?)? = nil
+
+  private let set: _AnySectionedCollectionBox<U.MappingObject>
 	internal let factory: (U.MappingObject) -> U
 
-	public var startIndex: Index {
+  public var events: Signal<SectionedCollectionEvent, NoError> {
+		return set.events
+	}
+
+	public var sectionCount: Int {
+		return set.sectionCount
+	}
+
+	public var startIndex: IndexPath {
 		return set.startIndex
 	}
 
-	public var endIndex: Index {
+	public var endIndex: IndexPath {
 		return set.endIndex
-	}
-
-  public var eventProducer: SignalProducer<ReactiveSetEvent, NoError> {
-		return set.eventProducer
-	}
-
-	public var elementsCount: Int {
-		return set.elementsCount
-	}
-
-	public init<R: ReactiveSet where R.Iterator.Element: ReactiveSetSection, R.Section == R.Iterator.Element, R.Iterator.Element.Iterator.Element == U.MappingObject>(_ set: R, factory: (U.MappingObject) -> U) {
-    self.set = _AnyReactiveSetBoxBase(set)
-		self.factory = factory
-	}
-
-	public func fetch(trackingChanges shouldTrackChanges: Bool = false) throws {
-		try set.fetch(trackingChanges: shouldTrackChanges)
-	}
-
-	public func mapSectionName(_ transform: (ReactiveSetSectionName) -> ReactiveSetSectionName) -> ViewModelMappingSet {
-		var copy = self
-		copy.sectionNameMapper = transform
-		return copy
-	}
-
-	public subscript(position: IndexPath) -> U {
-		return factory(set[position.section][position.row])
-	}
-
-	public subscript(position: Index) -> ViewModelMappingSetSection<U> {
-		return ViewModelMappingSetSection(base: set[position], factory: factory, sectionNameTransform: sectionNameMapper)
-	}
-
-	public subscript(subRange: Range<Index>) -> BidirectionalSlice<ViewModelMappingSet<U>> {
-		return BidirectionalSlice(base: self, bounds: subRange)
 	}
 
 	public func index(after i: Index) -> Index {
@@ -67,5 +40,31 @@ public struct ViewModelMappingSet<U: ViewModel>: ReactiveSet {
 
 	public func index(before i: Index) -> Index {
 		return set.index(before: i)
+	}
+
+	public func fetch(trackingChanges shouldTrackChanges: Bool = false) throws {
+		try set.fetch(trackingChanges: shouldTrackChanges)
+	}
+
+	public func sectionName(for section: Int) -> String? {
+		let name = set.sectionName(for: section)
+		return sectionNameTransform?(name) ?? name
+	}
+
+	public func rowCount(for section: Int) -> Int {
+		return set.rowCount(for: section)
+	}
+
+	public subscript(position: IndexPath) -> U {
+		return factory(set[position])
+	}
+
+	public subscript(subRange: Range<IndexPath>) -> BidirectionalSlice<ViewModelMappingSet<U>> {
+		return BidirectionalSlice(base: self, bounds: subRange)
+	}
+	
+	public init<R: SectionedCollection where R.Iterator.Element == U.MappingObject>(_ set: R, factory: (U.MappingObject) -> U) {
+    self.set = _AnySectionedCollectionBoxBase(set)
+		self.factory = factory
 	}
 }
