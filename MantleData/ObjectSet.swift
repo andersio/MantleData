@@ -841,8 +841,8 @@ extension ObjectSet: SectionedCollection {
 		return sections[position.section][position.row]
 	}
 
-	public subscript(subRange: Range<IndexPath>) -> BidirectionalSlice<ObjectSet<E>> {
-		return BidirectionalSlice(base: self, bounds: subRange)
+	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<ObjectSet<E>> {
+		return RandomAccessSlice(base: self, bounds: subRange)
 	}
 
 	public func sectionName(for section: Int) -> String? {

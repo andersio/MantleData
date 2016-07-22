@@ -22,7 +22,7 @@ extension IndexPath: SectionedCollectionIndex {
 	}
 }
 
-public protocol SectionedCollection: class, BidirectionalCollection {
+public protocol SectionedCollection: class, RandomAccessCollection {
 	associatedtype Index: SectionedCollectionIndex = IndexPath
 
 	var events: Signal<SectionedCollectionEvent, NoError> { get }

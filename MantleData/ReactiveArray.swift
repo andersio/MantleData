@@ -65,8 +65,8 @@ extension ReactiveArray: SectionedCollection {
 		}
 	}
 
-	public subscript(subRange: Range<IndexPath>) -> MutableBidirectionalSlice<ReactiveArray<E>> {
-		get { return MutableBidirectionalSlice(base: self, bounds: subRange) }
+	public subscript(subRange: Range<IndexPath>) -> MutableRandomAccessSlice<ReactiveArray<E>> {
+		get { return MutableRandomAccessSlice(base: self, bounds: subRange) }
 		set { replaceSubrange(subRange, with: newValue) }
 	}
 

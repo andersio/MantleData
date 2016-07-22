@@ -59,7 +59,7 @@ public final class AnySectionedCollection<E>: SectionedCollection {
 		return set[position]
 	}
 
-	public subscript(subRange: Range<IndexPath>) -> BidirectionalSlice<AnySectionedCollection<E>> {
-		return BidirectionalSlice(base: self, bounds: subRange)
+	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<AnySectionedCollection<E>> {
+		return RandomAccessSlice(base: self, bounds: subRange)
 	}
 }

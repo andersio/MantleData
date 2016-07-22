@@ -59,8 +59,8 @@ public final class ViewModelMappingSet<U: ViewModel>: SectionedCollection {
 		return factory(set[position])
 	}
 
-	public subscript(subRange: Range<IndexPath>) -> BidirectionalSlice<ViewModelMappingSet<U>> {
-		return BidirectionalSlice(base: self, bounds: subRange)
+	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<ViewModelMappingSet<U>> {
+		return RandomAccessSlice(base: self, bounds: subRange)
 	}
 	
 	public init<R: SectionedCollection where R.Iterator.Element == U.MappingObject>(_ set: R, factory: (U.MappingObject) -> U) {

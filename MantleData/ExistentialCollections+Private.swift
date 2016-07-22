@@ -68,7 +68,6 @@ internal class _AnySectionedCollectionBox<E> {
 	func index(before i: Index) -> Index { fatalError() }
 
 	subscript(index: Index) -> E { fatalError() }
-	subscript(subRange: Range<Index>) -> BidirectionalSlice<AnyBidirectionalCollection<E>> { fatalError() }
 
 	func fetch(trackingChanges shouldTrackChanges: Bool) throws { fatalError() }
 	func sectionName(for section: Int) -> String? { fatalError() }
