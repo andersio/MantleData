@@ -801,16 +801,25 @@ extension ObjectSet: SectionedCollection {
 	}
 
 	public var startIndex: IndexPath {
+		if sections.isEmpty {
+			return IndexPath(row: 0, section: 0)
+		}
+
 		let start = sections.startIndex
 		return IndexPath(row: sections[start].startIndex, section: start)
 	}
 
 	public var endIndex: IndexPath {
-		let end = sections.index(sections.endIndex, offsetBy: -1, limitedBy: sections.startIndex) ?? sections.startIndex
-		return IndexPath(row: sections[end].endIndex, section: end)
+		return IndexPath(row: 0, section: sections.endIndex)
+	}
+
+	public var count: Int {
+		return sections.reduce(0) { $0 + $1.count }
 	}
 
 	public func index(before i: IndexPath) -> IndexPath {
+		precondition(i > startIndex)
+
 		let section = sections[i.section]
 
 		if let index = section.index(i.row,
@@ -820,15 +829,17 @@ extension ObjectSet: SectionedCollection {
 			return IndexPath(row: index, section: i.section)
 		}
 
-		if let previous = sections.index(i.section, offsetBy: -1, limitedBy: sections.startIndex) {
-			return IndexPath(row: sections[previous].index(before: sections[previous].endIndex),
-			                 section: previous)
+		if i.section == startIndex.section {
+			preconditionFailure("Cannot advance beyond `startIndex`.")
 		}
 
-		return IndexPath(row: 0, section: -1)
+		let next = sections.index(i.section, offsetBy: -1)
+		return IndexPath(row: sections[next].startIndex, section: next)
 	}
 
 	public func index(after i: IndexPath) -> IndexPath {
+		precondition(i < endIndex)
+
 		let section = sections[i.section]
 
 		if let index = section.index(i.row,
@@ -838,11 +849,12 @@ extension ObjectSet: SectionedCollection {
 			return IndexPath(row: index, section: i.section)
 		}
 
-		if let next = sections.index(i.section, offsetBy: 1, limitedBy: sections.index(before: sections.endIndex)) {
-			return IndexPath(row: sections[next].startIndex, section: next)
+		let next = sections.index(i.section, offsetBy: 1)
+		if next == endIndex.section {
+			return endIndex
 		}
 
-		return IndexPath(row: 0, section: i.section + 1)
+		return IndexPath(row: sections[next].startIndex, section: next)
 	}
 	
 	public subscript(position: IndexPath) -> E {
@@ -916,11 +928,11 @@ internal struct ObjectSetSection<E: NSManagedObject>: BidirectionalCollection, O
 	}
 
 	var startIndex: Int {
-		return storage.startIndex
+		return 0
 	}
 
 	var endIndex: Int {
-		return storage.endIndex
+		return storage.count
 	}
 
 	subscript(position: Int) -> E {
