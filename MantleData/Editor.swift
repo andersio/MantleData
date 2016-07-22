@@ -31,8 +31,8 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 	private var targetSetter: ((TargetValue) -> Void)!
 
 	private let _cache: MutableProperty<SourceValue>
-	public var cache: AnyProperty<SourceValue> {
-		return AnyProperty(_cache)
+	public var cache: Property<SourceValue> {
+		return Property(_cache)
 	}
 
 	private let mergePolicy: EditorMergePolicy<SourceValue, TargetValue>
