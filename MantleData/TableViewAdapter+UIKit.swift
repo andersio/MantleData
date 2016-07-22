@@ -151,7 +151,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	}
 
 	public func numberOfSections(in tableView: UITableView) -> Int {
-		return set.count
+		return set.sectionCount
 	}
 
 	public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
