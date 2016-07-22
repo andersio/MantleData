@@ -806,18 +806,37 @@ extension ObjectSet: SectionedCollection {
 	}
 
 	public var endIndex: IndexPath {
-		let end = sections.endIndex
+		let end = sections.index(sections.endIndex, offsetBy: -1, limitedBy: sections.startIndex) ?? sections.startIndex
 		return IndexPath(row: sections[end].endIndex, section: end)
 	}
 
 	public func index(before i: IndexPath) -> IndexPath {
-		return i
+		let section = sections[i.section]
+
+		if let index = section.index(i.row,
+		                             offsetBy: -1,
+		                             limitedBy: section.startIndex
+		) {
+			return IndexPath(row: index, section: i.section)
+		}
+
+		return IndexPath(row: sections[i.section - 1].index(before: sections[i.section - 1].endIndex),
+		                 section: i.section - 1)
 	}
 
 	public func index(after i: IndexPath) -> IndexPath {
-		return i
-	}
+		let section = sections[i.section]
 
+		if let index = section.index(i.row,
+		                             offsetBy: 1,
+		                             limitedBy: section.index(before: section.endIndex)
+		) {
+			return IndexPath(row: index, section: i.section)
+		}
+
+		return IndexPath(row: sections[i.section + 1].startIndex, section: i.section + 1)
+	}
+	
 	public subscript(position: IndexPath) -> E {
 		return sections[position.section][position.row]
 	}
