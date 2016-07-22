@@ -844,6 +844,34 @@ extension ObjectSet: SectionedCollection {
 
 		return IndexPath(row: sections[next].startIndex, section: next)
 	}
+
+	public func distance(from start: IndexPath, to end: IndexPath) -> Int {
+		let sectionDiff = end.section - start.section
+
+		if sectionDiff == 0 {
+			return end.row - start.row
+		}
+
+		if sectionDiff > 0 {
+			let loopStart = sections.index(after: start.section)
+			var count = (sections[start.section].endIndex - start.row) + end.row
+
+			for i in loopStart ..< end.section {
+				count += sections[i].count
+			}
+
+			return count
+		} else {
+			let loopStart = sections.index(after: end.section)
+			var count = (start.row - sections[start.section].startIndex) + (sections[end.section].endIndex - end.row - 1)
+
+			for i in loopStart ..< start.section {
+				count += sections[i].count
+			}
+
+			return count
+		}
+	}
 	
 	public subscript(position: IndexPath) -> E {
 		return sections[position.section][position.row]
