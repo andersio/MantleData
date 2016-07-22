@@ -179,7 +179,7 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 	}
 
 	public func numberOfSections(in collectionView: UICollectionView) -> Int {
-		return set.count
+		return set.sectionCount
 	}
 
 	public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
