@@ -820,8 +820,12 @@ extension ObjectSet: SectionedCollection {
 			return IndexPath(row: index, section: i.section)
 		}
 
-		return IndexPath(row: sections[i.section - 1].index(before: sections[i.section - 1].endIndex),
-		                 section: i.section - 1)
+		if let previous = sections.index(i.section, offsetBy: -1, limitedBy: sections.startIndex) {
+			return IndexPath(row: sections[previous].index(before: sections[previous].endIndex),
+			                 section: previous)
+		}
+
+		return IndexPath(row: 0, section: -1)
 	}
 
 	public func index(after i: IndexPath) -> IndexPath {
@@ -834,7 +838,11 @@ extension ObjectSet: SectionedCollection {
 			return IndexPath(row: index, section: i.section)
 		}
 
-		return IndexPath(row: sections[i.section + 1].startIndex, section: i.section + 1)
+		if let next = sections.index(i.section, offsetBy: 1, limitedBy: sections.index(before: sections.endIndex)) {
+			return IndexPath(row: sections[next].startIndex, section: next)
+		}
+
+		return IndexPath(row: 0, section: i.section + 1)
 	}
 	
 	public subscript(position: IndexPath) -> E {
