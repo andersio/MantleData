@@ -140,13 +140,13 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					tableView.endUpdates()
 				}
 
-	//			if !self.isEmpty && self.set.elementsCount == 0 {
-		//			self.isEmpty = true
-			//		self.emptiedObserver?()
-				//} else if self.isEmpty {
-	//				self.isEmpty = false
-		//			self.unemptiedObserver?()
-			//	}
+				if !self.isEmpty && self.set.elementsCount == 0 {
+					self.isEmpty = true
+					self.emptiedObserver?()
+				} else if self.isEmpty {
+					self.isEmpty = false
+					self.unemptiedObserver?()
+				}
 			}
 	}
 

@@ -166,13 +166,13 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 						}
 
 
-//						if !self.isEmpty && self.set.elementsCount == 0 {
-//							self.isEmpty = true
-//							self.emptiedObserver?()
-//						} else if self.isEmpty {
-//							self.isEmpty = false
-//							self.unemptiedObserver?()
-//						}
+						if !self.isEmpty && self.set.elementsCount == 0 {
+							self.isEmpty = true
+							self.emptiedObserver?()
+						} else if self.isEmpty {
+							self.isEmpty = false
+							self.unemptiedObserver?()
+						}
 					}, completion: nil)
 				}
 		}
