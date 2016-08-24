@@ -111,7 +111,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 
 		if forForwardPrefetching {
 			return (section: objectSet.sections.endIndex - 1,
-							row: (objectSet.sections[objectSet.sections.endIndex - 1].endIndex ?? 0) - 1)
+							row: objectSet.sections[objectSet.sections.endIndex - 1].endIndex - 1)
 		} else {
 			return (section: 0, row: 0)
 		}
@@ -165,7 +165,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 		                                       forward: isForwardPrefetching)
 
 		let prefetchRequest = E.fetchRequest()
-		prefetchRequest.predicate = Predicate(format: "self IN %@",
+		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
 		                                        argumentArray: [prefetchingIds as NSArray])
 		prefetchRequest.resultType = NSFetchRequestResultType()
 		prefetchRequest.returnsObjectsAsFaults = false
@@ -204,7 +204,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 				prefetchedRange = currentPosition - halfOfBatch + 1 ..< currentPosition + halfOfBatch
 			}
 		} catch let error {
-			print("LinearBatchingPrefetcher<\(String(E.self))>: cannot execute batch of prefetch at row \(position.row) in section \(position.section). Error: \(error)")
+			print("LinearBatchingPrefetcher<\(String(describing: E.self))>: cannot execute batch of prefetch at row \(position.row) in section \(position.section). Error: \(error)")
 		}
 	}
 
@@ -234,7 +234,7 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E
 		}
 
 		let prefetchRequest = E.fetchRequest()
-		prefetchRequest.predicate = Predicate(format: "self IN %@",
+		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
 		                                        argumentArray: [ids as NSArray])
 		prefetchRequest.resultType = NSFetchRequestResultType()
 
@@ -242,7 +242,7 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E
 			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest) as! [E]
 			retainingPool.formUnion(prefetchedObjects)
 		} catch let error {
-			print("GreedyPrefetcher<\(String(E.self))>: cannot execute a prefetch. Error: \(error)")
+			print("GreedyPrefetcher<\(String(describing: E.self))>: cannot execute a prefetch. Error: \(error)")
 		}
 	}
 
@@ -256,7 +256,7 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E
 		let insertedIds = insertedIds.flatMap { $0.1 }
 
 		let prefetchRequest = E.fetchRequest()
-		prefetchRequest.predicate = Predicate(format: "self IN %@",
+		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
 		                                        argumentArray: [insertedIds as NSArray])
 		prefetchRequest.resultType = NSFetchRequestResultType()
 
@@ -264,7 +264,7 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E
 			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest) as! [E]
 			retainingPool.formUnion(prefetchedObjects)
 		} catch let error {
-			print("GreedyPrefetcher<\(String(E.self))>: cannot execute a prefetch. Error: \(error)")
+			print("GreedyPrefetcher<\(String(describing: E.self))>: cannot execute a prefetch. Error: \(error)")
 		}
 	}
 }

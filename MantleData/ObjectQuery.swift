@@ -23,9 +23,9 @@ public class ObjectQuery<E: NSManagedObject> {
 	var hasGroupByKeyPath = false
 
 	public init(context: NSManagedObjectContext) {
-		guard let entityDescription = NSEntityDescription.entity(forEntityName: String(Entity.self),
+		guard let entityDescription = NSEntityDescription.entity(forEntityName: String(describing: Entity.self),
 		                                                                in: context) else {
-			preconditionFailure("Failed to create entity description of entity `\(String(Entity.self))`.")
+			preconditionFailure("Failed to create entity description of entity `\(String(describing: Entity.self))`.")
 		}
 
 		let fetchRequest = NSFetchRequest<Entity>()
@@ -58,7 +58,7 @@ public class ObjectQuery<E: NSManagedObject> {
 }
 
 extension ObjectQuery {
-	public func filter(using predicate: Predicate?) -> ObjectQuery {
+	public func filter(using predicate: NSPredicate?) -> ObjectQuery {
 		return self
 	}
 
@@ -67,7 +67,7 @@ extension ObjectQuery {
 	}
 
 	public func filter(by expression: String, with argumentArray: [AnyObject]) -> ObjectQuery {
-		fetchRequest.predicate = Predicate(format: expression, argumentArray: argumentArray)
+		fetchRequest.predicate = NSPredicate(format: expression, argumentArray: argumentArray)
 		return self
 	}
 
@@ -79,13 +79,13 @@ extension ObjectQuery {
 		}
 
 		for key in keys {
-			let sortDescriptor: SortDescriptor
+			let sortDescriptor: NSSortDescriptor
 
 			switch key {
 			case let .ascending(keyPath):
-				sortDescriptor = SortDescriptor(key: keyPath, ascending: true)
+				sortDescriptor = NSSortDescriptor(key: keyPath, ascending: true)
 			case let .descending(keyPath):
-				sortDescriptor = SortDescriptor(key: keyPath, ascending: false)
+				sortDescriptor = NSSortDescriptor(key: keyPath, ascending: false)
 			}
 
 			fetchRequest.sortDescriptors!.append(sortDescriptor)
@@ -102,12 +102,12 @@ extension ObjectQuery {
 			fetchRequest.sortDescriptors = []
 		}
 
-		let sortDescriptor: SortDescriptor
+		let sortDescriptor: NSSortDescriptor
 		switch key {
 		case let .ascending(keyPath):
-			sortDescriptor = SortDescriptor(key: keyPath, ascending: true)
+			sortDescriptor = NSSortDescriptor(key: keyPath, ascending: true)
 		case let .descending(keyPath):
-			sortDescriptor = SortDescriptor(key: keyPath, ascending: false)
+			sortDescriptor = NSSortDescriptor(key: keyPath, ascending: false)
 		}
 		fetchRequest.sortDescriptors!.insert(sortDescriptor, at: 0)
 
@@ -235,7 +235,7 @@ extension ObjectQuery {
 	public func minMax(ofKeyPath keyPath: String) throws -> (min: Int, max: Int)? {
 		let results = try aggregate(("min", keyPath), ("max", keyPath))
 		return results.flatMap {
-			if let dictionary = $0.first, let first = dictionary["min"] as? NSNumber, second = dictionary["max"] as? NSNumber {
+			if let dictionary = $0.first, let first = dictionary["min"] as? NSNumber, let second = dictionary["max"] as? NSNumber {
 				return (min: first.intValue, max: second.intValue)
 			}
 			return nil
@@ -253,8 +253,8 @@ extension ObjectQuery {
 	}
 
 	public func update(_ dictionary: [String: NSExpression]) throws {
-		guard let entityDescription = NSEntityDescription.entity(forEntityName: String(Entity.self), in: context) else {
-			preconditionFailure("Failed to create entity description of entity `\(String(Entity.self))`.")
+		guard let entityDescription = NSEntityDescription.entity(forEntityName: String(describing: Entity.self), in: context) else {
+			preconditionFailure("Failed to create entity description of entity `\(String(describing: Entity.self))`.")
 		}
 
 		let updateRequest = NSBatchUpdateRequest(entity: entityDescription)

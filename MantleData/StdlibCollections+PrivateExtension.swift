@@ -11,7 +11,7 @@ import ReactiveCocoa
 
 extension String {
 	public static func compareSectionNames(_ first: String?, with second: String?) -> ComparisonResult {
-		guard let unwrappedFirst = first, unwrappedSecond = second else {
+		guard let unwrappedFirst = first, let unwrappedSecond = second else {
 			return first == nil ? (first == second ? .orderedSame : .orderedAscending) : .orderedDescending
 		}
 
@@ -33,8 +33,8 @@ internal enum BinarySearchResult<Index> {
 extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 	internal func bidirectionalSearch(at center: Int,
 																		for element: NSManagedObjectID,
-																		using sortDescriptors: [SortDescriptor],
-																		with cachedValues: [NSManagedObjectID: [String: AnyObject]])
+																		using sortDescriptors: [NSSortDescriptor],
+																		with cachedValues: [NSManagedObjectID: [String: NSObject]])
 																		-> BinarySearchResult<Index> {
 		var leftIndex = center - 1
 		while leftIndex >= startIndex &&
@@ -62,8 +62,8 @@ extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 	}
 
 	internal func index(of element: NSManagedObjectID,
-											using sortDescriptors: [SortDescriptor],
-											with cachedValues: [NSManagedObjectID: [String: AnyObject]])
+											using sortDescriptors: [NSSortDescriptor],
+											with cachedValues: [NSManagedObjectID: [String: NSObject]])
 											-> Index? {
 		if case let .found(index) = binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
 			return index
@@ -73,8 +73,8 @@ extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 	}
 
 	internal func binarySearch(of element: NSManagedObjectID,
-														using sortDescriptors: [SortDescriptor],
-														with cachedValues: [NSManagedObjectID: [String: AnyObject]])
+														using sortDescriptors: [NSSortDescriptor],
+														with cachedValues: [NSManagedObjectID: [String: NSObject]])
 														-> BinarySearchResult<Index> {
 		var low = startIndex
 		var high = endIndex - 1
@@ -105,8 +105,8 @@ extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 
 extension RangeReplaceableCollection where Iterator.Element == NSManagedObjectID, Index == Int {
 	internal mutating func insert(_ element: NSManagedObjectID,
-	                              using sortDescriptors: [SortDescriptor],
-																with cachedValues: [NSManagedObjectID: [String: AnyObject]]) {
+	                              using sortDescriptors: [NSSortDescriptor],
+																with cachedValues: [NSManagedObjectID: [String: NSObject]]) {
 		switch binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
 		case .found:
 			return
@@ -151,7 +151,7 @@ internal protocol SetProtocol {
 
 extension Set: SetProtocol {}
 
-extension MutableCollection where Iterator.Element: protocol<MutableCollection, RangeReplaceableCollection>, Iterator.Element.Iterator.Element: Comparable, Iterator.Element.Index == Int {
+extension MutableCollection where Iterator.Element: MutableCollection & RangeReplaceableCollection, Iterator.Element.Iterator.Element: Comparable, Iterator.Element.Index == Int {
 	internal mutating func orderedInsert(_ value: Iterator.Element.Iterator.Element, toCollectionAt index: Index, ascending: Bool = true) {
 		if case let .notFound(insertionPoint) = self[index].binarySearch(value, ascending: ascending) {
 			self[index].insert(value, at: insertionPoint)
@@ -173,7 +173,7 @@ extension Dictionary where Value: SetProtocol {
 	}
 }
 
-extension Dictionary where Value: protocol<ArrayLiteralConvertible, RangeReplaceableCollection>, Value.Iterator.Element == Value.Element {
+extension Dictionary where Value: ExpressibleByArrayLiteral & RangeReplaceableCollection, Value.Iterator.Element == Value.Element {
 	internal mutating func append(_ value: Value.Element, toCollectionOf key: Key) {
 		if !keys.contains(key) {
 			self[key] = Value()

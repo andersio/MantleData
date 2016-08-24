@@ -6,10 +6,10 @@
 //  Copyright © 2016 Anders. All rights reserved.
 //
 
-@noreturn func _abstractMethod_subclassMustImplement(_ name: String = #function) {
+func _abstractMethod_subclassMustImplement(_ name: String = #function) -> Never  {
 	fatalError("Abstract method `\(name)` should have been overriden by a subclass.")
 }
 
-@noreturn func _unimplementedMethod(_ name: String = #function) {
+func _unimplementedMethod(_ name: String = #function) -> Never  {
 	fatalError("Method `\(name)` is not implemented.")
 }

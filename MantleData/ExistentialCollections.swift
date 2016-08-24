@@ -39,7 +39,7 @@ public final class AnySectionedCollection<E>: SectionedCollection {
 		return set.index(before: i)
 	}
 
-	public init<R: SectionedCollection where R.Iterator.Element == E>(_ set: R) {
+	public init<R: SectionedCollection>(_ set: R) where R.Iterator.Element == E {
 		self.set = _AnySectionedCollectionBoxBase(set)
 	}
 

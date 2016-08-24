@@ -65,13 +65,13 @@ extension NSManagedObjectContext {
 	}
 
 	/// Enqueue a block to the context.
-	public func async(_ block: () -> Void) {
+	public func async(_ block: @escaping () -> Void) {
 		perform(block)
 	}
 
 	/// Execute a block on the context, and propagate the returned result.
 	/// - Important: The call is pre-emptive and jumps the context's internal queue.
-	public func sync<Result>(_ block: @noescape () -> Result) -> Result {
+	public func sync<Result>(_ block: () -> Result) -> Result {
 		var returnResult: Result!
 		performBlockAndWaitNoEscape { returnResult = block() }
 		return returnResult
@@ -196,12 +196,11 @@ extension NSManagedObjectContext {
 	private func isSiblingOf(_ other: NSManagedObjectContext) -> Bool {
 		if other !== self {
 			// Fast Paths
-			if let persistentStoreCoordinator = persistentStoreCoordinator
-				where persistentStoreCoordinator == other.persistentStoreCoordinator {
+			if let persistentStoreCoordinator = persistentStoreCoordinator, persistentStoreCoordinator == other.persistentStoreCoordinator {
 				return true
 			}
 
-			if let parentContext = parent where parentContext == other.parent {
+			if let parentContext = parent, parentContext == other.parent {
 				return true
 			}
 

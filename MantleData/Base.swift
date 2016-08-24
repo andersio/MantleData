@@ -10,7 +10,7 @@ import ReactiveCocoa
 import enum Result.NoError
 public typealias NoError = Result.NoError
 
-public class Base {
+open class Base {
   final private let willDeinitObserver = Atomic<(Signal<(), NoError>, Signal<(), NoError>.Observer)?>(nil)
   final public var willDeinitProducer: SignalProducer<(), NoError> {
 		return SignalProducer { [weak willDeinitObserver] observer, disposable in

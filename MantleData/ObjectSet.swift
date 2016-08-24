@@ -41,13 +41,13 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	internal var prefetcher: ObjectSetPrefetcher<E>?
 
 	private let sectionNameOrdering: ComparisonResult
-	private let objectSortDescriptors: [SortDescriptor]
+	fileprivate let objectSortDescriptors: [NSSortDescriptor]
 	private let sortKeys: [String]
 	private let sortKeyComponents: [(String, [String])]
 	private let sortOrderAffectingRelationships: [String]
 	private let sortKeysInSections: [String]
 
-	private var objectCache = [NSManagedObjectID: [String: AnyObject]]()
+	fileprivate var objectCache = [NSManagedObjectID: [String: NSObject]]()
 
 	private var temporaryObjects = [E: NSManagedObjectID]()
 	private var isAwaitingContextSave = false
@@ -152,7 +152,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			// Objects are sorted wrt sections already.
 			for position in resultDictionaries.indices {
 				if let sectionNameKeyPath = sectionNameKeyPath {
-					let sectionName = converting(sectionName: resultDictionaries[position][sectionNameKeyPath])
+					let sectionName = converting(sectionName: resultDictionaries[position].object(forKey: sectionNameKeyPath as NSString) as! NSObject?)
 
 					if ranges.isEmpty || ranges.last?.name != sectionName {
 						ranges.append((range: position ..< position + 1, name: sectionName))
@@ -184,7 +184,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 					func markAsChanged(object registeredObject: E) {
 						updateCache(for: registeredObject.objectID, with: registeredObject)
 						if let sectionNameKeyPath = sectionNameKeyPath {
-							let sectionName = converting(sectionName: registeredObject.value(forKeyPath: sectionNameKeyPath))
+							let sectionName = converting(sectionName: registeredObject.value(forKeyPath: sectionNameKeyPath) as! NSObject?)
 							inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(sectionName))
 						} else {
 							inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(nil))
@@ -210,7 +210,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 					let hasUpdatedRelationships = sortOrderAffectingRelationships.contains { key in
 						if let relationshipID = resultDictionaries[position][key] as? NSManagedObjectID,
-							relatedObject = context.registeredObject(for: relationshipID) where relatedObject.isUpdated {
+						   let relatedObject = context.registeredObject(for: relationshipID),
+						   relatedObject.isUpdated {
 							return true
 						}
 						return false
@@ -289,10 +290,10 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 	}
 
 	private func updateCache(for objectID: NSManagedObjectID, with object: NSObject) {
-		var dictionary = [String: AnyObject]()
+		var dictionary = [String: NSObject]()
 
 		for sortKey in sortKeys {
-			dictionary[sortKey] = object.value(forKeyPath: sortKey) ?? NSNull()
+			dictionary[sortKey] = (object.value(forKeyPath: sortKey) as? NSObject) ?? NSNull()
 		}
 
 		objectCache[objectID] = dictionary
@@ -302,7 +303,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		objectCache.removeValue(forKey: objectID)
 	}
 
-	private func converting(sectionName: AnyObject?) -> String? {
+	private func converting(sectionName: NSObject?) -> String? {
 		guard let sectionName = sectionName else {
 			return nil
 		}
@@ -323,9 +324,9 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		}
 	}
 
-	private func _sectionName(of object: E) -> String? {
+	fileprivate func sectionName(of object: E) -> String? {
 		if let keyPath = self.sectionNameKeyPath {
-			let object = object.value(forKeyPath: keyPath)
+			let object = object.value(forKeyPath: keyPath) as! NSObject?
 			return converting(sectionName: object)
 		}
 
@@ -346,12 +347,13 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		return nil
 	}
 
-	private func sortOrderIsAffected(by object: E, comparingWithSnapshotAt objectCacheIndex: DictionaryIndex<NSManagedObjectID, [String: AnyObject]>) -> Bool {
+	private func sortOrderIsAffected(by object: E, comparingWithSnapshotAt objectCacheIndex: DictionaryIndex<NSManagedObjectID, [String: NSObject]>) -> Bool {
 		let snapshot = objectCache[objectCacheIndex].1
 
 		for key in sortKeysInSections {
 			if let index = snapshot.index(forKey: key) {
-				if !object.value(forKeyPath: key)!.isEqual(snapshot[index].1) {
+				let value = object.value(forKeyPath: key) as! NSObject
+				if !value.isEqual(snapshot[index].1) {
 					return true
 				}
 			}
@@ -433,7 +435,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 				if let sectionNameKeyPath = sectionNameKeyPath {
 					let previousSectionName = converting(sectionName: objectCache[cacheIndex].1[sectionNameKeyPath])
-					currentSectionName = _sectionName(of: object)
+					currentSectionName = sectionName(of: object)
 
 					guard previousSectionName == currentSectionName else {
 						guard let previousSectionIndex = sections.index(of: currentSectionName) else {
@@ -474,7 +476,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 					updatedIds.insert(object.objectID, intoSetAt: currentSectionIndex)
 				}
 			} else {
-				let currentSectionName = _sectionName(of: object)
+				let currentSectionName = sectionName(of: object)
 				insertedIds.insert(object.objectID, intoSetOf: SectionKey(currentSectionName))
 				updateCache(for: object.objectID, with: object)
 				continue
@@ -516,7 +518,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 					if objectCache.index(forKey: object.objectID) != nil {
 						previouslyInsertedObjects.insert(object)
 					} else {
-						let name = _sectionName(of: object)
+						let name = sectionName(of: object)
 						insertedIds.insert(object.objectID, intoSetOf: SectionKey(name))
 						updateCache(for: object.objectID, with: object)
 
@@ -617,6 +619,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		var indexPathsOfInsertedRows = [_IndexPath]()
 		var indexPathsOfUpdatedRows = [_IndexPath]()
 		var indexPathsOfMovedRows = [(from: _IndexPath, to: _IndexPath)]()
+		var indexPathsOfDeletedRows = [_IndexPath]()
 
 		var indiceOfDeletedSections = IndexSet()
 		var indiceOfInsertedSections = IndexSet()
@@ -630,6 +633,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		deletedObjects.enumerated().forEach { sectionIndex, indices in
 			indices.forEach { objectIndex in
 				deletingIndexPaths.orderedInsert(objectIndex, toCollectionAt: sectionIndex, ascending: false)
+				indexPathsOfDeletedRows.append(IndexPath(row: objectIndex, section: sectionIndex))
 			}
 		}
 
@@ -641,7 +645,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 				let indexPath = IndexPath(row: previousObjectIndex, section: previousSectionIndex)
 				originOfSectionChangedObjects[id] = indexPath
 
-				let newSectionName = _sectionName(of: context.registeredObject(for: id) as! E)
+				let newSectionName = sectionName(of: context.registeredObject(for: id) as! E)
 				inboundObjects.insert(id, intoSetOf: SectionKey(newSectionName))
 			}
 		}
@@ -670,10 +674,6 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 				indiceOfDeletedSections.insert(index)
 				deletingIndexPaths.remove(at: index)
 			}
-		}
-
-		var indexPathsOfDeletedRows = deletingIndexPaths.enumerated().flatMap { sectionIndex, indices in
-			return indices.map { IndexPath(row: $0, section: sectionIndex) }
 		}
 
 		/// MARK: Handle insertions.
@@ -716,7 +716,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 
 			for (objectIndex, object) in sections[sectionIndex].storage.enumerated() {
 				if !shouldExcludeUpdatedRows {
-					if let oldSectionIndex = previousSectionIndex where updatedObjects[oldSectionIndex].contains(object) {
+					if let oldSectionIndex = previousSectionIndex,
+						 updatedObjects[oldSectionIndex].contains(object) {
 						let indexPath = _IndexPath(row: objectIndex, section: sectionIndex)
 						indexPathsOfUpdatedRows.append(indexPath)
 						continue
@@ -889,13 +890,9 @@ extension ObjectSet: SectionedCollection {
 		return sections[section].count
 	}
 
-	private func sectionName(of object: E) -> String? {
-		return _sectionName(of: object)
-	}
-
 	public func indexPath(of element: E) -> IndexPath? {
-		let sectionName = _sectionName(of: element)
-		if let sectionIndex = sections.index(of: sectionName) {
+		let name = sectionName(of: element)
+		if let sectionIndex = sections.index(of: name) {
 			if let objectIndex = sections[sectionIndex].storage.index(
 				of: element.objectID,
 				using: objectSortDescriptors,
@@ -978,7 +975,7 @@ internal struct ObjectSetSection<E: NSManagedObject>: BidirectionalCollection, O
 }
 
 extension Collection where Iterator.Element: ObjectSetSectionProtocol {
-	private func index(of name: String?) -> Index? {
+	fileprivate func index(of name: String?) -> Index? {
 		return index { String.compareSectionNames($0.name, with: name) == .orderedSame }
 	}
 }

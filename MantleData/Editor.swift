@@ -40,7 +40,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 	private var hasUserInitiatedChanges = false
 	private var observerDisposable: CompositeDisposable
 
-	public required init<Property: MutablePropertyProtocol where Property.Value == SourceValue>(source property: Property, mergePolicy: EditorMergePolicy<SourceValue, TargetValue>, transform: EditorTransform<SourceValue, TargetValue>) {
+	public required init<Property: MutablePropertyProtocol>(source property: Property, mergePolicy: EditorMergePolicy<SourceValue, TargetValue>, transform: EditorTransform<SourceValue, TargetValue>) where Property.Value == SourceValue {
 		self.source = AnyMutableProperty(property)
 		self.mergePolicy = mergePolicy
 		self.transform = transform
@@ -55,7 +55,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 		}
 	}
 
-	public func bindTo<E: Editable where E.Value == TargetValue>(_ control: E, until: SignalProducer<(), NoError>) {
+	public func bindTo<E: Editable>(_ control: E, until: SignalProducer<(), NoError>) where E.Value == TargetValue {
 		assert(target == nil)
 
 		until.startWithCompleted { [weak self] in
@@ -74,7 +74,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 			}
 	}
 
-	public func bindTo<E: Editable where E.Value == TargetValue>(_ target: E, until: Signal<(), NoError>) {
+	public func bindTo<E: Editable>(_ target: E, until: Signal<(), NoError>) where E.Value == TargetValue {
 		bindTo(target, until: SignalProducer(signal: until))
 	}
 
@@ -121,7 +121,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 							self._cache.value = currenttargetValue
 
 						case let .notify(handler):
-							let newValue = handler(sourceVersion: newSourceValue, targetVersion: currenttargetValue)
+							let newValue = handler(newSourceValue, currenttargetValue)
 								self.targetSetter(self.transform.sourceToTarget(newValue))
 								self._cache.value = newValue
 						}
@@ -146,11 +146,11 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 public protocol EditorProtocol {
 	associatedtype _SourceValue: Equatable
 	associatedtype _TargetValue: Equatable
-	init<Property: MutablePropertyProtocol where Property.Value == _SourceValue>(source property: Property, mergePolicy: EditorMergePolicy<_SourceValue, _TargetValue>, transform: EditorTransform<_SourceValue, _TargetValue>)
+	init<Property: MutablePropertyProtocol>(source property: Property, mergePolicy: EditorMergePolicy<_SourceValue, _TargetValue>, transform: EditorTransform<_SourceValue, _TargetValue>) where Property.Value == _SourceValue
 }
 
 extension EditorProtocol where _SourceValue == _TargetValue {
-	public init<Property: MutablePropertyProtocol where Property.Value == _SourceValue>(source property: Property, mergePolicy: EditorMergePolicy<_SourceValue, _TargetValue>) {
+	public init<Property: MutablePropertyProtocol>(source property: Property, mergePolicy: EditorMergePolicy<_SourceValue, _TargetValue>) where Property.Value == _SourceValue {
 		self.init(source: property, mergePolicy: mergePolicy, transform: EditorTransform())
 	}
 }
@@ -164,7 +164,7 @@ public struct EditorTransform<SourceValue: Equatable, TargetValue: Equatable> {
 	public let sourceToTarget: (SourceValue) -> TargetValue
 	public let targetToSource: (TargetValue) -> SourceValue
 
-	public init(sourceToTarget forwardAction: (SourceValue) -> TargetValue, targetToSource backwardAction: (TargetValue) -> SourceValue) {
+	public init(sourceToTarget forwardAction: @escaping (SourceValue) -> TargetValue, targetToSource backwardAction: @escaping (TargetValue) -> SourceValue) {
 		sourceToTarget = forwardAction
 		targetToSource = backwardAction
 	}
@@ -173,8 +173,9 @@ public struct EditorTransform<SourceValue: Equatable, TargetValue: Equatable> {
 public protocol EditorTransformProtocol {
 	associatedtype _SourceValue: Equatable
 	associatedtype _TargetValue: Equatable
-	init(sourceToTarget forwardAction: (_SourceValue) -> _TargetValue, targetToSource backwardAction: (_TargetValue) -> _SourceValue)
+	init(sourceToTarget forwardAction: @escaping (_SourceValue) -> _TargetValue, targetToSource backwardAction: @escaping (_TargetValue) -> _SourceValue)
 }
+
 extension EditorTransform: EditorTransformProtocol {
 	public typealias _SourceValue = SourceValue
 	public typealias _TargetValue = TargetValue
@@ -194,7 +195,7 @@ public enum EditorMergePolicy<SourceValue: Equatable, TargetValue: Equatable> {
 
 	/// Overwrite both the source and target with the returned value of
 	/// the custom handler.
-	case notify(handler: (sourceVersion: SourceValue, targetVersion: SourceValue) -> SourceValue)
+	case notify(handler: (_ sourceVersion: SourceValue, _ targetVersion: SourceValue) -> SourceValue)
 }
 
 /// Internal protocol for EditorPool.

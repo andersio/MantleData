@@ -35,7 +35,7 @@ public class AnyMutableProperty<Value>: MutablePropertyProtocol {
 	}
 
 	/// Initializes a property as a read-only view of the given property.
-	public init<P: MutablePropertyProtocol where P.Value == Value>(_ property: P) {
+	public init<P: MutablePropertyProtocol>(_ property: P) where P.Value == Value {
 		_value = { property.value }
 		_valueSetter = { property.value = $0 }
 		_producer = { property.producer }

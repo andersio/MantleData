@@ -14,11 +14,11 @@ final public class ReactiveArray<E> {
 	public var name: String? = nil
 
 	public let events: Signal<SectionedCollectionEvent, NoError>
-	private let eventObserver: Observer<SectionedCollectionEvent, NoError>
+	fileprivate let eventObserver: Observer<SectionedCollectionEvent, NoError>
 
-	private var storage: [E] = []
+	fileprivate var storage: [E] = []
 
-	public init<S: Sequence where S.Iterator.Element == E>(_ content: S) {
+	public init<S: Sequence>(_ content: S) where S.Iterator.Element == E {
 		(events, eventObserver) = Signal.pipe()
 		storage = Array(content)
 	}
@@ -85,7 +85,7 @@ extension ReactiveArray: SectionedCollection {
 extension ReactiveArray: MutableCollection { }
 
 extension ReactiveArray: RangeReplaceableCollection {
-	public func replaceSubrange<C where C : Collection, C.Iterator.Element == E>(_ subRange: Range<IndexPath>, with newElements: C) {
+	public func replaceSubrange<C>(_ subRange: Range<IndexPath>, with newElements: C) where C : Collection, C.Iterator.Element == E {
 		let subRange = subRange.lowerBound.row ..< subRange.upperBound.row
 		storage.replaceSubrange(subRange, with: newElements)
 

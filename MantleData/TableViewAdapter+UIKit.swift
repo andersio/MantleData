@@ -17,7 +17,7 @@ public enum AdapterSectionRegistration {
 final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSource {
 	private let set: ViewModelMappingSet<V>
 
-	private var cellConfigurators: [(reuseIdentifier: String, configurator: (cell: UITableViewCell, viewModel: V) -> Void)?]
+	private var cellConfigurators: [(reuseIdentifier: String, configurator: @escaping (_ cell: UITableViewCell, _ viewModel: V) -> Void)?]
 	private var isUniform = false
 
 	private var shouldReloadRowsForUpdatedObjects = false
@@ -26,14 +26,14 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	private var deletingAnimation: UITableViewRowAnimation = .automatic
 	private var updatingAnimation: UITableViewRowAnimation = .automatic
 
-	private var sectionNameMapper: ((position: Int, persistedName: String?) -> String?)?
+	private var sectionNameMapper: (@escaping (_ position: Int, _ persistedName: String?) -> String?)?
 
 	private var isEmpty: Bool = true
-	private var emptiedObserver: (() -> Void)?
-	private var unemptiedObserver: (() -> Void)?
-	private var insertionHandler: ((IndexPath) -> Void)?
-	private var deletionHandler: ((IndexPath) -> Void)?
-	private var editabilityHandler: ((IndexPath) -> Bool)?
+	private var emptiedObserver: (@escaping () -> Void)?
+	private var unemptiedObserver: (@escaping () -> Void)?
+	private var insertionHandler: (@escaping (IndexPath) -> Void)?
+	private var deletionHandler: (@escaping (IndexPath) -> Void)?
+	private var editabilityHandler: (@escaping (IndexPath) -> Bool)?
 
 	public init(set: ViewModelMappingSet<V>) {
 		self.set = set
@@ -50,17 +50,17 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 	public func register<Cell: UITableViewCell>(for type: AdapterSectionRegistration,
 	                     with reuseIdentifier: String,
 											 class: Cell.Type,
-											 applying cellConfigurator: (cell: Cell, viewModel: V) -> Void) -> Self {
+											 applying cellConfigurator: @escaping (_ cell: Cell, _ viewModel: V) -> Void) -> Self {
 		switch type {
 		case let .section(index):
 			assert(index >= 0, "section index must be greater than or equal to zero.")
 			ensureArraySize(for: index)
-			cellConfigurators[index] = (reuseIdentifier, { cellConfigurator(cell: $0 as! Cell, viewModel: $1) })
+			cellConfigurators[index] = (reuseIdentifier, { cellConfigurator($0 as! Cell, $1) })
 
 		case .allSections:
 			isUniform = true
 			cellConfigurators = []
-			cellConfigurators.append((reuseIdentifier, { cellConfigurator(cell: $0 as! Cell, viewModel: $1) }))
+			cellConfigurators.append((reuseIdentifier, { cellConfigurator($0 as! Cell, $1) }))
 		}
 
 		return self
@@ -77,7 +77,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		return self
 	}
 
-	public func mapSectionName(_ transform: (position: Int, persistedName: String?) -> String?) -> Self {
+	public func mapSectionName(_ transform: @escaping (_ position: Int, _ persistedName: String?) -> String?) -> Self {
 		sectionNameMapper = transform
 		return self
 	}
@@ -95,7 +95,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 		return self
 	}
 
-	public func filterEditable(_ predicate: (IndexPath) -> Bool) -> Self {
+	public func filterEditable(_ predicate: @escaping (IndexPath) -> Bool) -> Self {
 		editabilityHandler = predicate
 		return self
 	}
@@ -156,14 +156,14 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 
 	public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
 		let sectionName = set.sectionName(for: section)
-		return sectionNameMapper?(position: section, persistedName: sectionName) ?? sectionName
+		return sectionNameMapper?(section, sectionName) ?? sectionName
 	}
 
 	public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 		let (reuseIdentifier, configurator) = cellConfigurators[isUniform ? 0 : (indexPath as NSIndexPath).section]!
 		let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier,
 		                                                       for: indexPath)
-		configurator(cell: cell, viewModel: set[indexPath])
+		configurator(cell, set[indexPath])
 
 		return cell
 	}

@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension Collection where Iterator.Element == SortDescriptor {
+extension Collection where Iterator.Element == NSSortDescriptor {
 	public func compare<E: NSObject>(_ element: E, to anotherElement: E) -> ComparisonResult {
 		for descriptor in self {
 			let order = descriptor.compare(element, to: anotherElement)

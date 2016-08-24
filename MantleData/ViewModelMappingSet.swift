@@ -63,7 +63,7 @@ public final class ViewModelMappingSet<U: ViewModel>: SectionedCollection {
 		return RandomAccessSlice(base: self, bounds: subRange)
 	}
 	
-	public init<R: SectionedCollection where R.Iterator.Element == U.MappingObject>(_ set: R, factory: (U.MappingObject) -> U) {
+	public init<R: SectionedCollection>(_ set: R, factory: @escaping (U.MappingObject) -> U) where R.Iterator.Element == U.MappingObject {
     self.set = _AnySectionedCollectionBoxBase(set)
 		self.factory = factory
 	}

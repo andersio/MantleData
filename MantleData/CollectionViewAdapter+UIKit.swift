@@ -17,20 +17,20 @@ public enum CollectionViewSupplementary {
 final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionViewDataSource {
 	private let set: ViewModelMappingSet<V>
 
-	private var cellConfigurators: [(reuseIdentifier: String, configurator: (cell: UICollectionViewCell, viewModel: V) -> Void)?]
+	private var cellConfigurators: [(reuseIdentifier: String, configurator: @escaping (_ cell: UICollectionViewCell, _ viewModel: V) -> Void)?]
 	private var cellIsUniform = false
 
-	private var headerCellConfigurators: [(reuseIdentifier: String, configurator: (view: UICollectionReusableView, sectionName: String?) -> Void)?]
+	private var headerCellConfigurators: [(reuseIdentifier: String, configurator: @escaping (_ view: UICollectionReusableView, _ sectionName: String?) -> Void)?]
 	private var headerCellIsUniform = false
 
-	private var footerCellConfigurators: [(reuseIdentifier: String, configurator: (view: UICollectionReusableView, sectionName: String?) -> Void)?]
+	private var footerCellConfigurators: [(reuseIdentifier: String, configurator: @escaping (_ view: UICollectionReusableView, _ sectionName: String?) -> Void)?]
 	private var footerCellIsUniform = false
 
 	private var shouldReloadRowsForUpdatedObjects = false
 
 	private var isEmpty: Bool = true
-	public var emptiedObserver: (() -> Void)?
-	public var unemptiedObserver: (() -> Void)?
+	public var emptiedObserver: (@escaping () -> Void)?
+	public var unemptiedObserver: (@escaping () -> Void)?
 
 	public init(set: ViewModelMappingSet<V>) {
 		self.set = set
@@ -60,17 +60,17 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 	public func register<Cell: UICollectionViewCell>(for type: AdapterSectionRegistration,
 	                         with reuseIdentifier: String,
 	                              class: Cell.Type,
-	                              applying cellConfigurator: (cell: Cell, viewModel: V) -> Void) -> Self {
+	                              applying cellConfigurator: @escaping (_ cell: Cell, _ viewModel: V) -> Void) -> Self {
 		switch type {
 		case let .section(index):
 			assert(index >= 0, "section index must be greater than or equal to zero.")
 			ensureArraySize(for: index)
-			cellConfigurators[index] = (reuseIdentifier, { cellConfigurator(cell: $0 as! Cell, viewModel: $1) })
+			cellConfigurators[index] = (reuseIdentifier, { cellConfigurator($0 as! Cell, $1) })
 
 		case .allSections:
 			cellIsUniform = true
 			cellConfigurators = []
-			cellConfigurators.append((reuseIdentifier, { cellConfigurator(cell: $0 as! Cell, viewModel: $1) }))
+			cellConfigurators.append((reuseIdentifier, { cellConfigurator($0 as! Cell, $1) }))
 		}
 
 		return self
@@ -79,17 +79,17 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 	public func registerHeader<View: UICollectionReusableView>(for type: AdapterSectionRegistration,
 	                               with reuseIdentifier: String,
 	                                    class: View.Type,
-	                                    applying cellConfigurator: (view: View, sectionName: String?) -> Void) -> Self {
+	                                    applying cellConfigurator: @escaping (_ view: View, _ sectionName: String?) -> Void) -> Self {
 		switch type {
 		case let .section(index):
 			assert(index >= 0, "section index must be greater than or equal to zero.")
 			ensureArraySize(for: index)
-			headerCellConfigurators[index] = (reuseIdentifier, { cellConfigurator(view: $0 as! View, sectionName: $1) })
+			headerCellConfigurators[index] = (reuseIdentifier, { cellConfigurator($0 as! View, $1) })
 
 		case .allSections:
 			headerCellIsUniform = true
 			headerCellConfigurators = []
-			headerCellConfigurators.append((reuseIdentifier, { cellConfigurator(view: $0 as! View, sectionName: $1) }))
+			headerCellConfigurators.append((reuseIdentifier, { cellConfigurator($0 as! View, $1) }))
 		}
 		
 		return self
@@ -98,17 +98,17 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 	public func registerFooter<View: UICollectionReusableView>(for type: AdapterSectionRegistration,
 	                               with reuseIdentifier: String,
 	                                    class: View.Type,
-																 applying cellConfigurator: (view: View, sectionName: String?) -> Void) -> Self {
+																 applying cellConfigurator: @escaping (_ view: View, _ sectionName: String?) -> Void) -> Self {
 		switch type {
 		case let .section(index):
 			assert(index >= 0, "section index must be greater than or equal to zero.")
 			ensureArraySize(for: index)
-			footerCellConfigurators[index] = (reuseIdentifier, { cellConfigurator(view: $0 as! View, sectionName: $1) })
+			footerCellConfigurators[index] = (reuseIdentifier, { cellConfigurator($0 as! View, $1) })
 
 		case .allSections:
 			footerCellIsUniform = true
 			footerCellConfigurators = []
-			footerCellConfigurators.append((reuseIdentifier, { cellConfigurator(view: $0 as! View, sectionName: $1) }))
+			footerCellConfigurators.append((reuseIdentifier, { cellConfigurator($0 as! View, $1) }))
 		}
 		
 		return self
@@ -189,13 +189,13 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 			let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
 			                                                                 withReuseIdentifier: headerCellConfigurators[(indexPath as NSIndexPath).section]!.reuseIdentifier,
 			                                                                 for: indexPath)
-			headerCellConfigurators[(indexPath as NSIndexPath).section]!.configurator(view: view, sectionName: sectionName)
+			headerCellConfigurators[(indexPath as NSIndexPath).section]!.configurator(view, sectionName)
 			return view
 		} else {
 			let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
 			                                                                 withReuseIdentifier: footerCellConfigurators[(indexPath as NSIndexPath).section]!.reuseIdentifier,
 			                                                                 for: indexPath)
-			footerCellConfigurators[(indexPath as NSIndexPath).section]!.configurator(view: view, sectionName: sectionName)
+			footerCellConfigurators[(indexPath as NSIndexPath).section]!.configurator(view, sectionName)
 			return view
 		}
 	}
@@ -204,7 +204,7 @@ final public class CollectionViewAdapter<V: ViewModel>: NSObject, UICollectionVi
 		let (reuseIdentifier, configurator) = cellConfigurators[cellIsUniform ? 0 : (indexPath as NSIndexPath).section]!
 		let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier,
 		                                                                 for: indexPath)
-		configurator(cell: cell, viewModel: set[indexPath])
+		configurator(cell, set[indexPath])
 
 		return cell
 	}

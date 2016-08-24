@@ -9,25 +9,25 @@
 import ReactiveCocoa
 
 extension NSObject {
-	public func bind<Producer: SignalProducerProtocol where Producer.Value: AnyObject, Producer.Error == NoError>(keyPath path: String, from producer: Producer) {
+	public func bind<Producer: SignalProducerProtocol>(keyPath path: String, from producer: Producer) where Producer.Value: AnyObject, Producer.Error == NoError {
 		producer
 			.startWithNext { [weak self] value in
 				self?.setValue(value, forKeyPath: path)
 			}
 	}
 
-	public func bind<Producer: SignalProducerProtocol where Producer.Value: CocoaBridgeable, Producer.Error == NoError>(keyPath path: String, from producer: Producer) {
+	public func bind<Producer: SignalProducerProtocol>(keyPath path: String, from producer: Producer) where Producer.Value: CocoaBridgeable, Producer.Error == NoError {
 		producer
 			.startWithNext { [weak self] value in
 				self?.setValue(value.cocoaValue, forKeyPath: path)
 		}
 	}
 
-	public func bind<Producer: SignalProducerProtocol where Producer.Value: AnyObject, Producer.Error == NoError>(keyPath path: String, onMainQueueFrom producer: Producer) {
+	public func bind<Producer: SignalProducerProtocol>(keyPath path: String, onMainQueueFrom producer: Producer) where Producer.Value: AnyObject, Producer.Error == NoError {
 		bind(keyPath: path, from: producer.observe(on: UIScheduler()))
 	}
 
-	public func bind<Producer: SignalProducerProtocol where Producer.Value: CocoaBridgeable, Producer.Error == NoError>(keyPath path: String, onMainQueueFrom producer: Producer) {
+	public func bind<Producer: SignalProducerProtocol>(keyPath path: String, onMainQueueFrom producer: Producer) where Producer.Value: CocoaBridgeable, Producer.Error == NoError {
 		bind(keyPath: path, from: producer.observe(on: UIScheduler()))
 	}
 
