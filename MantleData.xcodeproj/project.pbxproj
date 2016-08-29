@@ -56,7 +56,6 @@
 		9A7A7B201CE381DB0030674B /* EditorPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B1F1CE381DB0030674B /* EditorPool.swift */; };
 		9A7A7B211CE381DB0030674B /* EditorPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B1F1CE381DB0030674B /* EditorPool.swift */; };
 		9A7A7B231CE381E90030674B /* UIKit+Editable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B221CE381E90030674B /* UIKit+Editable.swift */; };
-		9A7A7B241CE381E90030674B /* UIKit+Editable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B221CE381E90030674B /* UIKit+Editable.swift */; };
 		9A7DD7301CE7209700161A78 /* CollectionViewAdapter+UIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7DD72F1CE7209700161A78 /* CollectionViewAdapter+UIKit.swift */; };
 		9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
 		9A999FDA1CD64E3A009AA161 /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A999FD91CD64E3A009AA161 /* Editor.swift */; };
@@ -75,6 +74,9 @@
 		9ACB1FB91CDC69A20010555B /* NSObject+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F51C510BDB00801A30 /* NSObject+Extension.swift */; };
 		9AD114831D1CF1210067F20C /* ExistentialCollections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD114821D1CF1210067F20C /* ExistentialCollections.swift */; };
 		9AD114841D1CF1210067F20C /* ExistentialCollections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD114821D1CF1210067F20C /* ExistentialCollections.swift */; };
+		9AE44A211D7447620000CB17 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A201D7447620000CB17 /* ReactiveCocoa.framework */; };
+		9AE44A231D7447660000CB17 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A221D7447660000CB17 /* Result.framework */; };
+		9AE44A251D74476C0000CB17 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A241D74476C0000CB17 /* CoreData.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,7 +92,6 @@
 /* Begin PBXFileReference section */
 		9A0A28071D21027800DE173E /* Adapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Adapter.swift; path = MantleData/Adapter.swift; sourceTree = "<group>"; };
 		9A0D9A761C76AB9A0013C976 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		9A0D9A7A1C76AB9A0013C976 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ExistentialCollections+Private.swift"; path = "MantleData/ExistentialCollections+Private.swift"; sourceTree = "<group>"; };
 		9A2997E31C510BAD00801A30 /* ReactiveArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveArray.swift; path = MantleData/ReactiveArray.swift; sourceTree = "<group>"; };
 		9A2997E51C510BAD00801A30 /* SectionedCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SectionedCollection.swift; path = MantleData/SectionedCollection.swift; sourceTree = "<group>"; };
@@ -106,7 +107,6 @@
 		9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveCocoa+Additions.swift"; path = "MantleData/ReactiveCocoa+Additions.swift"; sourceTree = "<group>"; };
 		9A39A6591BC958E100FC86E1 /* ViewModelMappingSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelMappingSet.swift; path = MantleData/ViewModelMappingSet.swift; sourceTree = "<group>"; };
 		9A39A65A1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "TableViewAdapter+UIKit.swift"; path = "MantleData/TableViewAdapter+UIKit.swift"; sourceTree = "<group>"; };
-		9A39A65D1BC958E100FC86E1 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MantleData/Info.plist; sourceTree = "<group>"; };
 		9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ManagedObject+Extension.swift"; path = "MantleData/ManagedObject+Extension.swift"; sourceTree = "<group>"; };
 		9A39A6611BC958E100FC86E1 /* MantleData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MantleData.h; path = MantleData/MantleData.h; sourceTree = "<group>"; };
 		9A39A6661BC958E100FC86E1 /* ObjectSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSet.swift; path = MantleData/ObjectSet.swift; sourceTree = "<group>"; };
@@ -131,6 +131,11 @@
 		9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Foundation+Extension.swift"; path = "MantleData/Foundation+Extension.swift"; sourceTree = "<group>"; };
 		9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "StdlibCollections+Extension.swift"; path = "MantleData/StdlibCollections+Extension.swift"; sourceTree = "<group>"; };
 		9AD114821D1CF1210067F20C /* ExistentialCollections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ExistentialCollections.swift; path = MantleData/ExistentialCollections.swift; sourceTree = "<group>"; };
+		9AE44A201D7447620000CB17 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = Carthage/Checkouts/ReactiveCocoa/build/Debug/ReactiveCocoa.framework; sourceTree = "<group>"; };
+		9AE44A221D7447660000CB17 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = Carthage/Checkouts/Result/build/Debug/Result.framework; sourceTree = "<group>"; };
+		9AE44A241D74476C0000CB17 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
+		9AE44A291D74483B0000CB17 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = iOS/Info.plist; sourceTree = "<group>"; };
+		9AE44A2A1D7448440000CB17 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = macOS/Info.plist; sourceTree = SOURCE_ROOT; };
 		9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -139,6 +144,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AE44A251D74476C0000CB17 /* CoreData.framework in Frameworks */,
+				9AE44A231D7447660000CB17 /* Result.framework in Frameworks */,
+				9AE44A211D7447620000CB17 /* ReactiveCocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,15 +171,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		9A0D9A771C76AB9A0013C976 /* MantleData-OSX */ = {
+		9A0D9A771C76AB9A0013C976 /* macOS */ = {
 			isa = PBXGroup;
 			children = (
-				9A0D9A7A1C76AB9A0013C976 /* Info.plist */,
+				9AE44A2A1D7448440000CB17 /* Info.plist */,
 			);
+			name = macOS;
 			path = "MantleData-OSX";
 			sourceTree = "<group>";
 		};
-		9A39A61F1BC956AB00FC86E1 /* MantleData */ = {
+		9A39A61F1BC956AB00FC86E1 /* Core */ = {
 			isa = PBXGroup;
 			children = (
 				9A6F328D1C468BE700F31983 /* Reactive Collection Protocols */,
@@ -182,12 +191,15 @@
 				9A3A776D1BC96AB900ADFFE0 /* Utilities */,
 				9A3A77711BC96BD200ADFFE0 /* Supporting FIles */,
 			);
-			name = MantleData;
+			name = Core;
 			sourceTree = "<group>";
 		};
 		9A39A6201BC956BE00FC86E1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9AE44A241D74476C0000CB17 /* CoreData.framework */,
+				9AE44A221D7447660000CB17 /* Result.framework */,
+				9AE44A201D7447620000CB17 /* ReactiveCocoa.framework */,
 				9A3B15531D1D398300E14071 /* Result.framework */,
 				9A3B15511D1D397E00E14071 /* ReactiveCocoa.framework */,
 				9A3B154B1D1D390300E14071 /* CoreData.framework */,
@@ -224,7 +236,6 @@
 		9A3A77711BC96BD200ADFFE0 /* Supporting FIles */ = {
 			isa = PBXGroup;
 			children = (
-				9A39A65D1BC958E100FC86E1 /* Info.plist */,
 				9A39A6611BC958E100FC86E1 /* MantleData.h */,
 				9A55779F1C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m */,
 				9A2997FD1C510BF100801A30 /* NSManagedObjectContext+Additions.h */,
@@ -288,11 +299,20 @@
 			name = "Reactive Collection Types";
 			sourceTree = "<group>";
 		};
+		9AE44A261D7447870000CB17 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				9AE44A291D74483B0000CB17 /* Info.plist */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
 		9AFFA5031BC7CBEC00B63C58 = {
 			isa = PBXGroup;
 			children = (
-				9A39A61F1BC956AB00FC86E1 /* MantleData */,
-				9A0D9A771C76AB9A0013C976 /* MantleData-OSX */,
+				9A39A61F1BC956AB00FC86E1 /* Core */,
+				9AE44A261D7447870000CB17 /* iOS */,
+				9A0D9A771C76AB9A0013C976 /* macOS */,
 				9AA736C61CD0A0A900EE2C26 /* MantleDataTests */,
 				9AFFA50E1BC7CBEC00B63C58 /* Products */,
 				9A39A6201BC956BE00FC86E1 /* Frameworks */,
@@ -333,9 +353,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		9A0D9A751C76AB9A0013C976 /* MantleData-OSX */ = {
+		9A0D9A751C76AB9A0013C976 /* MantleData-macOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9A0D9A7D1C76AB9A0013C976 /* Build configuration list for PBXNativeTarget "MantleData-OSX" */;
+			buildConfigurationList = 9A0D9A7D1C76AB9A0013C976 /* Build configuration list for PBXNativeTarget "MantleData-macOS" */;
 			buildPhases = (
 				9A0D9A711C76AB9A0013C976 /* Sources */,
 				9A0D9A721C76AB9A0013C976 /* Frameworks */,
@@ -346,7 +366,7 @@
 			);
 			dependencies = (
 			);
-			name = "MantleData-OSX";
+			name = "MantleData-macOS";
 			productName = "MantleData-OSX";
 			productReference = 9A0D9A761C76AB9A0013C976 /* MantleData.framework */;
 			productType = "com.apple.product-type.framework";
@@ -426,7 +446,7 @@
 			projectRoot = "";
 			targets = (
 				9AFFA50C1BC7CBEC00B63C58 /* MantleData-iOS */,
-				9A0D9A751C76AB9A0013C976 /* MantleData-OSX */,
+				9A0D9A751C76AB9A0013C976 /* MantleData-macOS */,
 				9AA736C41CD0A0A900EE2C26 /* MantleDataTests */,
 			);
 		};
@@ -481,7 +501,6 @@
 				9A0D9A8D1C76ABD30013C976 /* CocoaBridgeable.swift in Sources */,
 				9A999FDB1CD64E3A009AA161 /* Editor.swift in Sources */,
 				9A0D9A8E1C76ABD30013C976 /* ManagedObjectContext+Extension.swift in Sources */,
-				9A7A7B241CE381E90030674B /* UIKit+Editable.swift in Sources */,
 				9A0D9A8F1C76ABD30013C976 /* ObjectQuery.swift in Sources */,
 				9A0D9A901C76ABD30013C976 /* ManagedObject+Extension.swift in Sources */,
 				9A0D9A971C76ABD30013C976 /* Assertions.swift in Sources */,
@@ -558,11 +577,16 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Checkouts/ReactiveCocoa/build/Debug",
+					"$(PROJECT_DIR)/Carthage/Checkouts/Result/build/Debug",
+				);
 				FRAMEWORK_VERSION = A;
-				INFOPLIST_FILE = "MantleData-OSX/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/macOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleData;
 				PRODUCT_NAME = MantleData;
 				SDKROOT = macosx;
@@ -579,12 +603,17 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Checkouts/ReactiveCocoa/build/Debug",
+					"$(PROJECT_DIR)/Carthage/Checkouts/Result/build/Debug",
+				);
 				FRAMEWORK_VERSION = A;
 				GCC_OPTIMIZATION_LEVEL = fast;
-				INFOPLIST_FILE = "MantleData-OSX/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/macOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleData;
 				PRODUCT_NAME = MantleData;
 				SDKROOT = macosx;
@@ -721,7 +750,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = "$(SRCROOT)/MantleData/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/iOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -742,7 +771,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = "$(SRCROOT)/MantleData/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/iOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -756,7 +785,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		9A0D9A7D1C76AB9A0013C976 /* Build configuration list for PBXNativeTarget "MantleData-OSX" */ = {
+		9A0D9A7D1C76AB9A0013C976 /* Build configuration list for PBXNativeTarget "MantleData-macOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				9A0D9A7B1C76AB9A0013C976 /* Debug */,

@@ -10,11 +10,11 @@ import Foundation
 
 #if os(OSX)
 	extension IndexPath {
-		public convenience init(forRow row: Int, inSection section: Int) {
-			self.init(forItem: row, inSection: section)
+		public init(row: Int, section: Int) {
+			self.init(item: row, section: section)
 		}
 
-		public convenience init(forSection section: Int) {
+		public init(section: Int) {
 			self.init(index: section)
 		}
 

@@ -97,7 +97,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 		}
 	}
 
-	@objc public func receive(_ sender: UIControl, forEvent: UIControlEvents) {
+	@objc public func receive() {
 		let targetValue = transform.targetToSource(targetGetter())
 
 		if _cache.value == targetValue {
