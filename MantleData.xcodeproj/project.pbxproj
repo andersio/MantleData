@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9A0A28081D21027800DE173E /* Adapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0A28071D21027800DE173E /* Adapter.swift */; };
-		9A0A28091D21027800DE173E /* Adapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0A28071D21027800DE173E /* Adapter.swift */; };
 		9A0D9A851C76ABD30013C976 /* ExistentialCollections+Private.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */; };
 		9A0D9A861C76ABD30013C976 /* ReactiveArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E31C510BAD00801A30 /* ReactiveArray.swift */; };
 		9A0D9A881C76ABD30013C976 /* SectionedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E51C510BAD00801A30 /* SectionedCollection.swift */; };
@@ -41,7 +39,6 @@
 		9A2D52C21D179CC900FEBC05 /* ManagedObjectID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */; };
 		9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */; };
 		9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */; };
-		9A39A66C1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65A1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift */; };
 		9A39A6701BC958E100FC86E1 /* ManagedObject+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */; };
 		9A39A6731BC958E100FC86E1 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6661BC958E100FC86E1 /* ObjectSet.swift */; };
@@ -55,8 +52,6 @@
 		9A5577A01C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m */; };
 		9A7A7B201CE381DB0030674B /* EditorPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B1F1CE381DB0030674B /* EditorPool.swift */; };
 		9A7A7B211CE381DB0030674B /* EditorPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B1F1CE381DB0030674B /* EditorPool.swift */; };
-		9A7A7B231CE381E90030674B /* UIKit+Editable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B221CE381E90030674B /* UIKit+Editable.swift */; };
-		9A7DD7301CE7209700161A78 /* CollectionViewAdapter+UIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7DD72F1CE7209700161A78 /* CollectionViewAdapter+UIKit.swift */; };
 		9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
 		9A999FDA1CD64E3A009AA161 /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A999FD91CD64E3A009AA161 /* Editor.swift */; };
 		9A999FDB1CD64E3A009AA161 /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A999FD91CD64E3A009AA161 /* Editor.swift */; };
@@ -77,6 +72,11 @@
 		9AE44A211D7447620000CB17 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A201D7447620000CB17 /* ReactiveCocoa.framework */; };
 		9AE44A231D7447660000CB17 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A221D7447660000CB17 /* Result.framework */; };
 		9AE44A251D74476C0000CB17 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A241D74476C0000CB17 /* CoreData.framework */; };
+		9AE44A4B1D74519D0000CB17 /* UICollectionViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE44A471D74519C0000CB17 /* UICollectionViewAdapter.swift */; };
+		9AE44A4C1D74519D0000CB17 /* UITableViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE44A481D74519C0000CB17 /* UITableViewAdapter.swift */; };
+		9AE44A4D1D74519D0000CB17 /* UIKit+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE44A491D74519C0000CB17 /* UIKit+Additions.swift */; };
+		9AE44A4E1D74519D0000CB17 /* UIKit+Editable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE44A4A1D74519C0000CB17 /* UIKit+Editable.swift */; };
+		9AE44A501D7451A80000CB17 /* NSTableViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE44A4F1D7451A80000CB17 /* NSTableViewAdapter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,7 +90,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		9A0A28071D21027800DE173E /* Adapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Adapter.swift; path = MantleData/Adapter.swift; sourceTree = "<group>"; };
 		9A0D9A761C76AB9A0013C976 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ExistentialCollections+Private.swift"; path = "MantleData/ExistentialCollections+Private.swift"; sourceTree = "<group>"; };
 		9A2997E31C510BAD00801A30 /* ReactiveArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveArray.swift; path = MantleData/ReactiveArray.swift; sourceTree = "<group>"; };
@@ -106,7 +105,6 @@
 		9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ManagedObjectID.swift; path = MantleData/ManagedObjectID.swift; sourceTree = "<group>"; };
 		9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveCocoa+Additions.swift"; path = "MantleData/ReactiveCocoa+Additions.swift"; sourceTree = "<group>"; };
 		9A39A6591BC958E100FC86E1 /* ViewModelMappingSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelMappingSet.swift; path = MantleData/ViewModelMappingSet.swift; sourceTree = "<group>"; };
-		9A39A65A1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "TableViewAdapter+UIKit.swift"; path = "MantleData/TableViewAdapter+UIKit.swift"; sourceTree = "<group>"; };
 		9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ManagedObject+Extension.swift"; path = "MantleData/ManagedObject+Extension.swift"; sourceTree = "<group>"; };
 		9A39A6611BC958E100FC86E1 /* MantleData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MantleData.h; path = MantleData/MantleData.h; sourceTree = "<group>"; };
 		9A39A6661BC958E100FC86E1 /* ObjectSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSet.swift; path = MantleData/ObjectSet.swift; sourceTree = "<group>"; };
@@ -118,8 +116,6 @@
 		9A511A3F1CDE47950098D30B /* ViewModelMappingSetSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelMappingSetSection.swift; path = MantleData/ViewModelMappingSetSection.swift; sourceTree = "<group>"; };
 		9A55779F1C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSManagedObjectContext+Additions.m"; path = "MantleData/NSManagedObjectContext+Additions.m"; sourceTree = "<group>"; };
 		9A7A7B1F1CE381DB0030674B /* EditorPool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = EditorPool.swift; path = MantleData/EditorPool.swift; sourceTree = "<group>"; };
-		9A7A7B221CE381E90030674B /* UIKit+Editable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKit+Editable.swift"; path = "MantleData/UIKit+Editable.swift"; sourceTree = "<group>"; };
-		9A7DD72F1CE7209700161A78 /* CollectionViewAdapter+UIKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "CollectionViewAdapter+UIKit.swift"; path = "MantleData/CollectionViewAdapter+UIKit.swift"; sourceTree = "<group>"; };
 		9A999FD91CD64E3A009AA161 /* Editor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Editor.swift; path = MantleData/Editor.swift; sourceTree = "<group>"; };
 		9AA736C51CD0A0A900EE2C26 /* MantleDataTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MantleDataTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AA736C71CD0A0A900EE2C26 /* ConflictResolvingSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictResolvingSpec.swift; sourceTree = "<group>"; };
@@ -136,6 +132,11 @@
 		9AE44A241D74476C0000CB17 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 		9AE44A291D74483B0000CB17 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = iOS/Info.plist; sourceTree = "<group>"; };
 		9AE44A2A1D7448440000CB17 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = macOS/Info.plist; sourceTree = SOURCE_ROOT; };
+		9AE44A471D74519C0000CB17 /* UICollectionViewAdapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = UICollectionViewAdapter.swift; path = iOS/UICollectionViewAdapter.swift; sourceTree = "<group>"; };
+		9AE44A481D74519C0000CB17 /* UITableViewAdapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = UITableViewAdapter.swift; path = iOS/UITableViewAdapter.swift; sourceTree = "<group>"; };
+		9AE44A491D74519C0000CB17 /* UIKit+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKit+Additions.swift"; path = "iOS/UIKit+Additions.swift"; sourceTree = "<group>"; };
+		9AE44A4A1D74519C0000CB17 /* UIKit+Editable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKit+Editable.swift"; path = "iOS/UIKit+Editable.swift"; sourceTree = "<group>"; };
+		9AE44A4F1D7451A80000CB17 /* NSTableViewAdapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NSTableViewAdapter.swift; path = macOS/NSTableViewAdapter.swift; sourceTree = SOURCE_ROOT; };
 		9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -174,6 +175,7 @@
 		9A0D9A771C76AB9A0013C976 /* macOS */ = {
 			isa = PBXGroup;
 			children = (
+				9AE44A4F1D7451A80000CB17 /* NSTableViewAdapter.swift */,
 				9AE44A2A1D7448440000CB17 /* Info.plist */,
 			);
 			name = macOS;
@@ -187,7 +189,6 @@
 				9ACB1FA41CDC645F0010555B /* Reactive Collection Types */,
 				9A3A776C1BC96A1700ADFFE0 /* Objects */,
 				9A7A7B251CE382730030674B /* Editor */,
-				9A7A7B261CE3828F0030674B /* Platform Specific Bindings */,
 				9A3A776D1BC96AB900ADFFE0 /* Utilities */,
 				9A3A77711BC96BD200ADFFE0 /* Supporting FIles */,
 			);
@@ -264,17 +265,6 @@
 			name = Editor;
 			sourceTree = "<group>";
 		};
-		9A7A7B261CE3828F0030674B /* Platform Specific Bindings */ = {
-			isa = PBXGroup;
-			children = (
-				9A7A7B221CE381E90030674B /* UIKit+Editable.swift */,
-				9A39A65A1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift */,
-				9A7DD72F1CE7209700161A78 /* CollectionViewAdapter+UIKit.swift */,
-				9A0A28071D21027800DE173E /* Adapter.swift */,
-			);
-			name = "Platform Specific Bindings";
-			sourceTree = "<group>";
-		};
 		9AA736C61CD0A0A900EE2C26 /* MantleDataTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -302,6 +292,10 @@
 		9AE44A261D7447870000CB17 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
+				9AE44A471D74519C0000CB17 /* UICollectionViewAdapter.swift */,
+				9AE44A481D74519C0000CB17 /* UITableViewAdapter.swift */,
+				9AE44A491D74519C0000CB17 /* UIKit+Additions.swift */,
+				9AE44A4A1D74519C0000CB17 /* UIKit+Editable.swift */,
 				9AE44A291D74483B0000CB17 /* Info.plist */,
 			);
 			name = iOS;
@@ -489,9 +483,9 @@
 				9A0D9A861C76ABD30013C976 /* ReactiveArray.swift in Sources */,
 				9A511A411CDE47950098D30B /* ViewModelMappingSetSection.swift in Sources */,
 				9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */,
+				9AE44A501D7451A80000CB17 /* NSTableViewAdapter.swift in Sources */,
 				9A0D9A881C76ABD30013C976 /* SectionedCollection.swift in Sources */,
 				9A0D9A891C76ABD30013C976 /* ObjectSet.swift in Sources */,
-				9A0A28091D21027800DE173E /* Adapter.swift in Sources */,
 				9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
 				9ACB1FB41CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */,
 				9A0D9A8A1C76ABD30013C976 /* ViewModel.swift in Sources */,
@@ -525,11 +519,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9A39A66C1BC958E100FC86E1 /* TableViewAdapter+UIKit.swift in Sources */,
+				9AE44A4D1D74519D0000CB17 /* UIKit+Additions.swift in Sources */,
 				9A39A6701BC958E100FC86E1 /* ManagedObject+Extension.swift in Sources */,
 				9A2997FB1C510BE900801A30 /* Base.swift in Sources */,
 				9AD114831D1CF1210067F20C /* ExistentialCollections.swift in Sources */,
-				9A0A28081D21027800DE173E /* Adapter.swift in Sources */,
 				9A2D52C11D179CC900FEBC05 /* ManagedObjectID.swift in Sources */,
 				9ACB1FB11CDC698A0010555B /* Foundation+Extension.swift in Sources */,
 				9A2997E71C510BAD00801A30 /* ExistentialCollections+Private.swift in Sources */,
@@ -539,17 +532,18 @@
 				9A2997E81C510BAD00801A30 /* ReactiveArray.swift in Sources */,
 				9A2997F31C510BD100801A30 /* ManagedObjectContext+Extension.swift in Sources */,
 				9A7A7B201CE381DB0030674B /* EditorPool.swift in Sources */,
-				9A7DD7301CE7209700161A78 /* CollectionViewAdapter+UIKit.swift in Sources */,
+				9AE44A4C1D74519D0000CB17 /* UITableViewAdapter.swift in Sources */,
 				9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */,
 				9A141A3E1C495E500049BEC9 /* ViewModelMappingSet.swift in Sources */,
 				9A39A6781BC958E100FC86E1 /* ObjectSet.swift in Sources */,
 				9A511A3D1CDE47850098D30B /* ObjectSetPrefetcher.swift in Sources */,
 				9A2997F61C510BDB00801A30 /* NSObject+Extension.swift in Sources */,
+				9AE44A4E1D74519D0000CB17 /* UIKit+Editable.swift in Sources */,
 				9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
 				9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */,
 				9A2997ED1C510BB700801A30 /* StdlibCollections+PrivateExtension.swift in Sources */,
 				9A511A401CDE47950098D30B /* ViewModelMappingSetSection.swift in Sources */,
-				9A7A7B231CE381E90030674B /* UIKit+Editable.swift in Sources */,
+				9AE44A4B1D74519D0000CB17 /* UICollectionViewAdapter.swift in Sources */,
 				9ACB1FB31CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */,
 				9A2997EA1C510BAD00801A30 /* SectionedCollection.swift in Sources */,
 				9A2997F41C510BD100801A30 /* ObjectQuery.swift in Sources */,

@@ -18,13 +18,13 @@ extension UISwitch: Editable {
 
 	public func subscribeToChanges<SourceValue, TargetValue>(with editor: Editor<SourceValue, TargetValue>) {
 		addTarget(editor,
-		          action: #selector(Editor<SourceValue, TargetValue>.receive(_:forEvent:)),
+		          action: #selector(Editor<SourceValue, TargetValue>.receive),
 		          for: .valueChanged)
 	}
 
 	public func unsubscribeToChanges<SourceValue, TargetValue>(with editor: Editor<SourceValue, TargetValue>) {
 		removeTarget(editor,
-		             action: #selector(Editor<SourceValue, TargetValue>.receive(_:forEvent:)),
+		             action: #selector(Editor<SourceValue, TargetValue>.receive),
 		             for: .valueChanged)
 	}
 }
