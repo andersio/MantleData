@@ -16,6 +16,7 @@ public struct TableViewAdapterConfiguration<V: ViewModel> {
 	public typealias SectionHeaderConfigurationBlock = (_ cell: NSView, _ title: String?) -> Void
 
 	public var allowSectionHeaderSelection = false
+	public var hidesSectionHeader = false
 
 	public var shouldReloadRowsForUpdatedObjects = false
 	public var rowAnimation: NSTableViewAnimationOptions = .slideUp
@@ -50,6 +51,10 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 	private let configuration: TableViewAdapterConfiguration<V>
 	private var flattenedRanges: [Range<Int>] = []
 
+	private var offset: Int {
+		return configuration.hidesSectionHeader ? 0 : 1
+	}
+
 	public init(set: ViewModelMappingSet<V>, configuration: TableViewAdapterConfiguration<V>) {
 		self.set = set
 		self.configuration = configuration
@@ -65,7 +70,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 		flattenedRanges.removeAll(keepingCapacity: true)
 		for sectionIndex in 0 ..< set.sectionCount {
 			let startIndex = flattenedRanges.last?.upperBound ?? 0
-			let range = Range(startIndex ... startIndex + set.rowCount(for: sectionIndex))
+			let range = Range(startIndex ... startIndex + set.rowCount(for: sectionIndex) + (configuration.hidesSectionHeader ? -1 : 0))
 			flattenedRanges.append(range)
 		}
 
@@ -74,10 +79,10 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 
 	private func indexPath(fromFlattened index: Int) -> IndexPath {
 		for (sectionIndex, range) in flattenedRanges.enumerated() {
-			if range.lowerBound == index {
+			if !configuration.hidesSectionHeader && range.lowerBound == index {
 				return IndexPath(section: sectionIndex)
 			} else if range.contains(index) {
-				return IndexPath(row: index - range.lowerBound - 1,
+				return IndexPath(row: index - range.lowerBound - offset,
 				                 section: sectionIndex)
 			}
 		}
@@ -86,7 +91,11 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 	}
 
 	private func flattenedIndex(fromSectioned index: IndexPath) -> Int {
-		return flattenedRanges[index.section].lowerBound + index.row + 1
+		return flattenedIndex(fromSectioned: index, for: flattenedRanges)
+	}
+
+	private func flattenedIndex(fromSectioned index: IndexPath, for ranges: [Range<Int>]) -> Int {
+		return ranges[index.section].lowerBound + index.row + offset
 	}
 
 	public func bind(tableView: NSTableView) {
@@ -122,12 +131,12 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 					}
 
 					if let indexPaths = changes.deletedRows {
-						let flattenedSet = IndexSet(indexPaths.map(self.flattenedIndex(fromSectioned:)))
+						let flattenedSet = IndexSet(indexPaths.map { self.flattenedIndex(fromSectioned: $0, for: previousRanges) })
 						tableView?.removeRows(at: flattenedSet, withAnimation: self.configuration.rowAnimation)
 					}
 
 					if let indexSet = changes.insertedSections {
-						let flattenedSet = IndexSet(indexSet.map { previousRanges[$0].lowerBound })
+						let flattenedSet = IndexSet(indexSet.map { self.flattenedRanges[$0].lowerBound })
 						tableView?.insertRows(at: flattenedSet, withAnimation: self.configuration.rowAnimation)
 					}
 
@@ -150,13 +159,13 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 	}
 
 	public func isGroupRow(at index: Int) -> Bool {
-		return indexPath(fromFlattened: index).count == 1
+		return !configuration.hidesSectionHeader || indexPath(fromFlattened: index).count == 1
 	}
 
 	// DELEGATE: NSTableViewDataSource
 
 	public func numberOfRows(in tableView: NSTableView) -> Int {
-		return set.sectionCount + (0 ..< set.sectionCount).reduce(0) { $0 + set.rowCount(for: $1) }
+		return (configuration.hidesSectionHeader ? 0 : set.sectionCount) + (0 ..< set.sectionCount).reduce(0) { $0 + set.rowCount(for: $1) }
 	}
 
 	// DELEGATE: NSTableViewDelegate
@@ -200,6 +209,6 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 	}
 
 	public func tableView(_ tableView: NSTableView, shouldSelectRow index: Int) -> Bool {
-		return !configuration.allowSectionHeaderSelection && isGroupRow(at: index)
+		return !isGroupRow(at: index) || configuration.allowSectionHeaderSelection
 	}
 }
