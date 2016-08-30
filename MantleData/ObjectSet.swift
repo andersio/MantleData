@@ -585,12 +585,13 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		}
 	}
 
-	private func mergeChanges(inserted insertedObjects: [SectionKey: Set<NSManagedObjectID>]? = nil,
-														deleted deletedObjects: [[Int]]? = nil,
-														updated updatedObjects: [Set<NSManagedObjectID>]? = nil,
-														sortOrderAffecting sortOrderAffectingObjects: [Set<Int>]? = nil,
-														sectionChanged sectionChangedObjects: [Set<Int>]? = nil)
-														-> SectionedCollectionChanges? {
+	private func mergeChanges(
+		inserted insertedObjects: [SectionKey: Set<NSManagedObjectID>]? = nil,
+		deleted deletedObjects: [[Int]]? = nil,
+		updated updatedObjects: [Set<NSManagedObjectID>]? = nil,
+		sortOrderAffecting sortOrderAffectingObjects: [Set<Int>]? = nil,
+		sectionChanged sectionChangedObjects: [Set<Int>]? = nil
+	) -> SectionedCollectionChanges? {
 		let insertedObjects = insertedObjects ?? [:]
 		let sectionChangedObjects = sectionChangedObjects ?? sections.indices.map { _ in Set<Int>() }
 		let deletedObjects = deletedObjects ?? sections.indices.map { _ in [Int]() }
@@ -633,7 +634,6 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		deletedObjects.enumerated().forEach { sectionIndex, indices in
 			indices.forEach { objectIndex in
 				deletingIndexPaths.orderedInsert(objectIndex, toCollectionAt: sectionIndex, ascending: false)
-				indexPathsOfDeletedRows.append(IndexPath(row: objectIndex, section: sectionIndex))
 			}
 		}
 
@@ -668,11 +668,17 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			}
 		}
 
-		for index in sections.indices.reversed() {
-			if sections[index].count == 0 && inPlaceMovingObjects[index].count == 0 {
-				sections.remove(at: index)
-				indiceOfDeletedSections.insert(index)
-				deletingIndexPaths.remove(at: index)
+		for sectionIndex in sections.indices.reversed() {
+			if sections[sectionIndex].count == 0 && inPlaceMovingObjects[sectionIndex].count == 0 {
+				sections.remove(at: sectionIndex)
+				indiceOfDeletedSections.insert(sectionIndex)
+				deletingIndexPaths.remove(at: sectionIndex)
+			}
+		}
+
+		for (sectionIndex, rowIndice) in deletingIndexPaths.enumerated() {
+			for index in rowIndice {
+				indexPathsOfDeletedRows.append(IndexPath(row: index, section: sectionIndex))
 			}
 		}
 
