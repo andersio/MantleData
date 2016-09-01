@@ -77,6 +77,7 @@
 		9AE44A4D1D74519D0000CB17 /* UIKit+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE44A491D74519C0000CB17 /* UIKit+Additions.swift */; };
 		9AE44A4E1D74519D0000CB17 /* UIKit+Editable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE44A4A1D74519C0000CB17 /* UIKit+Editable.swift */; };
 		9AE44A501D7451A80000CB17 /* NSTableViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE44A4F1D7451A80000CB17 /* NSTableViewAdapter.swift */; };
+		9AE44A791D775CC80000CB17 /* NSCollectionViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AE44A781D775CC80000CB17 /* NSCollectionViewAdapter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -137,6 +138,7 @@
 		9AE44A491D74519C0000CB17 /* UIKit+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKit+Additions.swift"; path = "iOS/UIKit+Additions.swift"; sourceTree = "<group>"; };
 		9AE44A4A1D74519C0000CB17 /* UIKit+Editable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIKit+Editable.swift"; path = "iOS/UIKit+Editable.swift"; sourceTree = "<group>"; };
 		9AE44A4F1D7451A80000CB17 /* NSTableViewAdapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NSTableViewAdapter.swift; path = macOS/NSTableViewAdapter.swift; sourceTree = SOURCE_ROOT; };
+		9AE44A781D775CC80000CB17 /* NSCollectionViewAdapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NSCollectionViewAdapter.swift; path = macOS/NSCollectionViewAdapter.swift; sourceTree = SOURCE_ROOT; };
 		9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MantleData.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -175,6 +177,7 @@
 		9A0D9A771C76AB9A0013C976 /* macOS */ = {
 			isa = PBXGroup;
 			children = (
+				9AE44A781D775CC80000CB17 /* NSCollectionViewAdapter.swift */,
 				9AE44A4F1D7451A80000CB17 /* NSTableViewAdapter.swift */,
 				9AE44A2A1D7448440000CB17 /* Info.plist */,
 			);
@@ -485,6 +488,7 @@
 				9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */,
 				9AE44A501D7451A80000CB17 /* NSTableViewAdapter.swift in Sources */,
 				9A0D9A881C76ABD30013C976 /* SectionedCollection.swift in Sources */,
+				9AE44A791D775CC80000CB17 /* NSCollectionViewAdapter.swift in Sources */,
 				9A0D9A891C76ABD30013C976 /* ObjectSet.swift in Sources */,
 				9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
 				9ACB1FB41CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */,
