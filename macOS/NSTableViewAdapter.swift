@@ -9,55 +9,29 @@
 import Cocoa
 import ReactiveCocoa
 
-private let sectionHeaderViewIdentifier = "_TableViewSectionHeader"
 
-public struct TableViewAdapterConfiguration<V: ViewModel> {
-	public typealias CellConfigurationBlock = (_ cell: NSView, _ viewModel: V) -> Void
-	public typealias SectionHeaderConfigurationBlock = (_ cell: NSView, _ title: String?) -> Void
-
-	public var allowSectionHeaderSelection = false
+public struct NSTableViewAdapterConfig {
 	public var hidesSectionHeader = false
-
-	public var shouldReloadRowsForUpdatedObjects = false
 	public var rowAnimation: NSTableViewAnimationOptions = .slideUp
-
-	fileprivate var columnCellConfigurators: [String: (viewIdentifier: String, block: CellConfigurationBlock, nib: NSNib?)] = [:]
-	fileprivate var sectionHeaderConfigurator: (block: SectionHeaderConfigurationBlock, nib: NSNib)?
-
-	fileprivate var sectionHeightBlock: ((Int) -> CGFloat)?
-	fileprivate var rowHeightBlock: ((IndexPath) -> CGFloat)?
-
-	public init() { }
-
-	public mutating func registerSectionHeader(nib: NSNib, configurator: SectionHeaderConfigurationBlock) {
-		sectionHeaderConfigurator = (block: configurator, nib: nib)
-	}
-
-	public mutating func registerColumn(columnIdentifier: String, nib: NSNib? = nil, configurator: CellConfigurationBlock) {
-		columnCellConfigurators[columnIdentifier] = (columnIdentifier, configurator, nib)
-	}
-
-	public mutating func registerSectionHeightBlock(block: ((Int) -> CGFloat)? = nil) {
-		sectionHeightBlock = block
-	}
-
-	public mutating func registerRowHeightBlock(block: ((IndexPath) -> CGFloat)? = nil) {
-		rowHeightBlock = block
-	}
 }
 
-final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSource, NSTableViewDelegate {
-	public let set: ViewModelMappingSet<V>
-	private let configuration: TableViewAdapterConfiguration<V>
+public protocol NSTableViewAdapterProvider: class {
+}
+
+final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapterProvider>: NSObject, NSTableViewDataSource {
+	private let set: ViewModelMappingSet<V>
+	private unowned let provider: Provider
+	private let config: NSTableViewAdapterConfig
 	private var flattenedRanges: [Range<Int>] = []
 
 	private var offset: Int {
-		return configuration.hidesSectionHeader ? 0 : 1
+		return config.hidesSectionHeader ? 0 : 1
 	}
 
-	public init(set: ViewModelMappingSet<V>, configuration: TableViewAdapterConfiguration<V>) {
+	private init(set: ViewModelMappingSet<V>, provider: Provider, config: NSTableViewAdapterConfig) {
 		self.set = set
-		self.configuration = configuration
+		self.provider = provider
+		self.config = config
 
 		super.init()
 		computeFlattenedRanges()
@@ -70,7 +44,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 		flattenedRanges.removeAll(keepingCapacity: true)
 		for sectionIndex in 0 ..< set.sectionCount {
 			let startIndex = flattenedRanges.last?.upperBound ?? 0
-			let range = Range(startIndex ... startIndex + set.rowCount(for: sectionIndex) + (configuration.hidesSectionHeader ? -1 : 0))
+			let range = Range(startIndex ... startIndex + set.rowCount(for: sectionIndex) + (config.hidesSectionHeader ? -1 : 0))
 			flattenedRanges.append(range)
 		}
 
@@ -79,7 +53,7 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 
 	private func indexPath(fromFlattened index: Int) -> IndexPath {
 		for (sectionIndex, range) in flattenedRanges.enumerated() {
-			if !configuration.hidesSectionHeader && range.lowerBound == index {
+			if !config.hidesSectionHeader && range.lowerBound == index {
 				return IndexPath(section: sectionIndex)
 			} else if range.contains(index) {
 				return IndexPath(row: index - range.lowerBound - offset,
@@ -98,117 +72,74 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, NSTableViewDataSour
 		return ranges[index.section].lowerBound + index.row + offset
 	}
 
-	public func bind(tableView: NSTableView) {
-		tableView.dataSource = self
-		tableView.delegate = self
+	public func hasGroupRow(at index: Int) -> Bool {
+		return !config.hidesSectionHeader && flattenedRanges.contains { $0.lowerBound == index }
+	}
 
-		if let headerConfig = configuration.sectionHeaderConfigurator {
-			tableView.register(headerConfig.nib, forIdentifier: sectionHeaderViewIdentifier)
-		}
+	public func numberOfRows(in tableView: NSTableView) -> Int {
+		return (config.hidesSectionHeader ? 0 : set.sectionCount)
+			+ (0 ..< set.sectionCount).reduce(0) { $0 + set.rowCount(for: $1) }
+	}
 
-		for (identifier, cellConfig) in configuration.columnCellConfigurators {
-			if let nib = cellConfig.nib {
-				tableView.register(nib, forIdentifier: identifier)
-			}
-		}
+	public func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
+		return nil
+	}
+
+	@discardableResult
+	public static func bind(
+		_ tableView: NSTableView,
+		with set: ViewModelMappingSet<V>,
+		provider: Provider,
+		config: NSTableViewAdapterConfig
+	) -> NSTableViewAdapter<V, Provider> {
+		let adapter = NSTableViewAdapter(set: set, provider: provider, config: config)
+		tableView.dataSource = adapter
 
 		set.eventsProducer
-			.take(during: self.rac_lifetime)
-			.startWithNext { [unowned self, weak tableView] in
+			.take(during: tableView.rac_lifetime)
+			.startWithNext { [unowned tableView] in
 				switch($0) {
 				case .reloaded:
-					self.computeFlattenedRanges()
-					tableView?.reloadData()
+					adapter.computeFlattenedRanges()
+					tableView.reloadData()
 
 				case let .updated(changes):
-					let previousRanges = self.computeFlattenedRanges()
+					let previousRanges = adapter.computeFlattenedRanges()
 
-					tableView?.beginUpdates()
+					tableView.beginUpdates()
 
 					if let indexSet = changes.deletedSections {
 						let flattenedSet = IndexSet(indexSet.map { previousRanges[$0].lowerBound })
-						tableView?.removeRows(at: flattenedSet, withAnimation: self.configuration.rowAnimation)
+						tableView.removeRows(at: flattenedSet, withAnimation: config.rowAnimation)
 					}
 
 					if let indexPaths = changes.deletedRows {
-						let flattenedSet = IndexSet(indexPaths.map { self.flattenedIndex(fromSectioned: $0, for: previousRanges) })
-						tableView?.removeRows(at: flattenedSet, withAnimation: self.configuration.rowAnimation)
+						let flattenedSet = IndexSet(indexPaths.map { adapter.flattenedIndex(fromSectioned: $0, for: previousRanges) })
+						tableView.removeRows(at: flattenedSet, withAnimation: config.rowAnimation)
 					}
 
 					if let indexSet = changes.insertedSections {
-						let flattenedSet = IndexSet(indexSet.map { self.flattenedRanges[$0].lowerBound })
-						tableView?.insertRows(at: flattenedSet, withAnimation: self.configuration.rowAnimation)
+						let flattenedSet = IndexSet(indexSet.map { adapter.flattenedRanges[$0].lowerBound })
+						tableView.insertRows(at: flattenedSet, withAnimation: config.rowAnimation)
 					}
 
 					if let indexPathPairs = changes.movedRows {
 						for (old, new) in indexPathPairs {
-							tableView?.moveRow(at: self.flattenedIndex(fromSectioned: old),
-							                   to: self.flattenedIndex(fromSectioned: new))
+							tableView.moveRow(at: adapter.flattenedIndex(fromSectioned: old),
+							                   to: adapter.flattenedIndex(fromSectioned: new))
 						}
 					}
 
 					if let indexPaths = changes.insertedRows {
-						let flattenedSet = IndexSet(indexPaths.map(self.flattenedIndex(fromSectioned:)))
-						tableView?.insertRows(at: flattenedSet, withAnimation: self.configuration.rowAnimation)
+						let flattenedSet = IndexSet(indexPaths.map(adapter.flattenedIndex(fromSectioned:)))
+						tableView.insertRows(at: flattenedSet, withAnimation: config.rowAnimation)
 					}
 
-					tableView?.endUpdates()
+					tableView.endUpdates()
 				}
 		}
 		try! set.fetch()
-	}
 
-	public func isGroupRow(at index: Int) -> Bool {
-		return !configuration.hidesSectionHeader || indexPath(fromFlattened: index).count == 1
-	}
-
-	// DELEGATE: NSTableViewDataSource
-
-	public func numberOfRows(in tableView: NSTableView) -> Int {
-		return (configuration.hidesSectionHeader ? 0 : set.sectionCount) + (0 ..< set.sectionCount).reduce(0) { $0 + set.rowCount(for: $1) }
-	}
-
-	// DELEGATE: NSTableViewDelegate
-
-	public func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
-		let indexPath = self.indexPath(fromFlattened: row)
-		if indexPath.count == 1 {
-			return configuration.sectionHeightBlock?(indexPath.section) ?? tableView.rowHeight
-		} else {
-			return configuration.rowHeightBlock?(indexPath) ?? tableView.rowHeight
-		}
-	}
-
-	public func tableView(_ tableView: NSTableView, isGroupRow index: Int) -> Bool {
-		return isGroupRow(at: index)
-	}
-
-	public func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-		let indexPath = self.indexPath(fromFlattened: row)
-
-		if indexPath.count == 1, let headerConfig = configuration.sectionHeaderConfigurator {
-			guard let view = tableView.make(withIdentifier: sectionHeaderViewIdentifier, owner: tableView) else {
-				preconditionFailure("The view identifier must be pre-registered via `NSTableView.registerNib`.")
-			}
-
-			headerConfig.block(view, set.sectionName(for: indexPath.section))
-			return view
-		}
-
-		if let columnIdentifier = tableColumn?.identifier,
-		   let columnConfig = configuration.columnCellConfigurators[columnIdentifier] {
-			guard let view = tableView.make(withIdentifier: columnConfig.viewIdentifier, owner: tableView) else {
-				preconditionFailure("The view identifier must be pre-registered via `NSTableView.registerNib`.")
-			}
-
-			columnConfig.block(view, set[indexPath])
-			return view
-		}
-
-		return nil
-	}
-
-	public func tableView(_ tableView: NSTableView, shouldSelectRow index: Int) -> Bool {
-		return !isGroupRow(at: index) || configuration.allowSectionHeaderSelection
+		return adapter
 	}
 }

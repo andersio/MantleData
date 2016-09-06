@@ -9,26 +9,85 @@
 import Cocoa
 import ReactiveCocoa
 
-public struct NSCollectionViewAdapterConfig<V: ViewModel> {
-	public var itemIdentifier: String
-	public var headerIdentifier: String?
-	public var footerIdentifier: String?
-	public var gapIdentifier: String?
+public enum NSCollectionViewSupplementaryViewKind: RawRepresentable {
+	case header
+	case footer
+	case gap
 
-	public var itemConfigurator: (NSCollectionViewItem, V) -> Void
-	public var headerConfigurator: ((NSView, Int, String?) -> Void)?
-	public var footerConfigurator: ((NSView, Int, String?) -> Void)?
-	public var gapConfigurator: ((NSView, Int) -> Void)?
+	public var rawValue: String {
+		switch self {
+		case .header:
+			return NSCollectionElementKindSectionHeader
+		case .footer:
+			return NSCollectionElementKindSectionFooter
+		case .gap:
+			return NSCollectionElementKindInterItemGapIndicator
+		}
+	}
 
-	public init(itemIdentifier: String, itemConfigurator: @escaping (NSCollectionViewItem, V) -> Void) {
-		self.itemIdentifier = itemIdentifier
-		self.itemConfigurator = itemConfigurator
+	public init(rawValue: String) {
+		switch rawValue {
+		case NSCollectionElementKindSectionHeader:
+			self = .header
+		case NSCollectionElementKindSectionFooter:
+			self = .footer
+		case NSCollectionElementKindInterItemGapIndicator:
+			self = .gap
+		default:
+			fatalError()
+		}
 	}
 }
 
-final public class NSCollectionViewAdapter<V: ViewModel>: NSObject, NSCollectionViewDataSource {
-	public static func bind(_ collectionView: NSCollectionView, with set: ViewModelMappingSet<V>, configuration: NSCollectionViewAdapterConfig<V>) {
-		let adapter = NSCollectionViewAdapter(set: set, configuration: configuration)
+public struct NSCollectionViewAdapterConfig {
+	// Workaround: Empty struct somehow crashes Swift runtime.
+	public var placeholder = true
+	public init() {}
+}
+
+public protocol NSCollectionViewAdapterProvider: class {
+	func item(at indexPath: IndexPath) -> NSCollectionViewItem
+	func supplementaryView(of kind: NSCollectionViewSupplementaryViewKind, at indexPath: IndexPath) -> NSView
+}
+
+final public class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionViewAdapterProvider>: NSObject, NSCollectionViewDataSource {
+	private let set: ViewModelMappingSet<V>
+	private unowned let provider: Provider
+	private let config: NSCollectionViewAdapterConfig
+
+	public init(set: ViewModelMappingSet<V>, provider: Provider, config: NSCollectionViewAdapterConfig) {
+		self.set = set
+		self.provider = provider
+		self.config = config
+
+		super.init()
+	}
+
+	public func numberOfSections(in collectionView: NSCollectionView) -> Int {
+		return set.sectionCount
+	}
+
+	public func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int {
+		return set.rowCount(for: section)
+	}
+
+	public func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt indexPath: IndexPath) -> NSCollectionViewItem {
+		return provider.item(at: indexPath)
+	}
+
+	public func collectionView(_ collectionView: NSCollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> NSView {
+		return provider.supplementaryView(of: NSCollectionViewSupplementaryViewKind(rawValue: kind),
+		                                  at: indexPath)
+	}
+
+	@discardableResult
+	public static func bind(
+		_ collectionView: NSCollectionView,
+		with set: ViewModelMappingSet<V>,
+		provider: Provider,
+		config: NSCollectionViewAdapterConfig
+	) -> NSCollectionViewAdapter<V, Provider> {
+		let adapter = NSCollectionViewAdapter<V, Provider>(set: set, provider: provider, config: config)
 		collectionView.dataSource = adapter
 
 		collectionView.rac_lifetime.ended.observeCompleted { _ = adapter }
@@ -65,66 +124,11 @@ final public class NSCollectionViewAdapter<V: ViewModel>: NSObject, NSCollection
 						}
 					}
 
-					collectionView.performBatchUpdates(updater, completionHandler: nil)
+					collectionView.animator().performBatchUpdates(updater, completionHandler: nil)
 				}
 		}
 		
 		try! set.fetch()
-	}
-
-	public let set: ViewModelMappingSet<V>
-	private let configuration: NSCollectionViewAdapterConfig<V>
-
-	private init(set: ViewModelMappingSet<V>, configuration: NSCollectionViewAdapterConfig<V>) {
-		self.set = set
-		self.configuration = configuration
-		super.init()
-	}
-
-	public func numberOfSections(in collectionView: NSCollectionView) -> Int {
-		return set.sectionCount
-	}
-
-	public func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int {
-		return set.rowCount(for: section)
-	}
-
-	public func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt indexPath: IndexPath) -> NSCollectionViewItem {
-		let item = collectionView.makeItem(withIdentifier: configuration.itemIdentifier,
-		                                   for: indexPath)
-		configuration.itemConfigurator(item, set[indexPath])
-		return item
-	}
-
-	public func collectionView(_ collectionView: NSCollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> NSView {
-		switch kind {
-		case NSCollectionElementKindSectionHeader:
-			let view = collectionView.makeSupplementaryView(ofKind: NSCollectionElementKindSectionHeader,
-			                                            withIdentifier: configuration.headerIdentifier!,
-			                                            for: indexPath)
-			configuration.headerConfigurator?(view,
-			                                  indexPath.section,
-			                                  set.sectionName(for: indexPath.section))
-			return view
-
-		case NSCollectionElementKindSectionFooter:
-			let view = collectionView.makeSupplementaryView(ofKind: NSCollectionElementKindSectionFooter,
-			                                                withIdentifier: configuration.footerIdentifier!,
-			                                                for: indexPath)
-			configuration.footerConfigurator?(view,
-			                                  indexPath.section,
-			                                  set.sectionName(for: indexPath.section))
-			return view
-
-		case NSCollectionElementKindInterItemGapIndicator:
-			let view = collectionView.makeSupplementaryView(ofKind: NSCollectionElementKindInterItemGapIndicator,
-			                                                withIdentifier: configuration.gapIdentifier!,
-			                                                for: indexPath)
-			configuration.gapConfigurator?(view, indexPath.section)
-			return view
-
-		default:
-			fatalError()
-		}
+		return adapter
 	}
 }

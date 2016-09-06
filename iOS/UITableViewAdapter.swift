@@ -9,103 +9,55 @@
 import UIKit
 import ReactiveCocoa
 
-public enum AdapterSectionRegistration {
-	case allSections
-	case section(at: Int)
+public protocol UITableViewAdapterProvider: class {
+	func cellForRow(at indexPath: IndexPath) -> UITableViewCell
 }
 
-final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSource {
+public struct UITableViewAdapterConfig {
+	public var insertingAnimation: UITableViewRowAnimation = .automatic
+	public var deletingAnimation: UITableViewRowAnimation = .automatic
+	public var updatingAnimation: UITableViewRowAnimation = .automatic
+}
+
+final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapterProvider>: NSObject, UITableViewDataSource {
 	private let set: ViewModelMappingSet<V>
+	private let provider: Provider
 
-	private var cellConfigurators: [(reuseIdentifier: String, configurator: @escaping (_ cell: UITableViewCell, _ viewModel: V) -> Void)?]
-	private var isUniform = false
-
-	private var shouldReloadRowsForUpdatedObjects = false
-
-	private var insertingAnimation: UITableViewRowAnimation = .automatic
-	private var deletingAnimation: UITableViewRowAnimation = .automatic
-	private var updatingAnimation: UITableViewRowAnimation = .automatic
-
-	private var sectionNameMapper: (@escaping (_ position: Int, _ persistedName: String?) -> String?)?
-
-	private var isEmpty: Bool = true
-	private var emptiedObserver: (@escaping () -> Void)?
-	private var unemptiedObserver: (@escaping () -> Void)?
-	private var insertionHandler: (@escaping (IndexPath) -> Void)?
-	private var deletionHandler: (@escaping (IndexPath) -> Void)?
-	private var editabilityHandler: (@escaping (IndexPath) -> Bool)?
-
-	public init(set: ViewModelMappingSet<V>) {
+	fileprivate init(set: ViewModelMappingSet<V>, provider: Provider) {
 		self.set = set
-		self.cellConfigurators = []
+		self.provider = provider
 		super.init()
 	}
 
-	private func ensureArraySize(for index: Int) {
-		if cellConfigurators.endIndex <= index {
-			cellConfigurators.append(contentsOf: Array(repeating: nil, count: index - cellConfigurators.startIndex))
-		}
+	public func numberOfSections(in tableView: UITableView) -> Int {
+		return set.sectionCount
 	}
 
-	public func register<Cell: UITableViewCell>(for type: AdapterSectionRegistration,
-	                     with reuseIdentifier: String,
-											 class: Cell.Type,
-											 applying cellConfigurator: @escaping (_ cell: Cell, _ viewModel: V) -> Void) -> Self {
-		switch type {
-		case let .section(index):
-			assert(index >= 0, "section index must be greater than or equal to zero.")
-			ensureArraySize(for: index)
-			cellConfigurators[index] = (reuseIdentifier, { cellConfigurator($0 as! Cell, $1) })
-
-		case .allSections:
-			isUniform = true
-			cellConfigurators = []
-			cellConfigurators.append((reuseIdentifier, { cellConfigurator($0 as! Cell, $1) }))
-		}
-
-		return self
+	public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+		return set.sectionName(for: section)
 	}
 
-	public func setAnimation(inserting insertingAnimation: UITableViewRowAnimation? = nil,
-	                         deleting deletingAnimation: UITableViewRowAnimation? = nil,
-													 updating updatingAnimation: UITableViewRowAnimation? = nil)
-													 -> Self {
-		self.insertingAnimation = insertingAnimation ?? self.insertingAnimation
-		self.deletingAnimation = deletingAnimation ?? self.deletingAnimation
-		self.updatingAnimation = updatingAnimation ?? self.updatingAnimation
-
-		return self
+	public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+		return provider.cellForRow(at: indexPath)
 	}
 
-	public func mapSectionName(_ transform: @escaping (_ position: Int, _ persistedName: String?) -> String?) -> Self {
-		sectionNameMapper = transform
-		return self
+	public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+		return set.rowCount(for: section)
 	}
 
-	public func reloadUpdatedRows(enabling flag: Bool = true) -> Self {
-		shouldReloadRowsForUpdatedObjects = flag
-		return self
-	}
-
-	public func on(emptied: (() -> Void)? = nil, unemptied: (() -> Void)? = nil, inserting: ((IndexPath) -> Void)? = nil, deleting: ((IndexPath) -> Void)? = nil) -> Self {
-		emptiedObserver = emptied ?? emptiedObserver
-		unemptiedObserver = unemptied ?? unemptiedObserver
-		insertionHandler = inserting ?? insertionHandler
-		deletionHandler = deleting ?? deletionHandler
-		return self
-	}
-
-	public func filterEditable(_ predicate: @escaping (IndexPath) -> Bool) -> Self {
-		editabilityHandler = predicate
-		return self
-	}
-
-	/// MARK: `UITableViewDataSource` conformance
 	@discardableResult
-	public func bind(_ tableView: UITableView) -> Disposable {
+	public static func bind(
+		_ tableView: UITableView,
+		with set: ViewModelMappingSet<V>,
+		provider: Provider,
+		config: UITableViewAdapterConfig
+	) -> UITableViewAdapter<V, Provider> {
+		let adapter = UITableViewAdapter(set: set, provider: provider)
+		tableView.dataSource = adapter
+
 		defer { try! set.fetch() }
-		tableView.dataSource = self
-		return set.eventsProducer
+
+		set.eventsProducer
 			.take(until: tableView.willDeinitProducer)
 			.startWithNext { [unowned tableView] event in
 				switch event {
@@ -116,15 +68,15 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					tableView.beginUpdates()
 
 					if let indices = changes.deletedSections {
-						tableView.deleteSections(indices, with: self.deletingAnimation)
+						tableView.deleteSections(indices, with: config.deletingAnimation)
 					}
 
 					if let indexPaths = changes.deletedRows {
-						tableView.deleteRows(at: indexPaths, with: self.deletingAnimation)
+						tableView.deleteRows(at: indexPaths, with: config.deletingAnimation)
 					}
 
 					if let indices = changes.insertedSections {
-						tableView.insertSections(indices, with: self.insertingAnimation)
+						tableView.insertSections(indices, with: config.insertingAnimation)
 					}
 
 					if let indexPathPairs = changes.movedRows {
@@ -134,58 +86,13 @@ final public class TableViewAdapter<V: ViewModel>: NSObject, UITableViewDataSour
 					}
 
 					if let indexPaths = changes.insertedRows {
-						tableView.insertRows(at: indexPaths, with: self.insertingAnimation)
+						tableView.insertRows(at: indexPaths, with: config.insertingAnimation)
 					}
 
 					tableView.endUpdates()
 				}
-
-				if !self.isEmpty && self.set.count == 0 {
-					self.isEmpty = true
-					self.emptiedObserver?()
-				} else if self.isEmpty {
-					self.isEmpty = false
-					self.unemptiedObserver?()
-				}
 			}
-	}
 
-	public func numberOfSections(in tableView: UITableView) -> Int {
-		return set.sectionCount
-	}
-
-	public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-		let sectionName = set.sectionName(for: section)
-		return sectionNameMapper?(section, sectionName) ?? sectionName
-	}
-
-	public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-		let (reuseIdentifier, configurator) = cellConfigurators[isUniform ? 0 : (indexPath as NSIndexPath).section]!
-		let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier,
-		                                                       for: indexPath)
-		configurator(cell, set[indexPath])
-
-		return cell
-	}
-
-	public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		return set.rowCount(for: section)
-	}
-
-	public func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-		switch editingStyle {
-		case .insert:
-			insertionHandler?(indexPath)
-
-		case .delete:
-			deletionHandler?(indexPath)
-
-		case .none:
-			fatalError("Unexpected editing style received from UITableView.")
-		}
-	}
-
-	public func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-		return editabilityHandler?(indexPath) ?? true
+		return adapter
 	}
 }
