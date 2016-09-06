@@ -13,7 +13,7 @@ public protocol ManagedObjectProtocol {}
 extension NSManagedObject: ManagedObjectProtocol {}
 
 extension ManagedObjectProtocol where Self: NSManagedObject {
-	public var typedObjectID: ManagedObjectID<Self> {
+	public var id: ManagedObjectID<Self> {
 		return ManagedObjectID(object: self)
 	}
 
