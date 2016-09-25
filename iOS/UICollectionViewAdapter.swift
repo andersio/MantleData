@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import ReactiveCocoa
+import ReactiveSwift
 
 public enum UICollectionViewSupplementaryViewKind: RawRepresentable {
 	case header

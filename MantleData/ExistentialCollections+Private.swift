@@ -6,7 +6,7 @@
 //  Copyright © 2016 Anders. All rights reserved.
 //
 
-import ReactiveCocoa
+import ReactiveSwift
 
 internal class _AnySectionedCollectionBoxBase<R: SectionedCollection>: _AnySectionedCollectionBox<R.Iterator.Element> {
 	private let set: R

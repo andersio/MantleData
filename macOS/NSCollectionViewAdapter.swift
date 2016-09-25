@@ -7,6 +7,7 @@
 //
 
 import Cocoa
+import ReactiveSwift
 import ReactiveCocoa
 
 public enum NSCollectionViewSupplementaryViewKind: RawRepresentable {
@@ -94,7 +95,7 @@ final public class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionV
 
 		set.eventsProducer
 			.take(during: collectionView.rac_lifetime)
-			.startWithNext { [unowned collectionView] in
+			.startWithValues { [unowned collectionView] in
 				switch($0) {
 				case .reloaded:
 					collectionView.reloadData()

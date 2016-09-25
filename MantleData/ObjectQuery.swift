@@ -7,7 +7,7 @@
 //
 
 import CoreData
-import ReactiveCocoa
+import ReactiveSwift
 
 public enum SortingKey {
 	case ascending(keyPath: String)
@@ -47,7 +47,7 @@ public class ObjectQuery<E: NSManagedObject> {
 			do {
 				_ = try self.context.execute(asyncFetchRequest)
 			} catch let error {
-				observer.sendFailed(error as NSError)
+				observer.send(error: error as NSError)
 			}
 		}
 	}

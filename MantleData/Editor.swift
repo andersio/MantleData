@@ -6,7 +6,7 @@
 //  Copyright © 2016 Anders. All rights reserved.
 //
 
-import ReactiveCocoa
+import ReactiveSwift
 
 /// `Editor` takes any `MutablePropertyProtocol` conforming types as its source, and
 /// exposes a two-way binding interface for UIControl.
@@ -50,7 +50,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 
 		/// Thread safety is not a concern.
 		_cache = MutableProperty(property.value)
-		observerDisposable += property.signal.observeNext { value in
+		observerDisposable += property.signal.observeValues { value in
 			self._cache.value = value
 		}
 	}
@@ -69,7 +69,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 		targetSetter = { [unowned control] in control.value = $0 }
 
 		observerDisposable += source.producer
-			.startWithNext { [unowned self] value in
+			.startWithValues { [unowned self] value in
 				self.targetSetter(self.transform.sourceToTarget(value))
 			}
 	}
@@ -82,11 +82,11 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 		hasUserInitiatedChanges = false
 		observerDisposable.dispose()
 		observerDisposable = CompositeDisposable()
-		resetObserver.sendNext(())
+		resetObserver.send(value: ())
 
 		_cache.value = source.value
 		observerDisposable += source.producer
-			.startWithNext { [unowned self] value in
+			.startWithValues { [unowned self] value in
 				self.targetSetter(self.transform.sourceToTarget(value))
 			}
 	}
@@ -112,7 +112,7 @@ public class Editor<SourceValue: Equatable, TargetValue: Equatable> {
 
 			source.signal
 				.take(until: resetSignal)
-				.observeNext { [unowned self] newSourceValue in
+				.observeValues { [unowned self] newSourceValue in
 					/// conflict
 					let currenttargetValue = self.transform.targetToSource(self.targetGetter())
 					if newSourceValue != currenttargetValue {

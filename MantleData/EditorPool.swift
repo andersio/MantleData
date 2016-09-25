@@ -6,28 +6,31 @@
 //  Copyright © 2016 Anders. All rights reserved.
 //
 
-import ReactiveCocoa
+import ReactiveSwift
 
 /// `EditorPool` concentrates a group of `Editor`s and allow batch commit and reset.
 /// You may also supply a context to its initializer, so that it would auto-commit
 /// at the time the context is being saved.
 ///
 /// - Warning: Since the `Editor` is not thread-safe, this class inherits the caveat.
-public class EditorPool: Base {
+public final class EditorPool {
+	private let lifetimeToken = Lifetime.Token()
+	public let lifetime: Lifetime
+
 	private var editors: [EditorPoolToken: _EditorProtocol]
 	private weak var context: NSManagedObjectContext?
 
 	public init(autoCommitIn context: NSManagedObjectContext? = nil) {
+		lifetime = Lifetime(lifetimeToken)
 		editors = [:]
-		super.init()
 
 		if let context = context {
 			self.context = context
 
 			NotificationCenter.default
 				.rac_notifications(forName: .NSManagedObjectContextWillSave, object: context)
-				.take(until: willDeinitProducer.zip(with: context.willDeinitProducer).map { _ in })
-				.startWithNext(commit)
+				.take(until: lifetime.ended.zip(with: context.rac_lifetime.ended).map { _ in })
+				.startWithValues(commit)
 		}
 	}
 

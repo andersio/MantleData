@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import ReactiveSwift
 import ReactiveCocoa
 import CoreData
 
@@ -26,8 +27,11 @@ import CoreData
 ///							 temporary IDs having been saved.
 ///
 /// - Warning:	 This class is not thread-safe. Use it only in the associated NSManagedObjectContext.
-final public class ObjectSet<E: NSManagedObject>: Base {
+final public class ObjectSet<E: NSManagedObject> {
 	internal typealias _IndexPath = IndexPath
+
+	private let lifetimeToken = Lifetime.Token()
+	public let lifetime: Lifetime
 
 	public let fetchRequest: NSFetchRequest<NSDictionary>
 	public let entity: NSEntityDescription
@@ -61,8 +65,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 				NotificationCenter.default
 					.rac_notifications(forName: .NSManagedObjectContextObjectsDidChange,
 					                   object: context)
-					.take(until: context.willDeinitProducer.zip(with: willDeinitProducer).map { _ in })
-					.startWithNext(process(objectsDidChangeNotification:))
+					.take(until: context.rac_lifetime.ended.zip(with: lifetime.ended).map { _ in })
+					.startWithValues(process(objectsDidChangeNotification:))
 			}
 		}
 	}
@@ -73,6 +77,8 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 							sectionNameKeyPath: String? = nil,
 							excludeUpdatedRowsInEvents: Bool = true) {
 		(events, eventObserver) = Signal.pipe()
+		lifetime = Lifetime(lifetimeToken)
+
 		self.context = context
 		self.fetchRequest = request.copy() as! NSFetchRequest<NSDictionary>
 		self.entity = self.fetchRequest.entity!
@@ -100,8 +106,6 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		sortKeysInSections = Array(sortKeys.dropFirst())
 		sortKeyComponents = sortKeys.map { ($0, $0.components(separatedBy: ".")) }
 		sortOrderAffectingRelationships = sortKeyComponents.flatMap { $0.1.count > 1 ? $0.1[0] : nil }.uniquing()
-
-		super.init()
 
 		switch prefetchingPolicy {
 		case let .adjacent(batchSize):
@@ -238,7 +242,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 		}
 
 		prefetcher?.acknowledgeFetchCompletion(resultDictionaries.count)
-		eventObserver.sendNext(.reloaded)
+		eventObserver.send(value: .reloaded)
 	}
 
 	private func registerTemporaryObject(_ object: E) {
@@ -248,7 +252,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 			NotificationCenter.default
 				.rac_notifications(forName: NSNotification.Name.NSManagedObjectContextDidSave, object: context)
 				.take(first: 1)
-				.startWithNext(handle(contextDidSaveNotification:))
+				.startWithValues(handle(contextDidSaveNotification:))
 
 			isAwaitingContextSave = true
 		}
@@ -581,7 +585,7 @@ final public class ObjectSet<E: NSManagedObject>: Base {
 																  updated: updatedIds,
 																  sortOrderAffecting: sortOrderAffectingIndexPaths,
 																  sectionChanged: sectionChangedIndexPaths) {
-			eventObserver.sendNext(.updated(changes))
+			eventObserver.send(value: .updated(changes))
 		}
 	}
 

@@ -6,7 +6,7 @@
 //  Copyright © 2015 Ik ben anders. All rights reserved.
 //
 
-import ReactiveCocoa
+import ReactiveSwift
 
 /// `ViewModelSet` is a type-erased collection view to a `ReactiveSet` implementation, which
 /// maps view models of type `U` from the underlying set of `U.MappingObject` objects.

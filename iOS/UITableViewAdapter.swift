@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import ReactiveCocoa
+import ReactiveSwift
 
 public protocol UITableViewAdapterProvider: class {
 	func cellForRow(at indexPath: IndexPath) -> UITableViewCell

@@ -6,7 +6,7 @@
 //  Copyright © 2016 Anders. All rights reserved.
 //
 
-import ReactiveCocoa
+import ReactiveSwift
 
 /// `AnyReactiveSet` assumes the wrapping ReactiveSet always uniformly index
 /// its elements with 1 unit of distance in integer.

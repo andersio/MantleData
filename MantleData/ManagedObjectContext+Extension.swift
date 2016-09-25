@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreData
+import ReactiveSwift
 import ReactiveCocoa
 
 extension Notification.Name {
@@ -42,8 +43,8 @@ extension NSManagedObjectContext {
 	public func observeSavedChanges(from other: NSManagedObjectContext) -> Disposable {
 		return NotificationCenter.default
 			.rac_notifications(forName: .NSManagedObjectContextDidSave, object: other)
-			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer).map { _ in })
-			.startWithNext(handleExternalChanges(_:))
+			.take(until: rac_lifetime.ended.zip(with: other.rac_lifetime.ended).map { _ in })
+			.startWithValues(handleExternalChanges(_:))
 	}
 
 	@discardableResult
@@ -53,13 +54,13 @@ extension NSManagedObjectContext {
 
 		disposable += defaultCenter
 			.rac_notifications(forName: .didBatchUpdate, object: other)
-			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer).map { _ in })
-			.startWithNext(handleExternalBatchUpdate(_:))
+			.take(until: rac_lifetime.ended.zip(with: other.rac_lifetime.ended).map { _ in })
+			.startWithValues(handleExternalBatchUpdate(_:))
 
 		disposable += defaultCenter
 			.rac_notifications(forName: .willBatchDelete, object: other)
-			.take(until: willDeinitProducer.zip(with: other.willDeinitProducer).map { _ in })
-			.startWithNext(preprocessBatchDelete(_:))
+			.take(until: rac_lifetime.ended.zip(with: other.rac_lifetime.ended).map { _ in })
+			.startWithValues(preprocessBatchDelete(_:))
 
 		return disposable
 	}

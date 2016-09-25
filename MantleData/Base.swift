@@ -6,7 +6,7 @@
 //  Copyright © 2015 Anders. All rights reserved.
 //
 
-import ReactiveCocoa
+import ReactiveSwift
 import enum Result.NoError
 public typealias NoError = Result.NoError
 

@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import ReactiveCocoa
+import ReactiveSwift
 
 // Root
 final public class ReactiveArray<E> {
@@ -104,7 +104,7 @@ extension ReactiveArray: RangeReplaceableCollection {
 			insertedSections: nil
 		)
 
-		eventObserver.sendNext(.updated(changes))
+		eventObserver.send(value: .updated(changes))
 	}
 }
 

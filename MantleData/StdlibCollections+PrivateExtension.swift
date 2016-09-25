@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import ReactiveCocoa
+import ReactiveSwift
 
 extension String {
 	public static func compareSectionNames(_ first: String?, with second: String?) -> ComparisonResult {

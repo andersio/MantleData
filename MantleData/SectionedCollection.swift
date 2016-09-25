@@ -6,7 +6,7 @@
 //  Copyright © 2016 Anders. All rights reserved.
 //
 
-import ReactiveCocoa
+import ReactiveSwift
 
 public protocol SectionedCollectionIndex: Comparable {
 	var section: Int { get }
@@ -20,6 +20,12 @@ extension IndexPath: SectionedCollectionIndex {
 	public init<I: SectionedCollectionIndex>(_ index: I) {
 		self.init(row: index.row, section: index.section)
 	}
+}
+
+public protocol ReactiveCollection: class, RandomAccessCollection {
+	var events: Signal<ReactiveCollectionEvent, NoError> { get }
+
+	func fetch(trackingChanges: Bool) throws
 }
 
 public protocol SectionedCollection: class, RandomAccessCollection {

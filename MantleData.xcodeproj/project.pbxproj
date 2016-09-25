@@ -35,6 +35,8 @@
 		9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F71C510BE900801A30 /* Assertions.swift */; };
 		9A2997FB1C510BE900801A30 /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F81C510BE900801A30 /* Base.swift */; };
 		9A2997FE1C510BF100801A30 /* NSManagedObjectContext+Additions.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A2997FD1C510BF100801A30 /* NSManagedObjectContext+Additions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9A2CFDAE1D81C4040051B1DD /* FlattenSectionedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2CFDAD1D81C4040051B1DD /* FlattenSectionedCollection.swift */; };
+		9A2CFDAF1D81C4040051B1DD /* FlattenSectionedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2CFDAD1D81C4040051B1DD /* FlattenSectionedCollection.swift */; };
 		9A2D52C11D179CC900FEBC05 /* ManagedObjectID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */; };
 		9A2D52C21D179CC900FEBC05 /* ManagedObjectID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */; };
 		9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */; };
@@ -47,8 +49,6 @@
 		9A3B15541D1D398300E14071 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A3B15531D1D398300E14071 /* Result.framework */; };
 		9A511A3D1CDE47850098D30B /* ObjectSetPrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */; };
 		9A511A3E1CDE47850098D30B /* ObjectSetPrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */; };
-		9A511A401CDE47950098D30B /* ViewModelMappingSetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3F1CDE47950098D30B /* ViewModelMappingSetSection.swift */; };
-		9A511A411CDE47950098D30B /* ViewModelMappingSetSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3F1CDE47950098D30B /* ViewModelMappingSetSection.swift */; };
 		9A5577A01C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m */; };
 		9A7A7B201CE381DB0030674B /* EditorPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B1F1CE381DB0030674B /* EditorPool.swift */; };
 		9A7A7B211CE381DB0030674B /* EditorPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B1F1CE381DB0030674B /* EditorPool.swift */; };
@@ -103,6 +103,7 @@
 		9A2997F71C510BE900801A30 /* Assertions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Assertions.swift; path = MantleData/Assertions.swift; sourceTree = "<group>"; };
 		9A2997F81C510BE900801A30 /* Base.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Base.swift; path = MantleData/Base.swift; sourceTree = "<group>"; };
 		9A2997FD1C510BF100801A30 /* NSManagedObjectContext+Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSManagedObjectContext+Additions.h"; path = "MantleData/NSManagedObjectContext+Additions.h"; sourceTree = "<group>"; };
+		9A2CFDAD1D81C4040051B1DD /* FlattenSectionedCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FlattenSectionedCollection.swift; path = MantleData/FlattenSectionedCollection.swift; sourceTree = "<group>"; };
 		9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ManagedObjectID.swift; path = MantleData/ManagedObjectID.swift; sourceTree = "<group>"; };
 		9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveCocoa+Additions.swift"; path = "MantleData/ReactiveCocoa+Additions.swift"; sourceTree = "<group>"; };
 		9A39A6591BC958E100FC86E1 /* ViewModelMappingSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelMappingSet.swift; path = MantleData/ViewModelMappingSet.swift; sourceTree = "<group>"; };
@@ -114,7 +115,6 @@
 		9A3B15511D1D397E00E14071 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../Library/Developer/Xcode/DerivedData/MantleData-grgztkqqdertrtbkgxchppejtpol/Build/Products/Debug-iphonesimulator/ReactiveCocoa.framework"; sourceTree = "<group>"; };
 		9A3B15531D1D398300E14071 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../Library/Developer/Xcode/DerivedData/MantleData-grgztkqqdertrtbkgxchppejtpol/Build/Products/Debug-iphonesimulator/Result.framework"; sourceTree = "<group>"; };
 		9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSetPrefetcher.swift; path = MantleData/ObjectSetPrefetcher.swift; sourceTree = "<group>"; };
-		9A511A3F1CDE47950098D30B /* ViewModelMappingSetSection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelMappingSetSection.swift; path = MantleData/ViewModelMappingSetSection.swift; sourceTree = "<group>"; };
 		9A55779F1C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSManagedObjectContext+Additions.m"; path = "MantleData/NSManagedObjectContext+Additions.m"; sourceTree = "<group>"; };
 		9A7A7B1F1CE381DB0030674B /* EditorPool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = EditorPool.swift; path = MantleData/EditorPool.swift; sourceTree = "<group>"; };
 		9A999FD91CD64E3A009AA161 /* Editor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Editor.swift; path = MantleData/Editor.swift; sourceTree = "<group>"; };
@@ -253,6 +253,7 @@
 				9AD114821D1CF1210067F20C /* ExistentialCollections.swift */,
 				9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */,
 				9A2997E51C510BAD00801A30 /* SectionedCollection.swift */,
+				9A2CFDAD1D81C4040051B1DD /* FlattenSectionedCollection.swift */,
 				9ACB1FA91CDC69720010555B /* ReactiveSetEvent.swift */,
 				9A39A66A1BC958E100FC86E1 /* ViewModel.swift */,
 			);
@@ -287,7 +288,6 @@
 				9A39A6661BC958E100FC86E1 /* ObjectSet.swift */,
 				9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */,
 				9A39A6591BC958E100FC86E1 /* ViewModelMappingSet.swift */,
-				9A511A3F1CDE47950098D30B /* ViewModelMappingSetSection.swift */,
 			);
 			name = "Reactive Collection Types";
 			sourceTree = "<group>";
@@ -484,7 +484,7 @@
 				9ACB1FB91CDC69A20010555B /* NSObject+Extension.swift in Sources */,
 				9A0D9A851C76ABD30013C976 /* ExistentialCollections+Private.swift in Sources */,
 				9A0D9A861C76ABD30013C976 /* ReactiveArray.swift in Sources */,
-				9A511A411CDE47950098D30B /* ViewModelMappingSetSection.swift in Sources */,
+				9A2CFDAF1D81C4040051B1DD /* FlattenSectionedCollection.swift in Sources */,
 				9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */,
 				9AE44A501D7451A80000CB17 /* NSTableViewAdapter.swift in Sources */,
 				9A0D9A881C76ABD30013C976 /* SectionedCollection.swift in Sources */,
@@ -531,6 +531,7 @@
 				9ACB1FB11CDC698A0010555B /* Foundation+Extension.swift in Sources */,
 				9A2997E71C510BAD00801A30 /* ExistentialCollections+Private.swift in Sources */,
 				9A2997FA1C510BE900801A30 /* Assertions.swift in Sources */,
+				9A2CFDAE1D81C4040051B1DD /* FlattenSectionedCollection.swift in Sources */,
 				9A5577A01C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m in Sources */,
 				9ACB1FAC1CDC69720010555B /* ReactiveSetEvent.swift in Sources */,
 				9A2997E81C510BAD00801A30 /* ReactiveArray.swift in Sources */,
@@ -546,7 +547,6 @@
 				9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
 				9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */,
 				9A2997ED1C510BB700801A30 /* StdlibCollections+PrivateExtension.swift in Sources */,
-				9A511A401CDE47950098D30B /* ViewModelMappingSetSection.swift in Sources */,
 				9AE44A4B1D74519D0000CB17 /* UICollectionViewAdapter.swift in Sources */,
 				9ACB1FB31CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */,
 				9A2997EA1C510BAD00801A30 /* SectionedCollection.swift in Sources */,

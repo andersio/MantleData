@@ -7,12 +7,14 @@
 //
 
 import Cocoa
+import ReactiveSwift
 import ReactiveCocoa
-
 
 public struct NSTableViewAdapterConfig {
 	public var hidesSectionHeader = false
 	public var rowAnimation: NSTableViewAnimationOptions = .slideUp
+
+	public init() {}
 }
 
 public protocol NSTableViewAdapterProvider: class {
@@ -51,7 +53,7 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 		return old
 	}
 
-	private func indexPath(fromFlattened index: Int) -> IndexPath {
+	public func indexPath(fromFlattened index: Int) -> IndexPath {
 		for (sectionIndex, range) in flattenedRanges.enumerated() {
 			if !config.hidesSectionHeader && range.lowerBound == index {
 				return IndexPath(section: sectionIndex)
@@ -64,7 +66,7 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 		preconditionFailure("Index is out of range.")
 	}
 
-	private func flattenedIndex(fromSectioned index: IndexPath) -> Int {
+	public func flattenedIndex(fromSectioned index: IndexPath) -> Int {
 		return flattenedIndex(fromSectioned: index, for: flattenedRanges)
 	}
 
@@ -97,7 +99,7 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 
 		set.eventsProducer
 			.take(during: tableView.rac_lifetime)
-			.startWithNext { [unowned tableView] in
+			.startWithValues { [unowned tableView] in
 				switch($0) {
 				case .reloaded:
 					adapter.computeFlattenedRanges()

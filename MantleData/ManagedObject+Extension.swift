@@ -7,7 +7,7 @@
 //
 
 import CoreData
-import ReactiveCocoa
+import ReactiveSwift
 
 public protocol ManagedObjectProtocol {}
 extension NSManagedObject: ManagedObjectProtocol {}
@@ -34,9 +34,9 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 			defer { strongSelf.didAccessValue(forKey: nil) }
 
 			disposable += strongSelf.values(forKeyPath: keyPath)
-				.startWithNext { [weak self] value in
+				.startWithValues { [weak self] value in
 					if let strongSelf = self, strongSelf.faultingState == 0 && !strongSelf.isDeleted {
-						observer.sendNext(Value(cocoaValue: value))
+						observer.send(value: Value(cocoaValue: value))
 					}
 				}
 		}
@@ -94,6 +94,12 @@ final public class ManagedObjectProperty<_Value: CocoaBridgeable>: MutableProper
 
 	public var producer: SignalProducer<Value, NoError> {
 		return object.producer(forKeyPath: keyPath)
+	}
+
+	/// The lifetime of `self`. The binding operators use this to determine when
+	/// the binding should be teared down.
+	public var lifetime: Lifetime {
+		return object.rac_lifetime
 	}
 
 	public var signal: Signal<Value, NoError> {
