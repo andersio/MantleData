@@ -23,6 +23,10 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 	/// - Important: You should avoid using it in any overrided methods of `Object`
 	///              if the producer might outlive the object.
 	final public func producer<Value: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> where Value._Inner: CocoaBridgeable {
+		return producer(forKeyPath: keyPath, extract: Bridgeable<Value>.extract)
+	}
+
+	final public func producer<Value>(forKeyPath keyPath: String, extract: @escaping (Any?) -> Value) -> SignalProducer<Value, NoError> {
 		return SignalProducer { [weak self] observer, disposable in
 			guard let strongSelf = self else {
 				observer.sendInterrupted()
@@ -36,14 +40,18 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 			disposable += strongSelf.values(forKeyPath: keyPath)
 				.startWithValues { [weak self] value in
 					if let strongSelf = self, strongSelf.faultingState == 0 && !strongSelf.isDeleted {
-						observer.send(value: Value(cocoaValue: value))
+						observer.send(value: extract(value))
 					}
 				}
 		}
 	}
 
-	final public func property<Value: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> ManagedObjectProperty<Value> where Value._Inner: CocoaBridgeable {
-		return ManagedObjectProperty(keyPath: keyPath, for: self)
+	final public func property<Value: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> ObjectProperty<Value> where Value._Inner: CocoaBridgeable {
+		return ObjectProperty(keyPath: keyPath, for: self, representation: Bridgeable<Value>.self)
+	}
+
+	final public func property<Value: AnyObject>(forKeyPath keyPath: String, type: Value?.Type? = nil) -> ObjectProperty<Value?> {
+		return ObjectProperty(keyPath: keyPath, for: self, representation: Exact<Value>.self)
 	}
 
 	final public func converted(for context: NSManagedObjectContext) -> Self {
@@ -77,23 +85,54 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 	}
 }
 
-final public class ManagedObjectProperty<_Value: CocoaBridgeable>: MutablePropertyProtocol where _Value._Inner: CocoaBridgeable {
-	public typealias Value = _Value
+public protocol ObjectPropertyRepresentable {
+	associatedtype Value
+
+	static func extract(from value: Any?) -> Value
+	static func represent(_ value: Value) -> Any?
+}
+
+public enum Exact<Object: AnyObject>: ObjectPropertyRepresentable {
+	public static func extract(from value: Any?) -> Object? {
+		return value as! Object?
+	}
+
+	public static func represent(_ value: Object?) -> Any? {
+		return value
+	}
+}
+
+public enum Bridgeable<Value: CocoaBridgeable>: ObjectPropertyRepresentable where Value._Inner: CocoaBridgeable {
+	public static func extract(from value: Any?) -> Value {
+		return Value(cocoaValue: value)
+	}
+
+	public static func represent(_ value: Value) -> Any? {
+		return value.cocoaValue
+	}
+}
+
+final public class ObjectProperty<Value>: MutablePropertyProtocol {
 	private let object: NSManagedObject
 	private let keyPath: String
 
-	public init(keyPath: String, for object: NSManagedObject) {
+	private let extract: (Any?) -> Value
+	private let represent: (Value) -> Any?
+
+	public init<Representation: ObjectPropertyRepresentable>(keyPath: String, for object: NSManagedObject, representation: Representation.Type) where Representation.Value == Value {
 		self.keyPath = keyPath
 		self.object = object
+		self.extract = representation.extract(from:)
+		self.represent = representation.represent
 	}
 
 	public var value: Value {
-		get { return Value(cocoaValue: object.value(forKeyPath: keyPath)) }
-		set { object.setValue(newValue.cocoaValue, forKey: keyPath) }
+		get { return extract(object.value(forKeyPath: keyPath)) }
+		set { object.setValue(represent(newValue), forKey: keyPath) }
 	}
 
 	public var producer: SignalProducer<Value, NoError> {
-		return object.producer(forKeyPath: keyPath)
+		return object.producer(forKeyPath: keyPath, extract: extract)
 	}
 
 	/// The lifetime of `self`. The binding operators use this to determine when
