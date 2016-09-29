@@ -145,6 +145,12 @@ extension ObjectQuery {
 		return try context.fetch(fetchRequest).map { $0 as! [String: AnyObject] }
 	}
 
+	public func resultingDictionary(keyPaths: [String]? = nil) -> [[String: AnyObject]] {
+		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSDictionary>
+		fetchRequest.propertiesToFetch = keyPaths
+		return try! fetchingDictionary(using: fetchRequest)
+	}
+
 	public var resultingIDs: [NSManagedObjectID] {
 		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSManagedObjectID>
 		fetchRequest.resultType = .managedObjectIDResultType
