@@ -70,12 +70,16 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 		return ObjectQuery(context: context)
 	}
 
-	public func finding(ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
+	public static func find(ID: ManagedObjectID<Self>, in context: NSManagedObjectContext) -> Self {
+		return context.object(with: ID.id) as! Self
+	}
+
+	public static func find(ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
 		assert(ID.entity.name == String(describing: Self.self), "Entity does not match with the ID.")
 		return context.object(with: ID) as! Self
 	}
 
-	public func finding(IDs: [NSManagedObjectID], in context: NSManagedObjectContext) -> [Self] {
+	public static func find(IDs: [NSManagedObjectID], in context: NSManagedObjectContext) -> [Self] {
 		var objects = [Self]()
 		for ID in IDs {
 			assert(ID.entity.name == String(describing: Self.self), "Entity does not match with the ID.")
