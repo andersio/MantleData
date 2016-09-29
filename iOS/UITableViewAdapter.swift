@@ -58,8 +58,10 @@ final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapter
 		defer { try! set.fetch() }
 
 		set.eventsProducer
-			.take(until: tableView.willDeinitProducer)
-			.startWithNext { [unowned tableView] event in
+			.take(during: tableView.rac_lifetime)
+			.startWithValues { [weak tableView] event in
+				guard let tableView = tableView else { return }
+
 				switch event {
 				case .reloaded:
 					tableView.reloadData()

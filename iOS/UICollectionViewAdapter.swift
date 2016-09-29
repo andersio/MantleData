@@ -78,8 +78,10 @@ final public class UICollectionViewAdapter<V: ViewModel, Provider: UICollectionV
 		defer { try! set.fetch() }
 
 		set.eventsProducer
-			.take(until: collectionView.willDeinitProducer)
-			.startWithNext { [unowned collectionView] event in
+			.take(during: collectionView.rac_lifetime)
+			.startWithValues { [weak collectionView] event in
+				guard let collectionView = collectionView else { return }
+
 				switch event {
 				case .reloaded:
 					collectionView.reloadData()

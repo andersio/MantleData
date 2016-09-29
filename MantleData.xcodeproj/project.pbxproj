@@ -50,6 +50,8 @@
 		9A511A3D1CDE47850098D30B /* ObjectSetPrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */; };
 		9A511A3E1CDE47850098D30B /* ObjectSetPrefetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */; };
 		9A5577A01C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m */; };
+		9A6717561D9DD4080026F2C1 /* ReactiveSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A6717551D9DD4080026F2C1 /* ReactiveSwift.framework */; };
+		9A6717581D9DD40E0026F2C1 /* ReactiveSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A6717571D9DD40E0026F2C1 /* ReactiveSwift.framework */; };
 		9A7A7B201CE381DB0030674B /* EditorPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B1F1CE381DB0030674B /* EditorPool.swift */; };
 		9A7A7B211CE381DB0030674B /* EditorPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B1F1CE381DB0030674B /* EditorPool.swift */; };
 		9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
@@ -116,6 +118,9 @@
 		9A3B15531D1D398300E14071 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../Library/Developer/Xcode/DerivedData/MantleData-grgztkqqdertrtbkgxchppejtpol/Build/Products/Debug-iphonesimulator/Result.framework"; sourceTree = "<group>"; };
 		9A511A3C1CDE47850098D30B /* ObjectSetPrefetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectSetPrefetcher.swift; path = MantleData/ObjectSetPrefetcher.swift; sourceTree = "<group>"; };
 		9A55779F1C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSManagedObjectContext+Additions.m"; path = "MantleData/NSManagedObjectContext+Additions.m"; sourceTree = "<group>"; };
+		9A6717531D9DD3FF0026F2C1 /* ReactiveSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveSwift.framework; path = "Carthage/Checkouts/ReactiveSwift/build/Debug-iphoneos/ReactiveSwift.framework"; sourceTree = "<group>"; };
+		9A6717551D9DD4080026F2C1 /* ReactiveSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveSwift.framework; path = Carthage/Checkouts/ReactiveSwift/build/Debug/ReactiveSwift.framework; sourceTree = "<group>"; };
+		9A6717571D9DD40E0026F2C1 /* ReactiveSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveSwift.framework; path = "Carthage/Checkouts/ReactiveSwift/build/Debug-iphoneos/ReactiveSwift.framework"; sourceTree = "<group>"; };
 		9A7A7B1F1CE381DB0030674B /* EditorPool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = EditorPool.swift; path = MantleData/EditorPool.swift; sourceTree = "<group>"; };
 		9A999FD91CD64E3A009AA161 /* Editor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Editor.swift; path = MantleData/Editor.swift; sourceTree = "<group>"; };
 		9AA736C51CD0A0A900EE2C26 /* MantleDataTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MantleDataTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -147,6 +152,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A6717561D9DD4080026F2C1 /* ReactiveSwift.framework in Frameworks */,
 				9AE44A251D74476C0000CB17 /* CoreData.framework in Frameworks */,
 				9AE44A231D7447660000CB17 /* Result.framework in Frameworks */,
 				9AE44A211D7447620000CB17 /* ReactiveCocoa.framework in Frameworks */,
@@ -165,6 +171,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A6717581D9DD40E0026F2C1 /* ReactiveSwift.framework in Frameworks */,
 				9A3B15541D1D398300E14071 /* Result.framework in Frameworks */,
 				9A3B15521D1D397E00E14071 /* ReactiveCocoa.framework in Frameworks */,
 				9A3B154C1D1D390300E14071 /* CoreData.framework in Frameworks */,
@@ -201,6 +208,9 @@
 		9A39A6201BC956BE00FC86E1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9A6717571D9DD40E0026F2C1 /* ReactiveSwift.framework */,
+				9A6717551D9DD4080026F2C1 /* ReactiveSwift.framework */,
+				9A6717531D9DD3FF0026F2C1 /* ReactiveSwift.framework */,
 				9AE44A241D74476C0000CB17 /* CoreData.framework */,
 				9AE44A221D7447660000CB17 /* Result.framework */,
 				9AE44A201D7447620000CB17 /* ReactiveCocoa.framework */,
@@ -579,6 +589,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Checkouts/ReactiveCocoa/build/Debug",
 					"$(PROJECT_DIR)/Carthage/Checkouts/Result/build/Debug",
+					"$(PROJECT_DIR)/Carthage/Checkouts/ReactiveSwift/build/Debug-iphoneos",
+					"$(PROJECT_DIR)/Carthage/Checkouts/ReactiveSwift/build/Debug",
 				);
 				FRAMEWORK_VERSION = A;
 				INFOPLIST_FILE = "$(SRCROOT)/macOS/Info.plist";
@@ -605,6 +617,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Checkouts/ReactiveCocoa/build/Debug",
 					"$(PROJECT_DIR)/Carthage/Checkouts/Result/build/Debug",
+					"$(PROJECT_DIR)/Carthage/Checkouts/ReactiveSwift/build/Debug-iphoneos",
+					"$(PROJECT_DIR)/Carthage/Checkouts/ReactiveSwift/build/Debug",
 				);
 				FRAMEWORK_VERSION = A;
 				GCC_OPTIMIZATION_LEVEL = fast;
@@ -748,6 +762,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Checkouts/ReactiveSwift/build/Debug-iphoneos",
+				);
 				INFOPLIST_FILE = "$(SRCROOT)/iOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
@@ -769,6 +787,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Checkouts/ReactiveSwift/build/Debug-iphoneos",
+				);
 				INFOPLIST_FILE = "$(SRCROOT)/iOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
