@@ -57,11 +57,6 @@
 		9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
 		9A999FDA1CD64E3A009AA161 /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A999FD91CD64E3A009AA161 /* Editor.swift */; };
 		9A999FDB1CD64E3A009AA161 /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A999FD91CD64E3A009AA161 /* Editor.swift */; };
-		9AA736C81CD0A0A900EE2C26 /* ConflictResolvingSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA736C71CD0A0A900EE2C26 /* ConflictResolvingSpec.swift */; };
-		9AA736CA1CD0A0A900EE2C26 /* MantleData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */; };
-		9AA736D21CD0A0D200EE2C26 /* TestModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9AA736D01CD0A0D200EE2C26 /* TestModel.xcdatamodeld */; };
-		9AA736DE1CD0A58D00EE2C26 /* TestEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA736DC1CD0A58D00EE2C26 /* TestEntity+CoreDataProperties.swift */; };
-		9AA736DF1CD0A58D00EE2C26 /* TestEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA736DD1CD0A58D00EE2C26 /* TestEntity.swift */; };
 		9ACB1FAC1CDC69720010555B /* ReactiveSetEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FA91CDC69720010555B /* ReactiveSetEvent.swift */; };
 		9ACB1FB11CDC698A0010555B /* Foundation+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */; };
 		9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */; };
@@ -71,6 +66,8 @@
 		9ACB1FB91CDC69A20010555B /* NSObject+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F51C510BDB00801A30 /* NSObject+Extension.swift */; };
 		9AD114831D1CF1210067F20C /* ExistentialCollections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD114821D1CF1210067F20C /* ExistentialCollections.swift */; };
 		9AD114841D1CF1210067F20C /* ExistentialCollections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD114821D1CF1210067F20C /* ExistentialCollections.swift */; };
+		9AD7A2071DA1338E00EAA24A /* MantleData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A0D9A761C76AB9A0013C976 /* MantleData.framework */; };
+		9AD7A2161DA133D200EAA24A /* MantleData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */; };
 		9AE44A211D7447620000CB17 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A201D7447620000CB17 /* ReactiveCocoa.framework */; };
 		9AE44A231D7447660000CB17 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A221D7447660000CB17 /* Result.framework */; };
 		9AE44A251D74476C0000CB17 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A241D74476C0000CB17 /* CoreData.framework */; };
@@ -83,7 +80,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		9AA736CB1CD0A0A900EE2C26 /* PBXContainerItemProxy */ = {
+		9AD7A2081DA1338E00EAA24A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9AFFA5041BC7CBEC00B63C58 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9A0D9A751C76AB9A0013C976;
+			remoteInfo = "MantleData-macOS";
+		};
+		9AD7A2171DA133D200EAA24A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9AFFA5041BC7CBEC00B63C58 /* Project object */;
 			proxyType = 1;
@@ -123,16 +127,13 @@
 		9A6717571D9DD40E0026F2C1 /* ReactiveSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveSwift.framework; path = "Carthage/Checkouts/ReactiveSwift/build/Debug-iphoneos/ReactiveSwift.framework"; sourceTree = "<group>"; };
 		9A7A7B1F1CE381DB0030674B /* EditorPool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = EditorPool.swift; path = MantleData/EditorPool.swift; sourceTree = "<group>"; };
 		9A999FD91CD64E3A009AA161 /* Editor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Editor.swift; path = MantleData/Editor.swift; sourceTree = "<group>"; };
-		9AA736C51CD0A0A900EE2C26 /* MantleDataTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MantleDataTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		9AA736C71CD0A0A900EE2C26 /* ConflictResolvingSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictResolvingSpec.swift; sourceTree = "<group>"; };
-		9AA736C91CD0A0A900EE2C26 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		9AA736D11CD0A0D200EE2C26 /* TestModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TestModel.xcdatamodel; sourceTree = "<group>"; };
-		9AA736DC1CD0A58D00EE2C26 /* TestEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TestEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		9AA736DD1CD0A58D00EE2C26 /* TestEntity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestEntity.swift; sourceTree = "<group>"; };
 		9ACB1FA91CDC69720010555B /* ReactiveSetEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReactiveSetEvent.swift; path = MantleData/ReactiveSetEvent.swift; sourceTree = "<group>"; };
 		9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Foundation+Extension.swift"; path = "MantleData/Foundation+Extension.swift"; sourceTree = "<group>"; };
 		9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "StdlibCollections+Extension.swift"; path = "MantleData/StdlibCollections+Extension.swift"; sourceTree = "<group>"; };
 		9AD114821D1CF1210067F20C /* ExistentialCollections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ExistentialCollections.swift; path = MantleData/ExistentialCollections.swift; sourceTree = "<group>"; };
+		9AD7A2021DA1338E00EAA24A /* MantleDataTests-macOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MantleDataTests-macOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9AD7A2111DA133D200EAA24A /* MantleDataTests-iOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MantleDataTests-iOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9AD7A2151DA133D200EAA24A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9AE44A201D7447620000CB17 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = Carthage/Checkouts/ReactiveCocoa/build/Debug/ReactiveCocoa.framework; sourceTree = "<group>"; };
 		9AE44A221D7447660000CB17 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = Carthage/Checkouts/Result/build/Debug/Result.framework; sourceTree = "<group>"; };
 		9AE44A241D74476C0000CB17 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
@@ -159,11 +160,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		9AA736C21CD0A0A900EE2C26 /* Frameworks */ = {
+		9AD7A1FF1DA1338E00EAA24A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9AA736CA1CD0A0A900EE2C26 /* MantleData.framework in Frameworks */,
+				9AD7A2071DA1338E00EAA24A /* MantleData.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9AD7A20E1DA133D200EAA24A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9AD7A2161DA133D200EAA24A /* MantleData.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -279,18 +288,6 @@
 			name = Editor;
 			sourceTree = "<group>";
 		};
-		9AA736C61CD0A0A900EE2C26 /* MantleDataTests */ = {
-			isa = PBXGroup;
-			children = (
-				9AA736DC1CD0A58D00EE2C26 /* TestEntity+CoreDataProperties.swift */,
-				9AA736DD1CD0A58D00EE2C26 /* TestEntity.swift */,
-				9AA736C71CD0A0A900EE2C26 /* ConflictResolvingSpec.swift */,
-				9AA736C91CD0A0A900EE2C26 /* Info.plist */,
-				9AA736D01CD0A0D200EE2C26 /* TestModel.xcdatamodeld */,
-			);
-			path = MantleDataTests;
-			sourceTree = "<group>";
-		};
 		9ACB1FA41CDC645F0010555B /* Reactive Collection Types */ = {
 			isa = PBXGroup;
 			children = (
@@ -300,6 +297,15 @@
 				9A39A6591BC958E100FC86E1 /* ViewModelMappingSet.swift */,
 			);
 			name = "Reactive Collection Types";
+			sourceTree = "<group>";
+		};
+		9AD7A2121DA133D200EAA24A /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				9AD7A2151DA133D200EAA24A /* Info.plist */,
+			);
+			name = Tests;
+			path = MantleDataTests;
 			sourceTree = "<group>";
 		};
 		9AE44A261D7447870000CB17 /* iOS */ = {
@@ -320,7 +326,7 @@
 				9A39A61F1BC956AB00FC86E1 /* Core */,
 				9AE44A261D7447870000CB17 /* iOS */,
 				9A0D9A771C76AB9A0013C976 /* macOS */,
-				9AA736C61CD0A0A900EE2C26 /* MantleDataTests */,
+				9AD7A2121DA133D200EAA24A /* Tests */,
 				9AFFA50E1BC7CBEC00B63C58 /* Products */,
 				9A39A6201BC956BE00FC86E1 /* Frameworks */,
 			);
@@ -331,7 +337,8 @@
 			children = (
 				9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */,
 				9A0D9A761C76AB9A0013C976 /* MantleData.framework */,
-				9AA736C51CD0A0A900EE2C26 /* MantleDataTests.xctest */,
+				9AD7A2021DA1338E00EAA24A /* MantleDataTests-macOS.xctest */,
+				9AD7A2111DA133D200EAA24A /* MantleDataTests-iOS.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -378,22 +385,40 @@
 			productReference = 9A0D9A761C76AB9A0013C976 /* MantleData.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		9AA736C41CD0A0A900EE2C26 /* MantleDataTests */ = {
+		9AD7A2011DA1338E00EAA24A /* MantleDataTests-macOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 9AA736CF1CD0A0A900EE2C26 /* Build configuration list for PBXNativeTarget "MantleDataTests" */;
+			buildConfigurationList = 9AD7A20A1DA1338E00EAA24A /* Build configuration list for PBXNativeTarget "MantleDataTests-macOS" */;
 			buildPhases = (
-				9AA736C11CD0A0A900EE2C26 /* Sources */,
-				9AA736C21CD0A0A900EE2C26 /* Frameworks */,
-				9AA736C31CD0A0A900EE2C26 /* Resources */,
+				9AD7A1FE1DA1338E00EAA24A /* Sources */,
+				9AD7A1FF1DA1338E00EAA24A /* Frameworks */,
+				9AD7A2001DA1338E00EAA24A /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				9AA736CC1CD0A0A900EE2C26 /* PBXTargetDependency */,
+				9AD7A2091DA1338E00EAA24A /* PBXTargetDependency */,
 			);
-			name = MantleDataTests;
+			name = "MantleDataTests-macOS";
 			productName = MantleDataTests;
-			productReference = 9AA736C51CD0A0A900EE2C26 /* MantleDataTests.xctest */;
+			productReference = 9AD7A2021DA1338E00EAA24A /* MantleDataTests-macOS.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9AD7A2101DA133D200EAA24A /* MantleDataTests-iOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9AD7A2191DA133D200EAA24A /* Build configuration list for PBXNativeTarget "MantleDataTests-iOS" */;
+			buildPhases = (
+				9AD7A20D1DA133D200EAA24A /* Sources */,
+				9AD7A20E1DA133D200EAA24A /* Frameworks */,
+				9AD7A20F1DA133D200EAA24A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9AD7A2181DA133D200EAA24A /* PBXTargetDependency */,
+			);
+			name = "MantleDataTests-iOS";
+			productName = MantleDataTests;
+			productReference = 9AD7A2111DA133D200EAA24A /* MantleDataTests-iOS.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		9AFFA50C1BC7CBEC00B63C58 /* MantleData-iOS */ = {
@@ -420,17 +445,22 @@
 		9AFFA5041BC7CBEC00B63C58 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0730;
+				LastSwiftUpdateCheck = 0800;
 				LastUpgradeCheck = 0710;
 				ORGANIZATIONNAME = Anders;
 				TargetAttributes = {
 					9A0D9A751C76AB9A0013C976 = {
 						CreatedOnToolsVersion = 7.3;
 					};
-					9AA736C41CD0A0A900EE2C26 = {
-						CreatedOnToolsVersion = 7.3;
+					9AD7A2011DA1338E00EAA24A = {
+						CreatedOnToolsVersion = 8.0;
 						DevelopmentTeam = 5FQJ4FWHM9;
-						LastSwiftMigration = 0800;
+						ProvisioningStyle = Automatic;
+					};
+					9AD7A2101DA133D200EAA24A = {
+						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = 5FQJ4FWHM9;
+						ProvisioningStyle = Automatic;
 					};
 					9AFFA50C1BC7CBEC00B63C58 = {
 						CreatedOnToolsVersion = 7.1;
@@ -454,7 +484,8 @@
 			targets = (
 				9AFFA50C1BC7CBEC00B63C58 /* MantleData-iOS */,
 				9A0D9A751C76AB9A0013C976 /* MantleData-macOS */,
-				9AA736C41CD0A0A900EE2C26 /* MantleDataTests */,
+				9AD7A2011DA1338E00EAA24A /* MantleDataTests-macOS */,
+				9AD7A2101DA133D200EAA24A /* MantleDataTests-iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -467,7 +498,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		9AA736C31CD0A0A900EE2C26 /* Resources */ = {
+		9AD7A2001DA1338E00EAA24A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9AD7A20F1DA133D200EAA24A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -518,14 +556,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		9AA736C11CD0A0A900EE2C26 /* Sources */ = {
+		9AD7A1FE1DA1338E00EAA24A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9AA736DF1CD0A58D00EE2C26 /* TestEntity.swift in Sources */,
-				9AA736C81CD0A0A900EE2C26 /* ConflictResolvingSpec.swift in Sources */,
-				9AA736DE1CD0A58D00EE2C26 /* TestEntity+CoreDataProperties.swift in Sources */,
-				9AA736D21CD0A0D200EE2C26 /* TestModel.xcdatamodeld in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9AD7A20D1DA133D200EAA24A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -568,10 +609,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		9AA736CC1CD0A0A900EE2C26 /* PBXTargetDependency */ = {
+		9AD7A2091DA1338E00EAA24A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9A0D9A751C76AB9A0013C976 /* MantleData-macOS */;
+			targetProxy = 9AD7A2081DA1338E00EAA24A /* PBXContainerItemProxy */;
+		};
+		9AD7A2181DA133D200EAA24A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9AFFA50C1BC7CBEC00B63C58 /* MantleData-iOS */;
-			targetProxy = 9AA736CB1CD0A0A900EE2C26 /* PBXContainerItemProxy */;
+			targetProxy = 9AD7A2171DA133D200EAA24A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -633,27 +679,77 @@
 			};
 			name = Release;
 		};
-		9AA736CD1CD0A0A900EE2C26 /* Debug */ = {
+		9AD7A20B1DA1338E00EAA24A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 5FQJ4FWHM9;
 				INFOPLIST_FILE = MantleDataTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleDataTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
-		9AA736CE1CD0A0A900EE2C26 /* Release */ = {
+		9AD7A20C1DA1338E00EAA24A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 5FQJ4FWHM9;
 				INFOPLIST_FILE = MantleDataTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleDataTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 3.0;
+			};
+			name = Release;
+		};
+		9AD7A21A1DA133D200EAA24A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				DEVELOPMENT_TEAM = 5FQJ4FWHM9;
+				INFOPLIST_FILE = MantleDataTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleDataTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 3.0;
+			};
+			name = Debug;
+		};
+		9AD7A21B1DA133D200EAA24A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				DEVELOPMENT_TEAM = 5FQJ4FWHM9;
+				INFOPLIST_FILE = MantleDataTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleDataTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -814,14 +910,21 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		9AA736CF1CD0A0A900EE2C26 /* Build configuration list for PBXNativeTarget "MantleDataTests" */ = {
+		9AD7A20A1DA1338E00EAA24A /* Build configuration list for PBXNativeTarget "MantleDataTests-macOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				9AA736CD1CD0A0A900EE2C26 /* Debug */,
-				9AA736CE1CD0A0A900EE2C26 /* Release */,
+				9AD7A20B1DA1338E00EAA24A /* Debug */,
+				9AD7A20C1DA1338E00EAA24A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+		};
+		9AD7A2191DA133D200EAA24A /* Build configuration list for PBXNativeTarget "MantleDataTests-iOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9AD7A21A1DA133D200EAA24A /* Debug */,
+				9AD7A21B1DA133D200EAA24A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 		9AFFA5071BC7CBEC00B63C58 /* Build configuration list for PBXProject "MantleData" */ = {
 			isa = XCConfigurationList;
@@ -842,19 +945,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCVersionGroup section */
-		9AA736D01CD0A0D200EE2C26 /* TestModel.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				9AA736D11CD0A0D200EE2C26 /* TestModel.xcdatamodel */,
-			);
-			currentVersion = 9AA736D11CD0A0D200EE2C26 /* TestModel.xcdatamodel */;
-			path = TestModel.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
-		};
-/* End XCVersionGroup section */
 	};
 	rootObject = 9AFFA5041BC7CBEC00B63C58 /* Project object */;
 }
