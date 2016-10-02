@@ -73,12 +73,12 @@ final public class UICollectionViewAdapter<V: ViewModel, Provider: UICollectionV
 	) -> UICollectionViewAdapter<V, Provider> {
 		let adapter = UICollectionViewAdapter(set: set, provider: provider)
 		collectionView.dataSource = adapter
-		collectionView.rac_lifetime.ended.observeCompleted { _ = adapter }
+		collectionView.rac.lifetime.ended.observeCompleted { _ = adapter }
 
 		defer { try! set.fetch() }
 
 		set.eventsProducer
-			.take(during: collectionView.rac_lifetime)
+			.take(during: collectionView.rac.lifetime)
 			.startWithValues { [weak collectionView] event in
 				guard let collectionView = collectionView else { return }
 

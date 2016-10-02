@@ -29,7 +29,7 @@ public final class EditorPool {
 
 			NotificationCenter.default
 				.rac_notifications(forName: .NSManagedObjectContextWillSave, object: context)
-				.take(until: lifetime.ended.zip(with: context.rac_lifetime.ended).map { _ in })
+				.take(until: lifetime.ended.zip(with: context.rac.lifetime.ended).map { _ in })
 				.startWithValues(commit)
 		}
 	}

@@ -65,7 +65,7 @@ final public class ObjectSet<E: NSManagedObject> {
 				NotificationCenter.default
 					.rac_notifications(forName: .NSManagedObjectContextObjectsDidChange,
 					                   object: context)
-					.take(until: context.rac_lifetime.ended.zip(with: lifetime.ended).map { _ in })
+					.take(until: context.rac.lifetime.ended.zip(with: lifetime.ended).map { _ in })
 					.startWithValues(process(objectsDidChangeNotification:))
 			}
 		}

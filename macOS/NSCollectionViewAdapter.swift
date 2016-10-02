@@ -91,10 +91,10 @@ final public class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionV
 		let adapter = NSCollectionViewAdapter<V, Provider>(set: set, provider: provider, config: config)
 		collectionView.dataSource = adapter
 
-		collectionView.rac_lifetime.ended.observeCompleted { _ = adapter }
+		collectionView.rac.lifetime.ended.observeCompleted { _ = adapter }
 
 		set.eventsProducer
-			.take(during: collectionView.rac_lifetime)
+			.take(during: collectionView.rac.lifetime)
 			.startWithValues { [unowned collectionView] in
 				switch($0) {
 				case .reloaded:

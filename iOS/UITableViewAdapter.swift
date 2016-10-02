@@ -58,7 +58,7 @@ final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapter
 		defer { try! set.fetch() }
 
 		set.eventsProducer
-			.take(during: tableView.rac_lifetime)
+			.take(during: tableView.rac.lifetime)
 			.startWithValues { [weak tableView] event in
 				guard let tableView = tableView else { return }
 

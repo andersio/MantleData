@@ -142,7 +142,7 @@ final public class ObjectProperty<Value>: MutablePropertyProtocol {
 	/// The lifetime of `self`. The binding operators use this to determine when
 	/// the binding should be teared down.
 	public var lifetime: Lifetime {
-		return object.rac_lifetime
+		return object.rac.lifetime
 	}
 
 	public var signal: Signal<Value, NoError> {
