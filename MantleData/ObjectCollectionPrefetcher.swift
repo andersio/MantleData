@@ -1,5 +1,5 @@
 //
-//  ObjectSetPrefetcher.swift
+//  ObjectCollectionPrefetcher.swift
 //  MantleData
 //
 //  Created by Anders on 7/5/2016.
@@ -8,19 +8,19 @@
 
 import CoreData
 
-/// ObjectSet Prefetcher
-public enum ObjectSetPrefetchingPolicy {
+/// ObjectCollection Prefetcher
+public enum ObjectCollectionPrefetchingPolicy {
 	case none
 	case all
 	case adjacent(batchSize: Int)
 }
 
-internal class ObjectSetPrefetcher<E: NSManagedObject> {
+internal class ObjectCollectionPrefetcher<E: NSManagedObject> {
 	func reset() {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	func acknowledgeNextAccess(at position: ObjectSet<E>._IndexPath) {
+	func acknowledgeNextAccess(at position: ObjectCollection<E>._IndexPath) {
 		_abstractMethod_subclassMustImplement()
 	}
 
@@ -40,8 +40,8 @@ private enum LastUsedPool {
 	case second
 }
 
-internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E> {
-	weak var objectSet: ObjectSet<E>!
+internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollectionPrefetcher<E> {
+	weak var objectSet: ObjectCollection<E>!
 	private var firstPool: [E]?
 	private var secondPool: [E]?
 	private var nextPool: LastUsedPool
@@ -52,7 +52,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 	var lastAccessedIndex: Int
 	var prefetchedRange: CountableRange<Int>
 
-	init(for objectSet: ObjectSet<E>, batchSize: Int) {
+	init(for objectSet: ObjectCollection<E>, batchSize: Int) {
 		assert(batchSize % 2 == 0)
 		self.objectSet = objectSet
 		self.batchSize = batchSize
@@ -70,7 +70,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 		prefetchedRange = 0 ..< 0
 	}
 
-	func flattenedIndex(at position: ObjectSet<E>._IndexPath) -> Int? {
+	func flattenedIndex(at position: ObjectCollection<E>._IndexPath) -> Int? {
 		guard position.section < objectSet.count else {
 			return nil
 		}
@@ -164,13 +164,14 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 		let prefetchingIds = obtainIDsForBatch(at: flattenedPosition,
 		                                       forward: isForwardPrefetching)
 
-		let prefetchRequest = E.fetchRequest()
+		let prefetchRequest = NSFetchRequest<E>()
+		prefetchRequest.entity = E.entity(in: objectSet.context)
 		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
 		                                        argumentArray: [prefetchingIds as NSArray])
 		prefetchRequest.resultType = NSFetchRequestResultType()
 		prefetchRequest.returnsObjectsAsFaults = false
 
-		let prefetchedObjects = try objectSet.context.fetch(prefetchRequest) as! [E]
+		let prefetchedObjects = try objectSet.context.fetch(prefetchRequest)
 		retain(prefetchedObjects)
 	}
 
@@ -185,7 +186,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 		}
 	}
 
-	override func acknowledgeNextAccess(at position: ObjectSet<E>._IndexPath) {
+	override func acknowledgeNextAccess(at position: ObjectCollection<E>._IndexPath) {
 		guard let currentPosition = flattenedIndex(at: position) else {
 			return
 		}
@@ -214,16 +215,16 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectSetPref
 
 /// GreedyPrefetcher
 
-internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E> {
+internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefetcher<E> {
 	var retainingPool = Set<E>()
-	unowned var objectSet: ObjectSet<E>
+	unowned var objectSet: ObjectCollection<E>
 
-	init(for objectSet: ObjectSet<E>) {
+	init(for objectSet: ObjectCollection<E>) {
 		self.objectSet = objectSet
 	}
 
 	override func reset() {}
-	override func acknowledgeNextAccess(at position: ObjectSet<E>._IndexPath) {}
+	override func acknowledgeNextAccess(at position: ObjectCollection<E>._IndexPath) {}
 
 	override func acknowledgeFetchCompletion(_ objectCount: Int) {
 		var ids = [NSManagedObjectID]()
@@ -233,13 +234,14 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E
 			ids.append(contentsOf: objectSet.sections[index].storage)
 		}
 
-		let prefetchRequest = E.fetchRequest()
+		let prefetchRequest = NSFetchRequest<E>()
+		prefetchRequest.entity = E.entity(in: objectSet.context)
 		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
 		                                        argumentArray: [ids as NSArray])
 		prefetchRequest.resultType = NSFetchRequestResultType()
 
 		do {
-			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest) as! [E]
+			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest)
 			retainingPool.formUnion(prefetchedObjects)
 		} catch let error {
 			print("GreedyPrefetcher<\(String(describing: E.self))>: cannot execute a prefetch. Error: \(error)")
@@ -255,13 +257,14 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectSetPrefetcher<E
 
 		let insertedIds = insertedIds.flatMap { $0.1 }
 
-		let prefetchRequest = E.fetchRequest()
+		let prefetchRequest = NSFetchRequest<E>()
+		prefetchRequest.entity = E.entity(in: objectSet.context)
 		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
 		                                        argumentArray: [insertedIds as NSArray])
 		prefetchRequest.resultType = NSFetchRequestResultType()
 
 		do {
-			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest) as! [E]
+			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest)
 			retainingPool.formUnion(prefetchedObjects)
 		} catch let error {
 			print("GreedyPrefetcher<\(String(describing: E.self))>: cannot execute a prefetch. Error: \(error)")

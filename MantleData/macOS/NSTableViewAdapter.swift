@@ -21,7 +21,7 @@ public protocol NSTableViewAdapterProvider: class {
 }
 
 final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapterProvider>: NSObject, NSTableViewDataSource {
-	private let set: ViewModelMappingSet<V>
+	private let set: ViewModelCollection<V>
 	private unowned let provider: Provider
 	private let config: NSTableViewAdapterConfig
 	private var flattenedRanges: [Range<Int>] = []
@@ -30,7 +30,7 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 		return config.hidesSectionHeader ? 0 : 1
 	}
 
-	private init(set: ViewModelMappingSet<V>, provider: Provider, config: NSTableViewAdapterConfig) {
+	private init(set: ViewModelCollection<V>, provider: Provider, config: NSTableViewAdapterConfig) {
 		self.set = set
 		self.provider = provider
 		self.config = config
@@ -90,7 +90,7 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 	@discardableResult
 	public static func bind(
 		_ tableView: NSTableView,
-		with set: ViewModelMappingSet<V>,
+		with set: ViewModelCollection<V>,
 		provider: Provider,
 		config: NSTableViewAdapterConfig
 	) -> NSTableViewAdapter<V, Provider> {

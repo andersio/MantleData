@@ -10,6 +10,7 @@ import Cocoa
 import ReactiveSwift
 import ReactiveCocoa
 
+@available(macOS 10.11, *)
 public enum NSCollectionViewSupplementaryViewKind: RawRepresentable {
 	case header
 	case footer
@@ -40,23 +41,26 @@ public enum NSCollectionViewSupplementaryViewKind: RawRepresentable {
 	}
 }
 
+@available(macOS 10.11, *)
 public struct NSCollectionViewAdapterConfig {
 	// Workaround: Empty struct somehow crashes Swift runtime.
 	public var placeholder = true
 	public init() {}
 }
 
+@available(macOS 10.11, *)
 public protocol NSCollectionViewAdapterProvider: class {
 	func item(at indexPath: IndexPath) -> NSCollectionViewItem
 	func supplementaryView(of kind: NSCollectionViewSupplementaryViewKind, at indexPath: IndexPath) -> NSView
 }
 
-final public class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionViewAdapterProvider>: NSObject, NSCollectionViewDataSource {
-	private let set: ViewModelMappingSet<V>
+@available(macOS 10.11, *)
+public final class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionViewAdapterProvider>: NSObject, NSCollectionViewDataSource {
+	private let set: ViewModelCollection<V>
 	private unowned let provider: Provider
 	private let config: NSCollectionViewAdapterConfig
 
-	public init(set: ViewModelMappingSet<V>, provider: Provider, config: NSCollectionViewAdapterConfig) {
+	public init(set: ViewModelCollection<V>, provider: Provider, config: NSCollectionViewAdapterConfig) {
 		self.set = set
 		self.provider = provider
 		self.config = config
@@ -84,7 +88,7 @@ final public class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionV
 	@discardableResult
 	public static func bind(
 		_ collectionView: NSCollectionView,
-		with set: ViewModelMappingSet<V>,
+		with set: ViewModelCollection<V>,
 		provider: Provider,
 		config: NSCollectionViewAdapterConfig
 	) -> NSCollectionViewAdapter<V, Provider> {

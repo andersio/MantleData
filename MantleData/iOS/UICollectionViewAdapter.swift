@@ -40,10 +40,10 @@ public protocol UICollectionViewAdapterProvider: class {
 }
 
 final public class UICollectionViewAdapter<V: ViewModel, Provider: UICollectionViewAdapterProvider>: NSObject, UICollectionViewDataSource {
-	private let set: ViewModelMappingSet<V>
+	private let set: ViewModelCollection<V>
 	private let provider: Provider
 
-	public init(set: ViewModelMappingSet<V>, provider: Provider) {
+	public init(set: ViewModelCollection<V>, provider: Provider) {
 		self.set = set
 		self.provider = provider
 	}
@@ -68,7 +68,7 @@ final public class UICollectionViewAdapter<V: ViewModel, Provider: UICollectionV
 	@discardableResult
 	public static func bind(
 		_ collectionView: UICollectionView,
-		with set: ViewModelMappingSet<V>,
+		with set: ViewModelCollection<V>,
 		provider: Provider
 	) -> UICollectionViewAdapter<V, Provider> {
 		let adapter = UICollectionViewAdapter(set: set, provider: provider)

@@ -8,69 +8,13 @@
 
 import Foundation
 
-/// Events of ReactiveSet
-
-public enum ReactiveCollectionEvent {
-	case reloaded
-	case updated(ReactiveCollectionChanges)
-
-	public init(clamping event: SectionedCollectionEvent, forSection index: Int) {
-		switch event {
-		case .reloaded:
-			self = .reloaded
-
-		case let .updated(changes):
-			self = .updated(ReactiveCollectionChanges(clamping: changes, forSection: index))
-		}
-	}
-}
-
-/// Change Descriptor of ReactiveSet
-
-public struct ReactiveCollectionChanges {
-	public var deletedRows: [Int]?
-	public var insertedRows: [Int]?
-	public var movedRows: [(from: Int, to: Int)]?
-
-	public init(clamping changes: SectionedCollectionChanges, forSection index: Int) {
-		deletedRows = changes.deletedRows?.flatMap { $0.section == index ? $0.row : nil }
-		insertedRows = changes.insertedRows?.flatMap { $0.section == index ? $0.row : nil }
-
-		if let pairs = changes.movedRows {
-			var movedRows = [(from: Int, to: Int)]()
-			var _insertedRows = [Int]()
-			var _deletedRows = [Int]()
-
-			for (from, to) in pairs {
-				if from.section == index && to.section == index {
-					movedRows.append((from.row, to.row))
-				} else if from.section == index {
-					_deletedRows.append(to.row)
-				} else if to.section == index {
-					_insertedRows.append(to.row)
-				}
-			}
-
-			if !_insertedRows.isEmpty {
-				insertedRows = insertedRows.map { $0 + _insertedRows } ?? _insertedRows
-			}
-
-			if !_deletedRows.isEmpty {
-				deletedRows = deletedRows.map { $0 + _deletedRows } ?? _deletedRows
-			}
-		}
-	}
-}
-
-/// Events of ReactiveSet
-
+/// An change event of a `SectionedCollection`.
 public enum SectionedCollectionEvent {
 	case reloaded
 	case updated(SectionedCollectionChanges)
 }
 
-/// Change Descriptor of ReactiveSet
-
+/// Describes the changes in a `SectionedCollection` of a particular event.
 public struct SectionedCollectionChanges {
 	public var deletedRows: [IndexPath]?
 	public var insertedRows: [IndexPath]?

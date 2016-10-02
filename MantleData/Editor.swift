@@ -7,6 +7,7 @@
 //
 
 import ReactiveSwift
+import enum Result.NoError
 
 /// `Editor` takes any `MutablePropertyProtocol` conforming types as its source, and
 /// exposes a two-way binding interface for UIControl.

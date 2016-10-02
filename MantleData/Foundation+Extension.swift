@@ -8,7 +8,7 @@
 
 import Foundation
 
-#if os(OSX)
+#if os(macOS)
 	extension IndexPath {
 		public init(row: Int, section: Int) {
 			self.init(item: row, section: section)

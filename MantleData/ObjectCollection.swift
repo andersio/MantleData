@@ -1,5 +1,5 @@
 //
-//  ObjectSet.swift
+//  ObjectCollection.swift
 //  MantleData
 //
 //  Created by Anders on 9/9/2015.
@@ -7,27 +7,27 @@
 //
 
 import Foundation
-import ReactiveSwift
-import ReactiveCocoa
 import CoreData
+import ReactiveSwift
+import enum Result.NoError
 
 /// A controller which manages and tracks a reactive collection of `E`,
 /// constrained by the supplied NSFetchRequest.
 ///
-/// `ObjectSet` **does not support** sorting or section name on key paths that
+/// `ObjectCollection` **does not support** sorting or section name on key paths that
 /// are deeper than one level of one-to-one relationships.
 ///
-/// As for observing changes of individual objects, `ObjectSet` by default does not emit any
+/// As for observing changes of individual objects, `ObjectCollection` by default does not emit any
 /// index paths for updated rows based on the assumed use of KVO-based bindings. You may override
 /// this behavior by setting `excludeUpdatedRowsInEvents` in the initialiser as `false`.
 ///
-/// - Important: If you are using ObjectSet with a child context, you must force the creation of
+/// - Important: If you are using ObjectCollection with a child context, you must force the creation of
 ///							 permanent IDs on inserted objects before you save a child context. Otherwise,
-///							 ObjectSet would raise an assertion if it catches any inserted objects with
+///							 ObjectCollection would raise an assertion if it catches any inserted objects with
 ///							 temporary IDs having been saved.
 ///
 /// - Warning:	 This class is not thread-safe. Use it only in the associated NSManagedObjectContext.
-final public class ObjectSet<E: NSManagedObject> {
+final public class ObjectCollection<E: NSManagedObject> {
 	internal typealias _IndexPath = IndexPath
 
 	private let lifetimeToken = Lifetime.Token()
@@ -41,8 +41,8 @@ final public class ObjectSet<E: NSManagedObject> {
 
 	private(set) public weak var context: NSManagedObjectContext!
 
-	internal var sections: [ObjectSetSection<E>] = []
-	internal var prefetcher: ObjectSetPrefetcher<E>?
+	internal var sections: [ObjectCollectionSection<E>] = []
+	internal var prefetcher: ObjectCollectionPrefetcher<E>?
 
 	private let sectionNameOrdering: ComparisonResult
 	fileprivate let objectSortDescriptors: [NSSortDescriptor]
@@ -73,7 +73,7 @@ final public class ObjectSet<E: NSManagedObject> {
 
 	public init(for request: NSFetchRequest<E>,
 							in context: NSManagedObjectContext,
-							prefetchingPolicy: ObjectSetPrefetchingPolicy,
+							prefetchingPolicy: ObjectCollectionPrefetchingPolicy,
 							sectionNameKeyPath: String? = nil,
 							excludeUpdatedRowsInEvents: Bool = true) {
 		(events, eventObserver) = Signal.pipe()
@@ -88,10 +88,10 @@ final public class ObjectSet<E: NSManagedObject> {
 		self.sectionNameKeyPath = sectionNameKeyPath
 
 		precondition(request.sortDescriptors != nil,
-		             "ObjectSet requires sort descriptors to work.")
+		             "ObjectCollection requires sort descriptors to work.")
 		precondition(request.sortDescriptors!.reduce(true) { reducedValue, descriptor in
 			return reducedValue && descriptor.key!.components(separatedBy: ".").count <= 2
-		}, "ObjectSet does not support sorting on to-one key paths deeper than 1 level.")
+		}, "ObjectCollection does not support sorting on to-one key paths deeper than 1 level.")
 
 		if sectionNameKeyPath != nil {
 			precondition(request.sortDescriptors!.count >= 2, "Unsufficient number of sort descriptors.")
@@ -232,7 +232,7 @@ final public class ObjectSet<E: NSManagedObject> {
 					objectIDs.append(id)
 				}
 
-				let section = ObjectSetSection(at: sections.count, name: name, array: objectIDs, in: self)
+				let section = ObjectCollectionSection(at: sections.count, name: name, array: objectIDs, in: self)
 				sections.append(section)
 			}
 
@@ -283,7 +283,7 @@ final public class ObjectSet<E: NSManagedObject> {
 						clearCache(for: temporaryId)
 						updateCache(for: object.objectID, with: object)
 					} else {
-						assertionFailure("ObjectSet does not implement any workaround to the temporary ID issue with parent-child context relationships. Please use `NSManagedObjectContext.obtainPermanentIDsForObjects(_:)` before saving your objects in a child context.")
+						assertionFailure("ObjectCollection does not implement any workaround to the temporary ID issue with parent-child context relationships. Please use `NSManagedObjectContext.obtainPermanentIDsForObjects(_:)` before saving your objects in a child context.")
 					}
 				}
 			}
@@ -414,7 +414,7 @@ final public class ObjectSet<E: NSManagedObject> {
 					continue
 				}
 
-				/// The object no longer qualifies. Delete it from the ObjectSet.
+				/// The object no longer qualifies. Delete it from the ObjectCollection.
 				let sectionName: String?
 
 				if let sectionNameKeyPath = sectionNameKeyPath {
@@ -694,7 +694,7 @@ final public class ObjectSet<E: NSManagedObject> {
 					sections[sectionIndex].storage.insert(id, using: objectSortDescriptors, with: objectCache)
 				}
 			} else {
-				let section = ObjectSetSection(at: -1, name: name, array: ContiguousArray(ids), in: self)
+				let section = ObjectCollectionSection(at: -1, name: name, array: ContiguousArray(ids), in: self)
 				_ = sections.insert(section, name: name, ordering: sectionNameOrdering)
 			}
 		}
@@ -792,7 +792,7 @@ final public class ObjectSet<E: NSManagedObject> {
 	}
 }
 
-extension ObjectSet: SectionedCollection {
+extension ObjectCollection: SectionedCollection {
 	public typealias Index = IndexPath
 
 	public var sectionCount: Int {
@@ -888,7 +888,7 @@ extension ObjectSet: SectionedCollection {
 		return sections[position.section][position.row]
 	}
 
-	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<ObjectSet<E>> {
+	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<ObjectCollection<E>> {
 		return RandomAccessSlice(base: self, bounds: subRange)
 	}
 
@@ -930,20 +930,20 @@ internal func ==(left: SectionKey, right: SectionKey) -> Bool {
 	return left.value == right.value
 }
 
-private protocol ObjectSetSectionProtocol {
+private protocol ObjectCollectionSectionProtocol {
 	var name: String? { get }
 }
 
-internal struct ObjectSetSection<E: NSManagedObject>: BidirectionalCollection, ObjectSetSectionProtocol {
+internal struct ObjectCollectionSection<E: NSManagedObject>: BidirectionalCollection, ObjectCollectionSectionProtocol {
 	typealias Index = Int
 
 	let name: String?
 
 	var indexInSet: Int
 	var storage: ContiguousArray<NSManagedObjectID>
-	unowned var parentSet: ObjectSet<E>
+	unowned var parentSet: ObjectCollection<E>
 
-	init(at index: Int, name: String?, array: ContiguousArray<NSManagedObjectID>?, in parentSet: ObjectSet<E>) {
+	init(at index: Int, name: String?, array: ContiguousArray<NSManagedObjectID>?, in parentSet: ObjectCollection<E>) {
 		self.indexInSet = index
 		self.name = name
 		self.storage = array ?? []
@@ -971,7 +971,7 @@ internal struct ObjectSetSection<E: NSManagedObject>: BidirectionalCollection, O
 		set { storage[position] = newValue.objectID }
 	}
 
-	subscript(subRange: Range<Int>) -> BidirectionalSlice<ObjectSetSection<E>> {
+	subscript(subRange: Range<Int>) -> BidirectionalSlice<ObjectCollectionSection<E>> {
 		return BidirectionalSlice(base: self, bounds: subRange)
 	}
 
@@ -984,13 +984,13 @@ internal struct ObjectSetSection<E: NSManagedObject>: BidirectionalCollection, O
 	}
 }
 
-extension Collection where Iterator.Element: ObjectSetSectionProtocol {
+extension Collection where Iterator.Element: ObjectCollectionSectionProtocol {
 	fileprivate func index(of name: String?) -> Index? {
 		return index { String.compareSectionNames($0.name, with: name) == .orderedSame }
 	}
 }
 
-extension RangeReplaceableCollection where Iterator.Element: ObjectSetSectionProtocol {
+extension RangeReplaceableCollection where Iterator.Element: ObjectCollectionSectionProtocol {
 	mutating func insert(_ section: Iterator.Element,
 	                              name: String?,
 	                              ordering: ComparisonResult) -> Index {

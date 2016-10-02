@@ -7,6 +7,7 @@
 //
 
 import ReactiveSwift
+import enum Result.NoError
 
 /// `AnyReactiveSet` assumes the wrapping ReactiveSet always uniformly index
 /// its elements with 1 unit of distance in integer.

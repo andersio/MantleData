@@ -138,19 +138,6 @@ extension Collection where Iterator.Element: Comparable, Index == Int {
 	}
 }
 
-internal protocol SetProtocol {
-	associatedtype Element: Hashable
-
-	init()
-
-	@discardableResult
-	mutating func insert(_ member: Element) -> (inserted: Bool, memberAfterInsert: Element)
-
-	func contains(_ member: Element) -> Bool
-}
-
-extension Set: SetProtocol {}
-
 extension MutableCollection where Iterator.Element: MutableCollection & RangeReplaceableCollection, Iterator.Element.Iterator.Element: Comparable, Iterator.Element.Index == Int {
 	internal mutating func orderedInsert(_ value: Iterator.Element.Iterator.Element, toCollectionAt index: Index, ascending: Bool = true) {
 		if case let .notFound(insertionPoint) = self[index].binarySearch(value, ascending: ascending) {
@@ -158,13 +145,13 @@ extension MutableCollection where Iterator.Element: MutableCollection & RangeRep
 		}
 	}
 }
-extension Array where Element: SetProtocol {
+extension Array where Element: SetAlgebra {
 	internal mutating func insert(_ value: Element.Element, intoSetAt index: Index) {
 		self[index].insert(value)
 	}
 }
 
-extension Dictionary where Value: SetProtocol {
+extension Dictionary where Value: SetAlgebra {
 	internal mutating func insert(_ value: Value.Element, intoSetOf key: Key) {
 		if !keys.contains(key) {
 			self[key] = Value()

@@ -6,9 +6,6 @@
 //  Copyright © 2015 Ik ben anders. All rights reserved.
 //
 
-import Foundation
-import CoreData
-
 public protocol ViewModel {
 	associatedtype MappingObject
 }

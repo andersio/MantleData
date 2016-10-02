@@ -9,55 +9,103 @@
 import CoreData
 import ReactiveSwift
 
-public enum SortingKey {
-	case ascending(keyPath: String)
-	case descending(keyPath: String)
+public enum SortingKeyPath {
+	case ascending(String)
+	case descending(String)
+
+	public var keyPath: String {
+		switch self {
+		case let .ascending(value):
+			return value
+
+		case let .descending(value):
+			return value
+		}
+	}
+
+	public var sortDescriptor: NSSortDescriptor {
+		switch self {
+		case let .ascending(value):
+			return NSSortDescriptor(key: value, ascending: true)
+
+		case let .descending(value):
+			return NSSortDescriptor(key: value, ascending: false)
+		}
+	}
 }
 
-/// **ObjectQuery**
-public class ObjectQuery<E: NSManagedObject> {
+public final class ObjectQuery<E: NSManagedObject> {
 	public typealias Entity = E
 
-	var context: NSManagedObjectContext
-	var fetchRequest: NSFetchRequest<Entity>
-	var hasGroupByKeyPath = false
+	let context: NSManagedObjectContext
+	let fetchRequest: NSFetchRequest<Entity>
+	var groupByKeyPath: SortingKeyPath?
 
-	public init(context: NSManagedObjectContext) {
-		guard let entityDescription = NSEntityDescription.entity(forEntityName: String(describing: Entity.self),
-		                                                                in: context) else {
-			preconditionFailure("Failed to create entity description of entity `\(String(describing: Entity.self))`.")
-		}
-
+	internal init(in context: NSManagedObjectContext) {
 		let fetchRequest = NSFetchRequest<Entity>()
-		fetchRequest.entity = entityDescription
+		fetchRequest.entity = Entity.entity(in: context)
 
 		self.context = context
 		self.fetchRequest = fetchRequest
 	}
 
-	public func fetchInBackground() -> SignalProducer<[Entity], NSError> {
-		return SignalProducer { observer, disposable in
-			self.fetchRequest.resultType = []
-
-			let asyncFetchRequest = NSAsynchronousFetchRequest(fetchRequest: self.fetchRequest) { fetchResult in
-				let storage = fetchResult.finalResult ?? []
-				observer.sendCompleted(with: storage)
-			}
-
-			do {
-				_ = try self.context.execute(asyncFetchRequest)
-			} catch let error {
-				observer.send(error: error as NSError)
-			}
-		}
-	}
+	// - MARK: Fetching
 
 	public func fetch() throws -> [Entity] {
 		return try context.fetch(fetchRequest)
 	}
-}
 
-extension ObjectQuery {
+	public func asyncFetch() -> SignalProducer<[Entity], NSError> {
+		return SignalProducer { observer, disposable in
+			self.context.async {
+				self.fetchRequest.resultType = []
+
+				let asyncFetchRequest = NSAsynchronousFetchRequest(fetchRequest: self.fetchRequest) { fetchResult in
+					let storage = fetchResult.finalResult ?? []
+					observer.send(value: storage)
+					observer.sendCompleted()
+				}
+
+				do {
+					_ = try self.context.execute(asyncFetchRequest)
+				} catch let error {
+					observer.send(error: error as NSError)
+				}
+			}
+		}
+	}
+
+	private func fetchDictionary(using fetchRequest: NSFetchRequest<NSDictionary>) throws -> [[String: AnyObject]] {
+		fetchRequest.resultType = .dictionaryResultType
+		return try context.fetch(fetchRequest).map { $0 as! [String: AnyObject] }
+	}
+
+	public func fetchDictionary(keyPaths: [String]? = nil) -> [[String: AnyObject]] {
+		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSDictionary>
+		fetchRequest.propertiesToFetch = keyPaths
+		return try! fetchDictionary(using: fetchRequest)
+	}
+
+	public func fetchIds() -> [NSManagedObjectID] {
+		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSManagedObjectID>
+		fetchRequest.resultType = .managedObjectIDResultType
+		fetchRequest.includesPropertyValues = false
+		fetchRequest.includesSubentities = false
+
+		return try! context.fetch(fetchRequest)
+	}
+
+	public func count() -> Int {
+		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSFetchRequestResult>
+		fetchRequest.resultType = .countResultType
+		fetchRequest.includesPropertyValues = false
+		fetchRequest.includesSubentities = false
+
+		return try! context.count(for: fetchRequest)
+	}
+
+	// - MARK: Filtering
+
 	public func filter(by predicate: NSPredicate) -> ObjectQuery {
 		fetchRequest.predicate = predicate
 		return self
@@ -72,14 +120,14 @@ extension ObjectQuery {
 		return self
 	}
 
-  /// MARK: Ordering operators
+  /// - MARK: Ordering
   
-  public func sort(by keys: SortingKey...) -> ObjectQuery {
+  public func sort(by keyPaths: SortingKeyPath...) -> ObjectQuery {
 		if fetchRequest.sortDescriptors == nil {
 			fetchRequest.sortDescriptors = []
 		}
 
-		for key in keys {
+		for key in keyPaths {
 			let sortDescriptor: NSSortDescriptor
 
 			switch key {
@@ -94,90 +142,70 @@ extension ObjectQuery {
 
 		return self
   }
+
+	/// - MARK: Grouping
   
-  public func group(by key: SortingKey) -> ObjectQuery {
-		precondition(!hasGroupByKeyPath, "You can only group by one key path.")
-		hasGroupByKeyPath = true
+  public func group(by keyPath: SortingKeyPath) -> ObjectQuery {
+		precondition(groupByKeyPath == nil, "You can only group by one key path.")
+		groupByKeyPath = keyPath
 
-		if fetchRequest.sortDescriptors == nil {
-			fetchRequest.sortDescriptors = []
-		}
-
-		let sortDescriptor: NSSortDescriptor
-		switch key {
-		case let .ascending(keyPath):
-			sortDescriptor = NSSortDescriptor(key: keyPath, ascending: true)
-		case let .descending(keyPath):
-			sortDescriptor = NSSortDescriptor(key: keyPath, ascending: false)
-		}
-		fetchRequest.sortDescriptors!.insert(sortDescriptor, at: 0)
+		fetchRequest.sortDescriptors = fetchRequest.sortDescriptors ?? []
+		fetchRequest.sortDescriptors!.insert(keyPath.sortDescriptor, at: 0)
 
 		return self
 	}
-}
 
-/// MARK: Factories
+	/// - MARK: Change Tracking Collections
 
-extension ObjectQuery {
-	public func makeObjectSet(prefetching policy: ObjectSetPrefetchingPolicy = .none) -> ObjectSet<Entity> {
-		let sectionNameKeyPath: String? = hasGroupByKeyPath ? fetchRequest.sortDescriptors!.first!.key! : nil
-		return ObjectSet(for: fetchRequest,
-		                 in: context,
-		                 prefetchingPolicy: policy,
-		                 sectionNameKeyPath: sectionNameKeyPath)
+	public func makeCollection(prefetching policy: ObjectCollectionPrefetchingPolicy = .none) -> ObjectCollection<Entity> {
+		let copy = self.fetchRequest.copy() as! NSFetchRequest<Entity>
+
+		return ObjectCollection(for: copy,
+		                        in: context,
+		                        prefetchingPolicy: policy,
+		                        sectionNameKeyPath: groupByKeyPath?.keyPath)
 	}
 
-	#if os(iOS)
+	@available(macOS 10.12, *)
 	public func makeController() -> NSFetchedResultsController<Entity> {
-		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<Entity>
-		return NSFetchedResultsController(fetchRequest: fetchRequest,
+		let copy = self.fetchRequest.copy() as! NSFetchRequest<Entity>
+
+		return NSFetchedResultsController(fetchRequest: copy,
 		                                  managedObjectContext: context,
-		                                  sectionNameKeyPath: hasGroupByKeyPath ? fetchRequest.sortDescriptors!.first!.key! : nil,
+		                                  sectionNameKeyPath: groupByKeyPath?.keyPath,
 		                                  cacheName: nil)
 	}
-	#endif
-}
 
-/// MARK: Others
+	/// - MARK: Aggregations
 
-extension ObjectQuery {
-	private func fetchingDictionary(using fetchRequest: NSFetchRequest<NSDictionary>) throws -> [[String: AnyObject]] {
-		fetchRequest.resultType = .dictionaryResultType
-		return try context.fetch(fetchRequest).map { $0 as! [String: AnyObject] }
+	private func aggregate(op: String, keyPath: String, resultKey: String, default: Int? = nil) throws -> Int? {
+		if let array = try aggregate(shouldGroup: false, descriptors: (op, keyPath)),
+		   let result = array.first?[resultKey] as? NSNumber {
+			return result.intValue
+		}
+
+		return `default`
 	}
 
-	public func resultingDictionary(keyPaths: [String]? = nil) -> [[String: AnyObject]] {
-		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSDictionary>
-		fetchRequest.propertiesToFetch = keyPaths
-		return try! fetchingDictionary(using: fetchRequest)
+	private func groupedAggregate(op: String, keyPath: String, resultKey: String) throws -> [AnyHashable: Int] {
+		var results = [AnyHashable: Int]()
+
+		if let dictionaries = try aggregate(shouldGroup: true, descriptors: (op, keyPath)) {
+			for dictionary in dictionaries {
+				if let group = dictionary[keyPath] as? NSObject,
+				   let result = dictionary[resultKey] as? NSNumber {
+					results[AnyHashable(group)] = result.intValue
+				}
+			}
+		}
+
+		return results
 	}
 
-	public var resultingIDs: [NSManagedObjectID] {
-		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSManagedObjectID>
-		fetchRequest.resultType = .managedObjectIDResultType
-		fetchRequest.includesPropertyValues = false
-		fetchRequest.includesSubentities = false
-		return try! context.fetch(fetchRequest)
-	}
-
-	public var resultingCount: Int {
-		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSFetchRequestResult>
-		fetchRequest.resultType = .countResultType
-		fetchRequest.includesPropertyValues = false
-		fetchRequest.includesSubentities = false
-		return try! context.count(for: fetchRequest)
-	}
-
-	/// Aggregate Functions
-
-	private func aggregate(usingFunction name: String, onKeyPath keyPath: String) throws -> [String: AnyObject]? {
-		return try aggregate((name, keyPath))?.first
-	}
-
-	private func aggregate(_ functions: (name: String, keyPath: String)...) throws -> [[String: AnyObject]]? {
+	private func aggregate(shouldGroup: Bool, descriptors: (name: String, keyPath: String)...) throws -> [[String: AnyObject]]? {
 		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSDictionary>
 
-		let expressions = functions.map { descriptor -> NSExpressionDescription in
+		let expressions = descriptors.map { descriptor -> NSExpressionDescription in
 			let expression = NSExpressionDescription()
 			expression.name = descriptor.name
 			expression.expression = NSExpression(forFunction: "\(descriptor.name):",
@@ -186,90 +214,88 @@ extension ObjectQuery {
 			return expression
 		}
 
-		fetchRequest.resultType = .dictionaryResultType
-		fetchRequest.propertiesToFetch = expressions
+		if shouldGroup, let keyPath = groupByKeyPath?.keyPath {
+			fetchRequest.propertiesToFetch = (expressions as [Any]) + [keyPath]
+			fetchRequest.propertiesToGroupBy = [keyPath]
+		} else {
+			fetchRequest.propertiesToFetch = expressions
+		}
 
-		let results = try fetchingDictionary(using: fetchRequest)
+		let results = try fetchDictionary(using: fetchRequest)
 		return results
 	}
 
-	private func aggregate(usingFunction name: String, onKeyPath keyPath: String, groupByKeyPath groupingKeyPath: String) throws -> [Int] {
-		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSDictionary>
-		let expression = NSExpressionDescription()
-		expression.name = name
-		expression.expression = NSExpression(forFunction: "\(name):", arguments: [NSExpression(forKeyPath: keyPath)])
-		expression.expressionResultType = .integer64AttributeType
-
-		fetchRequest.propertiesToFetch = [expression, groupingKeyPath]
-		fetchRequest.propertiesToGroupBy = [groupingKeyPath]
-
-		let results = try fetchingDictionary(using: fetchRequest)
-		return results.map { Int(cocoaValue: $0[name]) }
+	public func count(keyPath: String) throws -> Int {
+		return try aggregate(op: "count",
+		                     keyPath: keyPath,
+		                     resultKey: "count",
+		                     default: 0)!
 	}
 
-	public func count(ofKeyPath keyPath: String) throws -> Int {
-		return try (aggregate(usingFunction: "count", onKeyPath: keyPath)?["count"] as? NSNumber)?.intValue ?? 0
+	public func sum(keyPath: String) throws -> Int {
+		return try aggregate(op: "sum",
+		                     keyPath: keyPath,
+		                     resultKey: "sum",
+		                     default: 0)!
 	}
 
-	public func sum(ofKeyPath keyPath: String) throws -> Int {
-		return try (aggregate(usingFunction: "sum", onKeyPath: keyPath)?["sum"] as? NSNumber)?.intValue ?? 0
+	public func min(keyPath: String) throws -> Int? {
+		return try aggregate(op: "min",
+		                     keyPath: keyPath,
+		                     resultKey: keyPath)!
 	}
 
-	public func min(ofKeyPath keyPath: String) throws -> Int? {
-		return try (aggregate(usingFunction: "min", onKeyPath: keyPath)?[keyPath] as? NSNumber)?.intValue ?? 0
+	public func max(keyPath: String) throws -> Int? {
+		return try aggregate(op: "max",
+		                     keyPath: keyPath,
+		                     resultKey: keyPath)!
 	}
 
-	public func max(ofKeyPath keyPath: String) throws -> Int? {
-		return try (aggregate(usingFunction: "max", onKeyPath: keyPath)?[keyPath] as? NSNumber)?.intValue ?? 0
+	public func groupedCount(keyPath: String) throws -> [AnyHashable: Int] {
+		return try groupedAggregate(op: "count",
+		                                 keyPath: keyPath,
+		                                 resultKey: "count")
 	}
 
-	public func count(onKeyPath keyPath: String, groupByKeyPath groupingKeyPath: String) throws -> [Int] {
-		return try aggregate(usingFunction: "count", onKeyPath: keyPath, groupByKeyPath: groupingKeyPath)
+	public func groupedSum(keyPath: String) throws -> [AnyHashable: Int] {
+		return try groupedAggregate(op: "sum",
+		                                 keyPath: keyPath,
+		                                 resultKey: "sum")
 	}
 
-	public func sum(onKeyPath keyPath: String, groupByKeyPath groupingKeyPath: String) throws -> [Int] {
-		return try aggregate(usingFunction: "sum", onKeyPath: keyPath, groupByKeyPath: groupingKeyPath)
+	public func groupedMin(keyPath: String) throws -> [AnyHashable: Int] {
+		return try groupedAggregate(op: "min",
+		                                 keyPath: keyPath,
+		                                 resultKey: keyPath)
 	}
 
-	public func min(onKeyPath keyPath: String, groupByKeyPath groupingKeyPath: String) throws -> [Int] {
-		return try aggregate(usingFunction: "min", onKeyPath: keyPath, groupByKeyPath: groupingKeyPath)
+	public func groupedMax(keyPath: String) throws -> [AnyHashable: Int] {
+		return try groupedAggregate(op: "max",
+		                                 keyPath: keyPath,
+		                                 resultKey: keyPath)
 	}
 
-	public func max(onKeyPath keyPath: String, groupByKeyPath groupingKeyPath: String) throws -> [Int] {
-		return try aggregate(usingFunction: "max", onKeyPath: keyPath, groupByKeyPath: groupingKeyPath)
+	/// MARK: Batch Updating
+
+	@available(iOS 9.0, *)
+	public func unsafeUpdate<Value: CocoaBridgeable>(newValue value: Value, forKeyPath path: String) throws {
+		try unsafeUpdate(from: NSExpression(forConstantValue: value.cocoaValue), forKeyPath: path)
 	}
 
-	public func minMax(ofKeyPath keyPath: String) throws -> (min: Int, max: Int)? {
-		let results = try aggregate(("min", keyPath), ("max", keyPath))
-		return results.flatMap {
-			if let dictionary = $0.first, let first = dictionary["min"] as? NSNumber, let second = dictionary["max"] as? NSNumber {
-				return (min: first.intValue, max: second.intValue)
-			}
-			return nil
-		}
+	@available(iOS 9.0, *)
+	public func unsafeUpdate(from expression: NSExpression, forKeyPath path: String) throws {
+		try unsafeUpdate([path: expression])
 	}
 
-	/// MARK: Batch Update Operators
-
-	public func update<Value: CocoaBridgeable>(newValue value: Value, forKeyPath path: String) throws {
-		try update(from: NSExpression(forConstantValue: value.cocoaValue), forKeyPath: path)
-	}
-
-	public func update(from expression: NSExpression, forKeyPath path: String) throws {
-		try update([path: expression])
-	}
-
-	public func update(_ dictionary: [String: NSExpression]) throws {
-		guard let entityDescription = NSEntityDescription.entity(forEntityName: String(describing: Entity.self), in: context) else {
-			preconditionFailure("Failed to create entity description of entity `\(String(describing: Entity.self))`.")
-		}
-
-		let updateRequest = NSBatchUpdateRequest(entity: entityDescription)
+	@available(iOS 9.0, *)
+	public func unsafeUpdate(_ dictionary: [String: NSExpression]) throws {
+		let updateRequest = NSBatchUpdateRequest(entity: Entity.entity(in: context))
 		updateRequest.propertiesToUpdate = dictionary
 		updateRequest.predicate = fetchRequest.predicate
 		try context.batchUpdate(updateRequest)
 	}
 
+	@available(iOS 9.0, macOS 10.11, *)
 	public func unsafeBatchDelete() throws {
 		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSFetchRequestResult>
 		let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)

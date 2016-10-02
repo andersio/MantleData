@@ -7,26 +7,7 @@
 //
 
 import ReactiveSwift
-
-public protocol SectionedCollectionIndex: Comparable {
-	var section: Int { get }
-	var row: Int { get }
-
-	init<I: SectionedCollectionIndex>(_ index: I)
-	init(row: Int, section: Int)
-}
-
-extension IndexPath: SectionedCollectionIndex {
-	public init<I: SectionedCollectionIndex>(_ index: I) {
-		self.init(row: index.row, section: index.section)
-	}
-}
-
-public protocol ReactiveCollection: class, RandomAccessCollection {
-	var events: Signal<ReactiveCollectionEvent, NoError> { get }
-
-	func fetch(trackingChanges: Bool) throws
-}
+import enum Result.NoError
 
 public protocol SectionedCollection: class, RandomAccessCollection {
 	associatedtype Index: SectionedCollectionIndex = IndexPath
@@ -47,5 +28,19 @@ extension SectionedCollection {
 
 	public subscript(section section: Int, row row: Int) -> Iterator.Element {
 		return self[Index(row: row, section: section)]
+	}
+}
+
+public protocol SectionedCollectionIndex: Comparable {
+	var section: Int { get }
+	var row: Int { get }
+
+	init<I: SectionedCollectionIndex>(_ index: I)
+	init(row: Int, section: Int)
+}
+
+extension IndexPath: SectionedCollectionIndex {
+	public init<I: SectionedCollectionIndex>(_ index: I) {
+		self.init(row: index.row, section: index.section)
 	}
 }

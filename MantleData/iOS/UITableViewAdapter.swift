@@ -22,10 +22,10 @@ public struct UITableViewAdapterConfig {
 }
 
 final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapterProvider>: NSObject, UITableViewDataSource {
-	private let set: ViewModelMappingSet<V>
+	private let set: ViewModelCollection<V>
 	private let provider: Provider
 
-	fileprivate init(set: ViewModelMappingSet<V>, provider: Provider) {
+	fileprivate init(set: ViewModelCollection<V>, provider: Provider) {
 		self.set = set
 		self.provider = provider
 		super.init()
@@ -50,7 +50,7 @@ final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapter
 	@discardableResult
 	public static func bind(
 		_ tableView: UITableView,
-		with set: ViewModelMappingSet<V>,
+		with set: ViewModelCollection<V>,
 		provider: Provider,
 		config: UITableViewAdapterConfig
 	) -> UITableViewAdapter<V, Provider> {

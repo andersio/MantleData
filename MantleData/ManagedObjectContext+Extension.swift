@@ -99,6 +99,7 @@ extension NSManagedObjectContext {
 	}
 
 	/// Batch delete objects, and update other contexts asynchronously.
+	@available(iOS 9.0, macOS 10.11, *)
 	public func batchDelete(_ request: NSBatchDeleteRequest) throws {
 		let IDRequest = request.fetchRequest.copy() as! NSFetchRequest<NSManagedObjectID>
 		IDRequest.resultType = .managedObjectIDResultType
@@ -245,11 +246,11 @@ extension NSManagedObjectContext {
 					object: self,
 					userInfo: nil)
 
-			if hasIdenticalSource {
-				self.mergeChanges(fromContextDidSave: notification)
-			} else {
+			if #available(iOS 9.0, macOS 10.11, *), !hasIdenticalSource {
 				NSManagedObjectContext.mergeChanges(fromRemoteContextSave: userInfo,
-					into: [self])
+																						into: [self])
+			} else {
+				mergeChanges(fromContextDidSave: notification)
 			}
 		}
 	}

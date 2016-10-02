@@ -7,10 +7,12 @@
 //
 
 import ReactiveSwift
+import enum Result.NoError
 
-/// `ViewModelSet` is a type-erased collection view to a `ReactiveSet` implementation, which
-/// maps view models of type `U` from the underlying set of `U.MappingObject` objects.
-public final class ViewModelMappingSet<U: ViewModel>: SectionedCollection {
+/// `ViewModelCollection` is a type-erased view to any `SectionedCollection`
+/// implementations. It maps view models of type `U` from the underlying set
+/// of `U.MappingObject` objects.
+public final class ViewModelCollection<U: ViewModel>: SectionedCollection {
 	public typealias Index = IndexPath
 
 	public var sectionNameTransform: ((String?) -> String?)? = nil
@@ -59,7 +61,7 @@ public final class ViewModelMappingSet<U: ViewModel>: SectionedCollection {
 		return factory(set[position])
 	}
 
-	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<ViewModelMappingSet<U>> {
+	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<ViewModelCollection<U>> {
 		return RandomAccessSlice(base: self, bounds: subRange)
 	}
 	

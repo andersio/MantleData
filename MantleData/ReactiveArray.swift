@@ -8,6 +8,7 @@
 
 import Foundation
 import ReactiveSwift
+import enum Result.NoError
 
 // Root
 final public class ReactiveArray<E> {
