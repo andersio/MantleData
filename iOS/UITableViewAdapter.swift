@@ -17,6 +17,8 @@ public struct UITableViewAdapterConfig {
 	public var insertingAnimation: UITableViewRowAnimation = .automatic
 	public var deletingAnimation: UITableViewRowAnimation = .automatic
 	public var updatingAnimation: UITableViewRowAnimation = .automatic
+
+	public init() {}
 }
 
 final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapterProvider>: NSObject, UITableViewDataSource {
