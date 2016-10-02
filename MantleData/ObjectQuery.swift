@@ -58,15 +58,16 @@ public class ObjectQuery<E: NSManagedObject> {
 }
 
 extension ObjectQuery {
-	public func filter(using predicate: NSPredicate?) -> ObjectQuery {
+	public func filter(by predicate: NSPredicate) -> ObjectQuery {
+		fetchRequest.predicate = predicate
 		return self
 	}
 
-	public func filter(by expression: String, _ arguments: AnyObject...) -> ObjectQuery {
+	public func filter(by expression: String, _ arguments: Any...) -> ObjectQuery {
 		return filter(by: expression, with: arguments)
 	}
 
-	public func filter(by expression: String, with argumentArray: [AnyObject]) -> ObjectQuery {
+	public func filter(by expression: String, with argumentArray: [Any]) -> ObjectQuery {
 		fetchRequest.predicate = NSPredicate(format: expression, argumentArray: argumentArray)
 		return self
 	}
