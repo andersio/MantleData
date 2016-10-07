@@ -11,22 +11,23 @@ import CoreData
 import ReactiveSwift
 import enum Result.NoError
 
-/// A controller which manages and tracks a reactive collection of `E`,
-/// constrained by the supplied NSFetchRequest.
+/// `ObjectCollection` manages a live-updated collection of managed objects
+/// contrained by the supplied fetch request.
 ///
-/// `ObjectCollection` **does not support** sorting or section name on key paths that
-/// are deeper than one level of one-to-one relationships.
+/// - note: Sorting and grouping supports up to one level of
+///         to-one relationship.
 ///
-/// As for observing changes of individual objects, `ObjectCollection` by default does not emit any
-/// index paths for updated rows based on the assumed use of KVO-based bindings. You may override
-/// this behavior by setting `excludeUpdatedRowsInEvents` in the initialiser as `false`.
+/// - important: By default, updated rows are not included in the changes
+///              notification. Observe the object directly, or override the
+///              default of `shouldExcludeUpdatedRows` in the initializer.
 ///
-/// - Important: If you are using ObjectCollection with a child context, you must force the creation of
-///							 permanent IDs on inserted objects before you save a child context. Otherwise,
-///							 ObjectCollection would raise an assertion if it catches any inserted objects with
-///							 temporary IDs having been saved.
+/// - warning: When using in a child context, the creation of permanent IDs of
+///            the inserted objects must be forced before the child context is
+///            saved. A fatal error is raised if any inserted objects with
+///            temporary IDs is caught by the `ObjectCollection`.
 ///
-/// - Warning:	 This class is not thread-safe. Use it only in the associated NSManagedObjectContext.
+/// - warning: This class is not thread-safe. Use it only in the associated
+///            managed object context.
 final public class ObjectCollection<E: NSManagedObject> {
 	internal typealias _IndexPath = IndexPath
 
@@ -119,6 +120,10 @@ final public class ObjectCollection<E: NSManagedObject> {
 		}
 	}
 
+	/// Fetch asynchronously.
+	///
+	/// - parameters:
+	///   - shouldTrackChanges: Whether the collection should be live updated.
 	public func fetch(trackingChanges shouldTrackChanges: Bool = false) throws {
 		if shouldTrackChanges && !isTracking {
 			isTracking = true
@@ -287,7 +292,7 @@ final public class ObjectCollection<E: NSManagedObject> {
 						clearCache(for: temporaryId)
 						updateCache(for: object.objectID, with: object)
 					} else {
-						assertionFailure("ObjectCollection does not implement any workaround to the temporary ID issue with parent-child context relationships. Please use `NSManagedObjectContext.obtainPermanentIDsForObjects(_:)` before saving your objects in a child context.")
+						fatalError("ObjectCollection does not implement any workaround to the temporary ID issue with parent-child context relationships. Please use `NSManagedObjectContext.obtainPermanentIDsForObjects(_:)` before saving your objects in a child context.")
 					}
 				}
 			}
