@@ -42,10 +42,14 @@ public protocol UICollectionViewAdapterProvider: class {
 final public class UICollectionViewAdapter<V: ViewModel, Provider: UICollectionViewAdapterProvider>: NSObject, UICollectionViewDataSource {
 	private let set: ViewModelCollection<V>
 	private let provider: Provider
+	public let disposable: Disposable
 
-	public init(set: ViewModelCollection<V>, provider: Provider) {
+	public init(set: ViewModelCollection<V>, provider: Provider, disposable: Disposable) {
 		self.set = set
 		self.provider = provider
+		self.disposable = disposable
+
+		super.init()
 	}
 
 	public func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -71,15 +75,16 @@ final public class UICollectionViewAdapter<V: ViewModel, Provider: UICollectionV
 		with set: ViewModelCollection<V>,
 		provider: Provider
 	) -> UICollectionViewAdapter<V, Provider> {
-		let adapter = UICollectionViewAdapter(set: set, provider: provider)
+		let disposable = CompositeDisposable()
+
+		let adapter = UICollectionViewAdapter(set: set,
+		                                      provider: provider,
+		                                      disposable: disposable)
 		collectionView.dataSource = adapter
-		collectionView.reactive.lifetime.ended.observeCompleted { _ = adapter }
 
-		defer { try! set.fetch() }
-
-		set.eventsProducer
+		disposable += set.eventsProducer
 			.take(during: collectionView.reactive.lifetime)
-			.startWithValues { [weak collectionView] event in
+			.startWithValues { [adapter, weak collectionView] event in
 				guard let collectionView = collectionView else { return }
 
 				switch event {

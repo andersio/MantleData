@@ -26,9 +26,13 @@ final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapter
 	private let set: ViewModelCollection<V>
 	private let provider: Provider
 
-	fileprivate init(set: ViewModelCollection<V>, provider: Provider) {
+	public let disposable: Disposable
+
+	fileprivate init(set: ViewModelCollection<V>, provider: Provider, disposable: Disposable) {
 		self.set = set
 		self.provider = provider
+		self.disposable = disposable
+
 		super.init()
 	}
 
@@ -55,14 +59,16 @@ final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapter
 		provider: Provider,
 		config: UITableViewAdapterConfig
 	) -> UITableViewAdapter<V, Provider> {
-		let adapter = UITableViewAdapter(set: set, provider: provider)
+		let disposable = CompositeDisposable()
+
+		let adapter = UITableViewAdapter(set: set,
+		                                 provider: provider,
+		                                 disposable: disposable)
 		tableView.dataSource = adapter
 
-		defer { try! set.fetch() }
-
-		set.eventsProducer
+		disposable += set.eventsProducer
 			.take(during: tableView.reactive.lifetime)
-			.startWithValues { [weak tableView] event in
+			.startWithValues { [adapter, weak tableView] event in
 				guard let tableView = tableView else { return }
 
 				switch event {

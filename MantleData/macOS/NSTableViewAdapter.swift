@@ -30,10 +30,13 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 		return config.hidesSectionHeader ? 0 : 1
 	}
 
-	private init(set: ViewModelCollection<V>, provider: Provider, config: NSTableViewAdapterConfig) {
+	public let disposable: Disposable
+
+	private init(set: ViewModelCollection<V>, provider: Provider, config: NSTableViewAdapterConfig, disposable: Disposable) {
 		self.set = set
 		self.provider = provider
 		self.config = config
+		self.disposable = disposable
 
 		super.init()
 		computeFlattenedRanges()
@@ -94,13 +97,15 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 		provider: Provider,
 		config: NSTableViewAdapterConfig
 	) -> NSTableViewAdapter<V, Provider> {
-		let adapter = NSTableViewAdapter(set: set, provider: provider, config: config)
+		let disposable = CompositeDisposable()
+		let adapter = NSTableViewAdapter(set: set, provider: provider, config: config, disposable: disposable)
 		tableView.dataSource = adapter
 
-		set.eventsProducer
+		disposable += set.eventsProducer
 			.take(during: tableView.reactive.lifetime)
-			.startWithValues { [unowned tableView] in
-				switch($0) {
+			.startWithValues { [adapter, weak tableView] event in
+				guard let tableView = tableView else { return }
+				switch event {
 				case .reloaded:
 					adapter.computeFlattenedRanges()
 					tableView.reloadData()
@@ -139,8 +144,7 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 
 					tableView.endUpdates()
 				}
-		}
-		try! set.fetch()
+			}
 
 		return adapter
 	}

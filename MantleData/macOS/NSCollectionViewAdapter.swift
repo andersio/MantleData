@@ -59,11 +59,13 @@ public final class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionV
 	private let set: ViewModelCollection<V>
 	private unowned let provider: Provider
 	private let config: NSCollectionViewAdapterConfig
+	public let disposable: Disposable
 
-	public init(set: ViewModelCollection<V>, provider: Provider, config: NSCollectionViewAdapterConfig) {
+	public init(set: ViewModelCollection<V>, provider: Provider, config: NSCollectionViewAdapterConfig, disposable: Disposable) {
 		self.set = set
 		self.provider = provider
 		self.config = config
+		self.disposable = disposable
 
 		super.init()
 	}
@@ -92,15 +94,19 @@ public final class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionV
 		provider: Provider,
 		config: NSCollectionViewAdapterConfig
 	) -> NSCollectionViewAdapter<V, Provider> {
-		let adapter = NSCollectionViewAdapter<V, Provider>(set: set, provider: provider, config: config)
+		let disposable = CompositeDisposable()
+
+		let adapter = NSCollectionViewAdapter<V, Provider>(set: set,
+		                                                   provider: provider,
+		                                                   config: config,
+		                                                   disposable: disposable)
 		collectionView.dataSource = adapter
 
-		collectionView.reactive.lifetime.ended.observeCompleted { _ = adapter }
-
-		set.eventsProducer
+		disposable += set.eventsProducer
 			.take(during: collectionView.reactive.lifetime)
-			.startWithValues { [unowned collectionView] in
-				switch($0) {
+			.startWithValues { [adapter, weak collectionView] event in
+				guard let collectionView = collectionView else { return }
+				switch event {
 				case .reloaded:
 					collectionView.reloadData()
 
@@ -131,9 +137,8 @@ public final class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionV
 
 					collectionView.animator().performBatchUpdates(updater, completionHandler: nil)
 				}
-		}
-		
-		try! set.fetch()
+			}
+
 		return adapter
 	}
 }
