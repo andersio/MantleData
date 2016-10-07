@@ -8,6 +8,7 @@
 
 import UIKit
 import ReactiveSwift
+import ReactiveCocoa
 
 public protocol UITableViewAdapterProvider: class {
 	func cellForRow(at indexPath: IndexPath) -> UITableViewCell
@@ -60,7 +61,7 @@ final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapter
 		defer { try! set.fetch() }
 
 		set.eventsProducer
-			.take(during: tableView.rac.lifetime)
+			.take(during: tableView.reactive.lifetime)
 			.startWithValues { [weak tableView] event in
 				guard let tableView = tableView else { return }
 

@@ -41,9 +41,9 @@ extension NSManagedObjectContext {
 
 	@discardableResult
 	public func observeSavedChanges(from other: NSManagedObjectContext) -> Disposable {
-		return NotificationCenter.default
-			.rac_notifications(forName: .NSManagedObjectContextDidSave, object: other)
-			.take(until: rac.lifetime.ended.zip(with: other.rac.lifetime.ended).map { _ in })
+		return NotificationCenter.default.reactive
+			.notifications(forName: .NSManagedObjectContextDidSave, object: other)
+			.take(until: reactive.lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
 			.startWithValues(handleExternalChanges(_:))
 	}
 
@@ -52,14 +52,14 @@ extension NSManagedObjectContext {
 		let disposable = CompositeDisposable()
 		let defaultCenter = NotificationCenter.default
 
-		disposable += defaultCenter
-			.rac_notifications(forName: .didBatchUpdate, object: other)
-			.take(until: rac.lifetime.ended.zip(with: other.rac.lifetime.ended).map { _ in })
+		disposable += defaultCenter.reactive
+			.notifications(forName: .didBatchUpdate, object: other)
+			.take(until: reactive.lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
 			.startWithValues(handleExternalBatchUpdate(_:))
 
-		disposable += defaultCenter
-			.rac_notifications(forName: .willBatchDelete, object: other)
-			.take(until: rac.lifetime.ended.zip(with: other.rac.lifetime.ended).map { _ in })
+		disposable += defaultCenter.reactive
+			.notifications(forName: .willBatchDelete, object: other)
+			.take(until: reactive.lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
 			.startWithValues(preprocessBatchDelete(_:))
 
 		return disposable

@@ -62,10 +62,10 @@ final public class ObjectCollection<E: NSManagedObject> {
 	private var isTracking: Bool = false {
 		willSet {
 			if !isTracking && newValue {
-				NotificationCenter.default
-					.rac_notifications(forName: .NSManagedObjectContextObjectsDidChange,
-					                   object: context)
-					.take(until: context.rac.lifetime.ended.zip(with: lifetime.ended).map { _ in })
+				NotificationCenter.default.reactive
+					.notifications(forName: .NSManagedObjectContextObjectsDidChange,
+					               object: context)
+					.take(until: context.reactive.lifetime.ended.zip(with: lifetime.ended).map { _ in })
 					.startWithValues(process(objectsDidChangeNotification:))
 			}
 		}
@@ -250,7 +250,8 @@ final public class ObjectCollection<E: NSManagedObject> {
 
 		if !isAwaitingContextSave {
 			NotificationCenter.default
-				.rac_notifications(forName: NSNotification.Name.NSManagedObjectContextDidSave, object: context)
+				.reactive
+				.notifications(forName: NSNotification.Name.NSManagedObjectContextDidSave, object: context)
 				.take(first: 1)
 				.startWithValues(handle(contextDidSaveNotification:))
 

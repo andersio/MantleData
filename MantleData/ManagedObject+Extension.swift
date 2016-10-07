@@ -8,6 +8,7 @@
 
 import CoreData
 import ReactiveSwift
+import ReactiveCocoa
 import enum Result.NoError
 
 public protocol ManagedObjectProtocol: class {}
@@ -17,6 +18,46 @@ extension NSManagedObject: ManagedObjectProtocol {
 		let entity = NSEntityDescription.entity(forEntityName: String(describing: self),
 		                                        in: context)
 		return entity!
+	}
+
+	/// Return a producer which emits the current and subsequent values for the supplied key path.
+	/// A fault would be fired when the producer is started.
+	///
+	/// - important: You should avoid using it in any overrided methods of `Object`
+	///              if the producer might outlive the object.
+	///
+	/// - parameters:
+	///   - keyPath: The key path to be observed.
+	public func producer<Value: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> where Value._Inner: CocoaBridgeable {
+		return producer(forKeyPath: keyPath, extract: Bridgeable<Value>.extract)
+	}
+
+	fileprivate func producer<Value>(forKeyPath keyPath: String, extract: @escaping (Any?) -> Value) -> SignalProducer<Value, NoError> {
+		return SignalProducer { [weak self] observer, disposable in
+			guard let strongSelf = self else {
+				observer.sendInterrupted()
+				return
+			}
+
+			// Fire fault.
+			strongSelf.willAccessValue(forKey: nil)
+			defer { strongSelf.didAccessValue(forKey: nil) }
+
+			disposable += strongSelf.reactive.values(forKeyPath: keyPath)
+				.startWithValues { [weak self] value in
+					if let strongSelf = self, strongSelf.faultingState == 0 && !strongSelf.isDeleted {
+						observer.send(value: extract(value))
+					}
+			}
+		}
+	}
+
+	public func property<Value: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> ObjectProperty<Value> where Value._Inner: CocoaBridgeable {
+		return ObjectProperty(keyPath: keyPath, for: self, representation: Bridgeable<Value>.self)
+	}
+
+	public func property<Value: AnyObject>(forKeyPath keyPath: String, type: Value?.Type? = nil) -> ObjectProperty<Value?> {
+		return ObjectProperty(keyPath: keyPath, for: self, representation: Exact<Value>.self)
 	}
 }
 
@@ -45,46 +86,6 @@ extension ManagedObjectProtocol where Self: NSManagedObject {
 
 	public var id: ManagedObjectID<Self> {
 		return ManagedObjectID(object: self)
-	}
-
-	/// Return a producer which emits the current and subsequent values for the supplied key path.
-	/// A fault would be fired when the producer is started.
-	///
-	/// - important: You should avoid using it in any overrided methods of `Object`
-	///              if the producer might outlive the object.
-	///
-	/// - parameters:
-	///   - keyPath: The key path to be observed.
-	public func producer<Value: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> where Value._Inner: CocoaBridgeable {
-		return producer(forKeyPath: keyPath, extract: Bridgeable<Value>.extract)
-	}
-
-	fileprivate func producer<Value>(forKeyPath keyPath: String, extract: @escaping (Any?) -> Value) -> SignalProducer<Value, NoError> {
-		return SignalProducer { [weak self] observer, disposable in
-			guard let strongSelf = self else {
-				observer.sendInterrupted()
-				return
-			}
-
-			// Fire fault.
-			strongSelf.willAccessValue(forKey: nil)
-			defer { strongSelf.didAccessValue(forKey: nil) }
-
-			disposable += strongSelf.values(forKeyPath: keyPath)
-				.startWithValues { [weak self] value in
-					if let strongSelf = self, strongSelf.faultingState == 0 && !strongSelf.isDeleted {
-						observer.send(value: extract(value))
-					}
-				}
-		}
-	}
-
-	public func property<Value: CocoaBridgeable>(forKeyPath keyPath: String, type: Value.Type? = nil) -> ObjectProperty<Value> where Value._Inner: CocoaBridgeable {
-		return ObjectProperty(keyPath: keyPath, for: self, representation: Bridgeable<Value>.self)
-	}
-
-	public func property<Value: AnyObject>(forKeyPath keyPath: String, type: Value?.Type? = nil) -> ObjectProperty<Value?> {
-		return ObjectProperty(keyPath: keyPath, for: self, representation: Exact<Value>.self)
 	}
 
 	public func converted(for context: NSManagedObjectContext) -> Self {
@@ -147,7 +148,7 @@ public final class ObjectProperty<Value>: MutablePropertyProtocol {
 	}
 
 	public var lifetime: Lifetime {
-		return object.rac.lifetime
+		return object.reactive.lifetime
 	}
 
 	public var producer: SignalProducer<Value, NoError> {

@@ -34,8 +34,6 @@
 		9A2997FE1C510BF100801A30 /* NSManagedObjectContext+Additions.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A2997FD1C510BF100801A30 /* NSManagedObjectContext+Additions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A2D52C11D179CC900FEBC05 /* ManagedObjectID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */; };
 		9A2D52C21D179CC900FEBC05 /* ManagedObjectID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */; };
-		9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */; };
-		9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */; };
 		9A39A6701BC958E100FC86E1 /* ManagedObject+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */; };
 		9A39A6731BC958E100FC86E1 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A39A6781BC958E100FC86E1 /* ObjectCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6661BC958E100FC86E1 /* ObjectCollection.swift */; };
@@ -47,11 +45,7 @@
 		9A5577A01C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m */; };
 		9A6717561D9DD4080026F2C1 /* ReactiveSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A6717551D9DD4080026F2C1 /* ReactiveSwift.framework */; };
 		9A6717581D9DD40E0026F2C1 /* ReactiveSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A6717571D9DD40E0026F2C1 /* ReactiveSwift.framework */; };
-		9A7A7B201CE381DB0030674B /* EditorPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B1F1CE381DB0030674B /* EditorPool.swift */; };
-		9A7A7B211CE381DB0030674B /* EditorPool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7A7B1F1CE381DB0030674B /* EditorPool.swift */; };
 		9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A66A1BC958E100FC86E1 /* ViewModel.swift */; };
-		9A999FDA1CD64E3A009AA161 /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A999FD91CD64E3A009AA161 /* Editor.swift */; };
-		9A999FDB1CD64E3A009AA161 /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A999FD91CD64E3A009AA161 /* Editor.swift */; };
 		9ACB1FAC1CDC69720010555B /* SectionedCollectionEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FA91CDC69720010555B /* SectionedCollectionEvent.swift */; };
 		9ACB1FB11CDC698A0010555B /* Foundation+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */; };
 		9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */; };
@@ -64,7 +58,6 @@
 		9AD7A2161DA133D200EAA24A /* MantleData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AFFA50D1BC7CBEC00B63C58 /* MantleData.framework */; };
 		9AD7A2231DA1625700EAA24A /* UICollectionViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD7A21F1DA1625700EAA24A /* UICollectionViewAdapter.swift */; };
 		9AD7A2241DA1625700EAA24A /* UIKit+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD7A2201DA1625700EAA24A /* UIKit+Additions.swift */; };
-		9AD7A2251DA1625700EAA24A /* UIKit+Editable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD7A2211DA1625700EAA24A /* UIKit+Editable.swift */; };
 		9AD7A2261DA1625700EAA24A /* UITableViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD7A2221DA1625700EAA24A /* UITableViewAdapter.swift */; };
 		9AD7A2291DA1626100EAA24A /* NSCollectionViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD7A2271DA1626100EAA24A /* NSCollectionViewAdapter.swift */; };
 		9AD7A22A1DA1626100EAA24A /* NSTableViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD7A2281DA1626100EAA24A /* NSTableViewAdapter.swift */; };
@@ -102,7 +95,6 @@
 		9A2997F71C510BE900801A30 /* Assertions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Assertions.swift; path = MantleData/Assertions.swift; sourceTree = "<group>"; };
 		9A2997FD1C510BF100801A30 /* NSManagedObjectContext+Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSManagedObjectContext+Additions.h"; path = "MantleData/NSManagedObjectContext+Additions.h"; sourceTree = "<group>"; };
 		9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ManagedObjectID.swift; path = MantleData/ManagedObjectID.swift; sourceTree = "<group>"; };
-		9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ReactiveCocoa+Additions.swift"; path = "MantleData/ReactiveCocoa+Additions.swift"; sourceTree = "<group>"; };
 		9A39A6591BC958E100FC86E1 /* ViewModelCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelCollection.swift; path = MantleData/ViewModelCollection.swift; sourceTree = "<group>"; };
 		9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ManagedObject+Extension.swift"; path = "MantleData/ManagedObject+Extension.swift"; sourceTree = "<group>"; };
 		9A39A6611BC958E100FC86E1 /* MantleData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MantleData.h; path = MantleData/MantleData.h; sourceTree = "<group>"; };
@@ -225,7 +217,6 @@
 				9A2997EB1C510BB700801A30 /* StdlibCollections+PrivateExtension.swift */,
 				9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */,
 				9A2997F71C510BE900801A30 /* Assertions.swift */,
-				9A36ADED1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -498,7 +489,6 @@
 			files = (
 				9AD114841D1CF1210067F20C /* ExistentialCollections.swift in Sources */,
 				9ACB1FB51CDC69A20010555B /* SectionedCollectionEvent.swift in Sources */,
-				9A7A7B211CE381DB0030674B /* EditorPool.swift in Sources */,
 				9A0D9A851C76ABD30013C976 /* ExistentialCollections+Private.swift in Sources */,
 				9A0D9A861C76ABD30013C976 /* ReactiveArray.swift in Sources */,
 				9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */,
@@ -506,14 +496,12 @@
 				9A0D9A881C76ABD30013C976 /* SectionedCollection.swift in Sources */,
 				9AD7A2291DA1626100EAA24A /* NSCollectionViewAdapter.swift in Sources */,
 				9A0D9A891C76ABD30013C976 /* ObjectCollection.swift in Sources */,
-				9A36ADEF1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
 				9ACB1FB41CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */,
 				9A0D9A8A1C76ABD30013C976 /* ViewModel.swift in Sources */,
 				9A2D52C21D179CC900FEBC05 /* ManagedObjectID.swift in Sources */,
 				9A0D9A8B1C76ABD30013C976 /* ViewModelCollection.swift in Sources */,
 				9A0D9A8C1C76ABD30013C976 /* StdlibCollections+PrivateExtension.swift in Sources */,
 				9A0D9A8D1C76ABD30013C976 /* CocoaBridgeable.swift in Sources */,
-				9A999FDB1CD64E3A009AA161 /* Editor.swift in Sources */,
 				9A0D9A8E1C76ABD30013C976 /* ManagedObjectContext+Extension.swift in Sources */,
 				9A0D9A8F1C76ABD30013C976 /* ObjectQuery.swift in Sources */,
 				9A0D9A901C76ABD30013C976 /* ManagedObject+Extension.swift in Sources */,
@@ -552,21 +540,17 @@
 				9ACB1FAC1CDC69720010555B /* SectionedCollectionEvent.swift in Sources */,
 				9A2997E81C510BAD00801A30 /* ReactiveArray.swift in Sources */,
 				9A2997F31C510BD100801A30 /* ManagedObjectContext+Extension.swift in Sources */,
-				9A7A7B201CE381DB0030674B /* EditorPool.swift in Sources */,
 				9A8C41AF1C495B50002BDBEE /* ViewModel.swift in Sources */,
 				9A141A3E1C495E500049BEC9 /* ViewModelCollection.swift in Sources */,
 				9A39A6781BC958E100FC86E1 /* ObjectCollection.swift in Sources */,
 				9A511A3D1CDE47850098D30B /* ObjectCollectionPrefetcher.swift in Sources */,
-				9A36ADEE1CCCAE44001D4449 /* ReactiveCocoa+Additions.swift in Sources */,
 				9AD7A2241DA1625700EAA24A /* UIKit+Additions.swift in Sources */,
-				9AD7A2251DA1625700EAA24A /* UIKit+Editable.swift in Sources */,
 				9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */,
 				9A2997ED1C510BB700801A30 /* StdlibCollections+PrivateExtension.swift in Sources */,
 				9ACB1FB31CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */,
 				9A2997EA1C510BAD00801A30 /* SectionedCollection.swift in Sources */,
 				9AD7A2261DA1625700EAA24A /* UITableViewAdapter.swift in Sources */,
 				9A2997F41C510BD100801A30 /* ObjectQuery.swift in Sources */,
-				9A999FDA1CD64E3A009AA161 /* Editor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

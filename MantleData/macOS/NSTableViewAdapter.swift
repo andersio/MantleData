@@ -98,7 +98,7 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 		tableView.dataSource = adapter
 
 		set.eventsProducer
-			.take(during: tableView.rac.lifetime)
+			.take(during: tableView.reactive.lifetime)
 			.startWithValues { [unowned tableView] in
 				switch($0) {
 				case .reloaded:
