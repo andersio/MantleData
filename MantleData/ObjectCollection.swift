@@ -138,9 +138,12 @@ final public class ObjectCollection<E: NSManagedObject> {
 		fetchRequest.propertiesToFetch = fetching
 		fetchRequest.resultType = .dictionaryResultType
 
+		let asyncFetch = NSAsynchronousFetchRequest<NSDictionary>(fetchRequest: fetchRequest) { result in
+			self.sectionize(using: result.finalResult ?? [])
+		}
+
 		do {
-			let results = try context.fetch(fetchRequest)
-			sectionize(using: results)
+			try context.execute(asyncFetch)
 		} catch let error {
 			fatalError("\(error)")
 		}
