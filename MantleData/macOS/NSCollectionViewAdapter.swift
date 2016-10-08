@@ -55,13 +55,13 @@ public protocol NSCollectionViewAdapterProvider: class {
 }
 
 @available(macOS 10.11, *)
-public final class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionViewAdapterProvider>: NSObject, NSCollectionViewDataSource {
-	private let set: ViewModelCollection<V>
+public final class NSCollectionViewAdapter<ViewModel, Provider: NSCollectionViewAdapterProvider>: NSObject, NSCollectionViewDataSource {
+	private let set: ViewModelCollection<ViewModel>
 	private unowned let provider: Provider
 	private let config: NSCollectionViewAdapterConfig
 	public let disposable: Disposable
 
-	public init(set: ViewModelCollection<V>, provider: Provider, config: NSCollectionViewAdapterConfig, disposable: Disposable) {
+	public init(set: ViewModelCollection<ViewModel>, provider: Provider, config: NSCollectionViewAdapterConfig, disposable: Disposable) {
 		self.set = set
 		self.provider = provider
 		self.config = config
@@ -90,13 +90,13 @@ public final class NSCollectionViewAdapter<V: ViewModel, Provider: NSCollectionV
 	@discardableResult
 	public static func bind(
 		_ collectionView: NSCollectionView,
-		with set: ViewModelCollection<V>,
+		with set: ViewModelCollection<ViewModel>,
 		provider: Provider,
 		config: NSCollectionViewAdapterConfig
-	) -> NSCollectionViewAdapter<V, Provider> {
+	) -> NSCollectionViewAdapter<ViewModel, Provider> {
 		let disposable = CompositeDisposable()
 
-		let adapter = NSCollectionViewAdapter<V, Provider>(set: set,
+		let adapter = NSCollectionViewAdapter<ViewModel, Provider>(set: set,
 		                                                   provider: provider,
 		                                                   config: config,
 		                                                   disposable: disposable)

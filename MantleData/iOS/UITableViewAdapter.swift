@@ -22,13 +22,13 @@ public struct UITableViewAdapterConfig {
 	public init() {}
 }
 
-final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapterProvider>: NSObject, UITableViewDataSource {
-	private let set: ViewModelCollection<V>
+final public class UITableViewAdapter<ViewModel, Provider: UITableViewAdapterProvider>: NSObject, UITableViewDataSource {
+	private let set: ViewModelCollection<ViewModel>
 	private let provider: Provider
 
 	public let disposable: Disposable
 
-	fileprivate init(set: ViewModelCollection<V>, provider: Provider, disposable: Disposable) {
+	fileprivate init(set: ViewModelCollection<ViewModel>, provider: Provider, disposable: Disposable) {
 		self.set = set
 		self.provider = provider
 		self.disposable = disposable
@@ -55,10 +55,10 @@ final public class UITableViewAdapter<V: ViewModel, Provider: UITableViewAdapter
 	@discardableResult
 	public static func bind(
 		_ tableView: UITableView,
-		with set: ViewModelCollection<V>,
+		with set: ViewModelCollection<ViewModel>,
 		provider: Provider,
 		config: UITableViewAdapterConfig
-	) -> UITableViewAdapter<V, Provider> {
+	) -> UITableViewAdapter<ViewModel, Provider> {
 		let disposable = CompositeDisposable()
 
 		let adapter = UITableViewAdapter(set: set,

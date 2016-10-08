@@ -20,8 +20,8 @@ public struct NSTableViewAdapterConfig {
 public protocol NSTableViewAdapterProvider: class {
 }
 
-final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapterProvider>: NSObject, NSTableViewDataSource {
-	private let set: ViewModelCollection<V>
+final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterProvider>: NSObject, NSTableViewDataSource {
+	private let set: ViewModelCollection<ViewModel>
 	private unowned let provider: Provider
 	private let config: NSTableViewAdapterConfig
 	private var flattenedRanges: [Range<Int>] = []
@@ -32,7 +32,7 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 
 	public let disposable: Disposable
 
-	private init(set: ViewModelCollection<V>, provider: Provider, config: NSTableViewAdapterConfig, disposable: Disposable) {
+	private init(set: ViewModelCollection<ViewModel>, provider: Provider, config: NSTableViewAdapterConfig, disposable: Disposable) {
 		self.set = set
 		self.provider = provider
 		self.config = config
@@ -93,10 +93,10 @@ final public class NSTableViewAdapter<V: ViewModel, Provider: NSTableViewAdapter
 	@discardableResult
 	public static func bind(
 		_ tableView: NSTableView,
-		with set: ViewModelCollection<V>,
+		with set: ViewModelCollection<ViewModel>,
 		provider: Provider,
 		config: NSTableViewAdapterConfig
-	) -> NSTableViewAdapter<V, Provider> {
+	) -> NSTableViewAdapter<ViewModel, Provider> {
 		let disposable = CompositeDisposable()
 		let adapter = NSTableViewAdapter(set: set, provider: provider, config: config, disposable: disposable)
 		tableView.dataSource = adapter

@@ -10,15 +10,14 @@ import ReactiveSwift
 import enum Result.NoError
 
 /// `ViewModelCollection` is a type-erased view to any `SectionedCollection`
-/// implementations. It maps view models of type `U` from the underlying set
-/// of `U.MappingObject` objects.
-public final class ViewModelCollection<U: ViewModel>: SectionedCollection {
+/// implementations. It maps view models of type `ViewModel` from the underlying set
+/// of `ViewModel.MappingObject` objects.
+public final class ViewModelCollection<ViewModel>: SectionedCollection {
 	public typealias Index = IndexPath
 
 	public var sectionNameTransform: ((String?) -> String?)? = nil
 
-  private let set: _AnySectionedCollectionBox<U.MappingObject>
-	internal let factory: (U.MappingObject) -> U
+  private let set: _AnySectionedCollectionBox<ViewModel>
 
   public var events: Signal<SectionedCollectionEvent, NoError> {
 		return set.events
@@ -53,16 +52,15 @@ public final class ViewModelCollection<U: ViewModel>: SectionedCollection {
 		return set.rowCount(for: section)
 	}
 
-	public subscript(position: IndexPath) -> U {
-		return factory(set[position])
+	public subscript(position: IndexPath) -> ViewModel {
+		return set[position]
 	}
 
-	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<ViewModelCollection<U>> {
+	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<ViewModelCollection<ViewModel>> {
 		return RandomAccessSlice(base: self, bounds: subRange)
 	}
 	
-	public init<R: SectionedCollection>(_ set: R, factory: @escaping (U.MappingObject) -> U) where R.Iterator.Element == U.MappingObject {
-    self.set = _AnySectionedCollectionBoxBase(set)
-		self.factory = factory
+	public init<R: SectionedCollection>(_ set: R, factory: @escaping (R.Iterator.Element) -> ViewModel) {
+		self.set = _ViewModelCollectionBoxBase(set, factory: factory)
 	}
 }

@@ -39,12 +39,12 @@ public protocol UICollectionViewAdapterProvider: class {
 	func supplementaryView(of category: UICollectionViewSupplementaryViewKind, at indexPath: IndexPath) -> UICollectionReusableView
 }
 
-final public class UICollectionViewAdapter<V: ViewModel, Provider: UICollectionViewAdapterProvider>: NSObject, UICollectionViewDataSource {
-	private let set: ViewModelCollection<V>
+final public class UICollectionViewAdapter<ViewModel, Provider: UICollectionViewAdapterProvider>: NSObject, UICollectionViewDataSource {
+	private let set: ViewModelCollection<ViewModel>
 	private let provider: Provider
 	public let disposable: Disposable
 
-	public init(set: ViewModelCollection<V>, provider: Provider, disposable: Disposable) {
+	public init(set: ViewModelCollection<ViewModel>, provider: Provider, disposable: Disposable) {
 		self.set = set
 		self.provider = provider
 		self.disposable = disposable
@@ -72,9 +72,9 @@ final public class UICollectionViewAdapter<V: ViewModel, Provider: UICollectionV
 	@discardableResult
 	public static func bind(
 		_ collectionView: UICollectionView,
-		with set: ViewModelCollection<V>,
+		with set: ViewModelCollection<ViewModel>,
 		provider: Provider
-	) -> UICollectionViewAdapter<V, Provider> {
+	) -> UICollectionViewAdapter<ViewModel, Provider> {
 		let disposable = CompositeDisposable()
 
 		let adapter = UICollectionViewAdapter(set: set,

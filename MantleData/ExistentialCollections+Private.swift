@@ -9,6 +9,52 @@
 import ReactiveSwift
 import enum Result.NoError
 
+internal class _ViewModelCollectionBoxBase<R: SectionedCollection, ViewModel>: _AnySectionedCollectionBox<ViewModel> {
+	private let set: R
+	private let factory: (R.Iterator.Element) -> ViewModel
+
+	init(_ set: R, factory: @escaping (R.Iterator.Element) -> ViewModel) {
+		self.set = set
+		self.factory = factory
+	}
+
+	override var events: Signal<SectionedCollectionEvent, NoError> {
+		return set.events
+	}
+
+	override var sectionCount: Int {
+		return set.sectionCount
+	}
+
+	override var startIndex: Index {
+		return IndexPath(set.startIndex)
+	}
+
+	override var endIndex: Index {
+		return IndexPath(set.endIndex)
+	}
+
+	override func index(after i: Index) -> Index {
+		return Index(set.index(after: R.Index(i)))
+	}
+
+	override func index(before i: Index) -> Index {
+		return Index(set.index(before: R.Index(i)))
+	}
+
+	override subscript(indexPath: Index) -> ViewModel {
+		return factory(set[R.Index(indexPath)])
+	}
+
+	override func sectionName(for section: Int) -> String? {
+		return set.sectionName(for: section)
+	}
+
+	override func rowCount(for section: Int) -> Int {
+		return set.rowCount(for: section)
+	}
+}
+
 internal class _AnySectionedCollectionBoxBase<R: SectionedCollection>: _AnySectionedCollectionBox<R.Iterator.Element> {
 	private let set: R
 
