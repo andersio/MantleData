@@ -44,10 +44,6 @@ public final class AnySectionedCollection<E>: SectionedCollection {
 		self.set = _AnySectionedCollectionBoxBase(set)
 	}
 
-	public func fetch(trackingChanges shouldTrackChanges: Bool) throws {
-		try set.fetch(trackingChanges: shouldTrackChanges)
-	}
-
 	public func sectionName(for section: Int) -> String? {
 		return set.sectionName(for: section)
 	}

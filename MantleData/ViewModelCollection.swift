@@ -44,10 +44,6 @@ public final class ViewModelCollection<U: ViewModel>: SectionedCollection {
 		return set.index(before: i)
 	}
 
-	public func fetch(trackingChanges shouldTrackChanges: Bool = true) throws {
-		try set.fetch(trackingChanges: shouldTrackChanges)
-	}
-
 	public func sectionName(for section: Int) -> String? {
 		let name = set.sectionName(for: section)
 		return sectionNameTransform?(name) ?? name

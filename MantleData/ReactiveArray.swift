@@ -71,9 +71,6 @@ extension ReactiveArray: SectionedCollection {
 		set { replaceSubrange(subRange, with: newValue) }
 	}
 
-	public func fetch(trackingChanges startTracking: Bool) throws {
-	}
-
 	public func sectionName(for section: Int) -> String? {
 		return nil
 	}

@@ -15,8 +15,6 @@ public protocol SectionedCollection: class, RandomAccessCollection {
 	var events: Signal<SectionedCollectionEvent, NoError> { get }
 	var sectionCount: Int { get }
 
-	func fetch(trackingChanges: Bool) throws
-
 	func sectionName(for section: Int) -> String?
 	func rowCount(for section: Int) -> Int
 }

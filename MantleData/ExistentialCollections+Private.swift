@@ -24,10 +24,6 @@ internal class _AnySectionedCollectionBoxBase<R: SectionedCollection>: _AnySecti
 		return set.sectionCount
 	}
 
-	override func fetch(trackingChanges shouldTrackChanges: Bool) throws {
-		try set.fetch(trackingChanges: shouldTrackChanges)
-	}
-
 	override var startIndex: Index {
 		return IndexPath(set.startIndex)
 	}
@@ -70,7 +66,6 @@ internal class _AnySectionedCollectionBox<E> {
 
 	subscript(index: Index) -> E { fatalError() }
 
-	func fetch(trackingChanges shouldTrackChanges: Bool) throws { fatalError() }
 	func sectionName(for section: Int) -> String? { fatalError() }
 	func rowCount(for section: Int) -> Int { fatalError() }
 }
