@@ -157,7 +157,7 @@ public final class ObjectQuery<E: NSManagedObject> {
 
 	/// - MARK: Change Tracking Collections
 
-	public func makeCollection(prefetching policy: ObjectCollectionPrefetchingPolicy = .none) -> ObjectCollection<Entity> {
+	public func makeCollection(prefetching policy: ObjectCollectionPrefetchingPolicy = .all) -> ObjectCollection<Entity> {
 		let copy = self.fetchRequest.copy() as! NSFetchRequest<Entity>
 
 		return ObjectCollection(for: copy,
