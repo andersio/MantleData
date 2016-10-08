@@ -60,19 +60,9 @@ final public class ObjectCollection<E: NSManagedObject> {
 	public let events: Signal<SectionedCollectionEvent, NoError>
 	private var eventObserver: Observer<SectionedCollectionEvent, NoError>
 
-	private var isTracking: Bool = false {
-		willSet {
-			if !isTracking && newValue {
-				NotificationCenter.default.reactive
-					.notifications(forName: .NSManagedObjectContextObjectsDidChange,
-					               object: context)
-					.take(until: context.reactive.lifetime.ended.zip(with: lifetime.ended).map { _ in })
-					.startWithValues(process(objectsDidChangeNotification:))
-			}
-		}
-	}
+	public private(set) var hasFetched: Bool = false
 
-	public init(for request: NSFetchRequest<E>,
+	public init(for fetchRequest: NSFetchRequest<E>,
 							in context: NSManagedObjectContext,
 							prefetchingPolicy: ObjectCollectionPrefetchingPolicy,
 							sectionNameKeyPath: String? = nil,
@@ -81,21 +71,23 @@ final public class ObjectCollection<E: NSManagedObject> {
 		lifetime = Lifetime(lifetimeToken)
 
 		self.context = context
-		self.fetchRequest = request.copy() as! NSFetchRequest<NSDictionary>
-		self.entity = self.fetchRequest.entity!
-
+		self.entity = fetchRequest.entity!
 		self.shouldExcludeUpdatedRows = excludeUpdatedRowsInEvents
-
 		self.sectionNameKeyPath = sectionNameKeyPath
 
-		precondition(request.sortDescriptors != nil,
+		precondition(fetchRequest.sortDescriptors != nil,
 		             "ObjectCollection requires sort descriptors to work.")
-		precondition(request.sortDescriptors!.reduce(true) { reducedValue, descriptor in
-			return reducedValue && descriptor.key!.components(separatedBy: ".").count <= 2
-		}, "ObjectCollection does not support sorting on to-one key paths deeper than 1 level.")
+		precondition(
+			fetchRequest.sortDescriptors!.reduce(true) { reducedValue, descriptor in
+				return reducedValue && descriptor.key!.components(separatedBy: ".").count <= 2
+			},
+			"ObjectCollection does not support sorting on to-one key paths deeper than 1 level."
+		)
 
 		if sectionNameKeyPath != nil {
-			precondition(request.sortDescriptors!.count >= 2, "Unsufficient number of sort descriptors.")
+			precondition(fetchRequest.sortDescriptors!.count >= 2,
+			             "Unsufficient number of sort descriptors.")
+
 			self.sectionNameOrdering = fetchRequest.sortDescriptors!.first!.ascending ? .orderedAscending : .orderedDescending
 			self.objectSortDescriptors = Array(fetchRequest.sortDescriptors!.dropFirst())
 		} else {
@@ -108,6 +100,16 @@ final public class ObjectCollection<E: NSManagedObject> {
 		sortKeyComponents = sortKeys.map { ($0, $0.components(separatedBy: ".")) }
 		sortOrderAffectingRelationships = sortKeyComponents.flatMap { $0.1.count > 1 ? $0.1[0] : nil }.uniquing()
 
+		self.fetchRequest = fetchRequest.copy() as! NSFetchRequest<NSDictionary>
+		self.fetchRequest.resultType = .dictionaryResultType
+
+		let objectID = NSExpressionDescription()
+		objectID.name = "objectID"
+		objectID.expression = NSExpression.expressionForEvaluatedObject()
+		objectID.expressionResultType = .objectIDAttributeType
+
+		self.fetchRequest.propertiesToFetch = (sortOrderAffectingRelationships + sortKeys + [objectID]) as [Any]
+
 		switch prefetchingPolicy {
 		case let .adjacent(batchSize):
 			prefetcher = LinearBatchingPrefetcher(for: self, batchSize: batchSize)
@@ -118,37 +120,52 @@ final public class ObjectCollection<E: NSManagedObject> {
 		case .none:
 			prefetcher = nil
 		}
+
+		NotificationCenter.default.reactive
+			.notifications(forName: .NSManagedObjectContextObjectsDidChange,
+			               object: context)
+			.take(until: context.reactive.lifetime.ended.zip(with: lifetime.ended).map { _ in })
+			.startWithValues(self.process(objectsDidChangeNotification:))
 	}
 
-	/// Fetch asynchronously.
+	/// Fetch the objects and start the live updating.
+	///
+	/// The fetch is run synchronously by default, with the result being ready
+	/// when the method returns.
+	///
+	/// If it is chosen to run asynchronously (`async == true`), the method
+	/// returns right away after enqueuing the fetch. The result is ready at the
+	/// time a `reloaded` event is observed.
+	///
+	/// - note: If the collection has been fetched, calling `fetch(async:)` again
+	///         has no effects.
 	///
 	/// - parameters:
-	///   - shouldTrackChanges: Whether the collection should be live updated.
-	public func fetch(trackingChanges shouldTrackChanges: Bool = false) throws {
-		if shouldTrackChanges && !isTracking {
-			isTracking = true
+	///   - async: Whether the fetch should be run asynchronously.
+	public func fetch(async: Bool = false) throws {
+		guard !hasFetched else {
+			return
 		}
 
-		let description = NSExpressionDescription()
-		description.name = "objectID"
-		description.expression = NSExpression.expressionForEvaluatedObject()
-		description.expressionResultType = .objectIDAttributeType
+		hasFetched = true
 
-		var fetching = [AnyObject]()
-
-		fetching.append(description)
-		fetching.append(contentsOf: sortOrderAffectingRelationships as [AnyObject])
-		fetching.append(contentsOf: sortKeys.map { NSString(string: $0) })
-
-		fetchRequest.propertiesToFetch = fetching
-		fetchRequest.resultType = .dictionaryResultType
-
-		let asyncFetch = NSAsynchronousFetchRequest<NSDictionary>(fetchRequest: fetchRequest) { result in
-			self.sectionize(using: result.finalResult ?? [])
+		func completion(_ results: [NSDictionary]) {
+			prefetcher?.reset()
+			sectionize(using: results)
+			prefetcher?.acknowledgeFetchCompletion(results.count)
+			eventObserver.send(value: .reloaded)
 		}
 
 		do {
-			try context.execute(asyncFetch)
+			if async {
+				let asyncFetch = NSAsynchronousFetchRequest<NSDictionary>(fetchRequest: fetchRequest) { result in
+					completion(result.finalResult ?? [])
+				}
+				try context.execute(asyncFetch)
+			} else {
+				let results = try context.fetch(fetchRequest)
+				completion(results)
+			}
 		} catch let error {
 			fatalError("\(error)")
 		}
@@ -156,7 +173,6 @@ final public class ObjectCollection<E: NSManagedObject> {
 
 	private func sectionize(using resultDictionaries: [NSDictionary]) {
 		sections = []
-		prefetcher?.reset()
 
 		if !resultDictionaries.isEmpty {
 			var ranges: [(range: CountableRange<Int>, name: String?)] = []
@@ -248,9 +264,6 @@ final public class ObjectCollection<E: NSManagedObject> {
 				_ = mergeChanges(inserted: inMemoryChangedObjects)
 			}
 		}
-
-		prefetcher?.acknowledgeFetchCompletion(resultDictionaries.count)
-		eventObserver.send(value: .reloaded)
 	}
 
 	private func registerTemporaryObject(_ object: E) {
@@ -500,7 +513,7 @@ final public class ObjectCollection<E: NSManagedObject> {
 	/// Merge changes since last posting of NSManagedContextObjectsDidChangeNotification.
 	/// This method should not mutate the `sections` array.
 	@objc private func process(objectsDidChangeNotification notification: Notification) {
-		guard isTracking else {
+		guard hasFetched else {
 			return
 		}
 
@@ -510,6 +523,7 @@ final public class ObjectCollection<E: NSManagedObject> {
 
 		/// If all objects are invalidated. We perform a refetch instead.
 		guard !userInfo.keys.contains(NSInvalidatedAllObjectsKey) else {
+			hasFetched = false
 			try! fetch()
 			return
 		}
