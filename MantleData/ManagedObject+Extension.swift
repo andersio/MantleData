@@ -62,6 +62,12 @@ extension NSManagedObject: ManagedObjectProtocol {
 }
 
 extension ManagedObjectProtocol where Self: NSManagedObject {
+	public static func fetchRequest(in context: NSManagedObjectContext) -> NSFetchRequest<Self> {
+		let fetchRequest = NSFetchRequest<Self>()
+		fetchRequest.entity = Self.entity(in: context)
+		return fetchRequest
+	}
+
 	public static func find(ID: NSManagedObjectID, in context: NSManagedObjectContext) -> Self {
 		assert(ID.entity.name == String(describing: Self.self), "Entity does not match with the ID.")
 		return context.object(with: ID) as! Self
