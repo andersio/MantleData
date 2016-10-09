@@ -22,7 +22,17 @@ import enum Result.NoError
 ///    Observe the object directly, or override the default of
 ///    `shouldExcludeUpdatedRows` in the initializer.
 ///
+/// # Live Updating
+///
+/// `ObjectCollection` incorporates in-memory changes at best effort.
+///
+/// The collection is always up-to-date, except if its predicate evaluates any
+/// indirect key paths. `ObjectCollection` cannot observe changes in attributes
+/// of relationships that affect the predications. The collection has to be
+/// reloaded in the circumstance.
+///
 /// # Using with a child managed object context
+///
 /// When using in a child context, the creation of permanent IDs of the inserted
 /// objects must be forced before the child context is saved. A fatal error is 
 /// raised if any inserted objects with temporary IDs is caught by the
