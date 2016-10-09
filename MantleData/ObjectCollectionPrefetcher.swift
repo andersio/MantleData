@@ -257,17 +257,19 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefe
 
 		let insertedIds = insertedIds.flatMap { $0.1 }
 
-		let prefetchRequest = NSFetchRequest<E>()
-		prefetchRequest.entity = E.entity(in: objectSet.context)
-		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
-		                                        argumentArray: [insertedIds as NSArray])
-		prefetchRequest.resultType = NSFetchRequestResultType()
+		if !insertedIds.isEmpty {
+			let prefetchRequest = NSFetchRequest<E>()
+			prefetchRequest.entity = E.entity(in: objectSet.context)
+			prefetchRequest.predicate = NSPredicate(format: "self IN %@",
+																							argumentArray: [insertedIds as NSArray])
+			prefetchRequest.resultType = NSFetchRequestResultType()
 
-		do {
-			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest)
-			retainingPool.formUnion(prefetchedObjects)
-		} catch let error {
-			print("GreedyPrefetcher<\(String(describing: E.self))>: cannot execute a prefetch. Error: \(error)")
+			do {
+				let prefetchedObjects = try objectSet.context.fetch(prefetchRequest)
+				retainingPool.formUnion(prefetchedObjects)
+			} catch let error {
+				print("GreedyPrefetcher<\(String(describing: E.self))>: cannot execute a prefetch. Error: \(error)")
+			}
 		}
 	}
 }
