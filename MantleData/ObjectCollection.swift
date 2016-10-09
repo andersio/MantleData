@@ -150,8 +150,18 @@ final public class ObjectCollection<E: NSManagedObject> {
 		hasFetched = true
 
 		func completion(_ results: [NSDictionary]) {
+			// Search inserted objects in the context.
+			let inMemoryResults = context.insertedObjects
+				.flatMap { object -> E? in
+					if let object = object as? E, predicateMatching(object) {
+						return object
+					} else {
+						return nil
+					}
+				}
+
 			prefetcher?.reset()
-			sectionize(using: results)
+			sectionize(using: results, inMemoryResults: inMemoryResults)
 			prefetcher?.acknowledgeFetchCompletion(results.count)
 			eventObserver.send(value: .reloaded)
 		}
@@ -171,7 +181,7 @@ final public class ObjectCollection<E: NSManagedObject> {
 		}
 	}
 
-	private func sectionize(using resultDictionaries: [NSDictionary]) {
+	private func sectionize(using resultDictionaries: [NSDictionary], inMemoryResults: [E]) {
 		sections = []
 
 		if !resultDictionaries.isEmpty {
@@ -202,6 +212,16 @@ final public class ObjectCollection<E: NSManagedObject> {
 
 			var inMemoryChangedObjects = [SectionKey: Set<NSManagedObjectID>]()
 
+			func markAsChanged(object registeredObject: E) {
+				updateCache(for: registeredObject.objectID, with: registeredObject)
+				if let sectionNameKeyPath = sectionNameKeyPath {
+					let sectionName = converting(sectionName: registeredObject.value(forKeyPath: sectionNameKeyPath) as! NSObject?)
+					inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(sectionName))
+				} else {
+					inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(nil))
+				}
+			}
+
 			for (range, name) in ranges {
 				var objectIDs = ContiguousArray<NSManagedObjectID>()
 				objectIDs.reserveCapacity(range.count)
@@ -209,22 +229,29 @@ final public class ObjectCollection<E: NSManagedObject> {
 				for position in range {
 					let id = resultDictionaries[position]["objectID"] as! NSManagedObjectID
 
-					func markAsChanged(object registeredObject: E) {
-						updateCache(for: registeredObject.objectID, with: registeredObject)
-						if let sectionNameKeyPath = sectionNameKeyPath {
-							let sectionName = converting(sectionName: registeredObject.value(forKeyPath: sectionNameKeyPath) as! NSObject?)
-							inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(sectionName))
-						} else {
-							inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(nil))
-						}
-					}
+					// Deferred Insertion:
+					//
+					// An object may have indeterministic order with regard to a fetch
+					// request result due to in-memory changes. In these cases, the
+					// insertion would be deferred and handled with the changes merging
+					// routine.
 
-					/// If an object is registered with the context and has changes in key paths affecting
-					/// the sort order, update the cache but exclude the object from the set and handle it later.
-
+					// If the object is registered with the context, two special cases
+					// require special handling:
+					//
+					// 1. If it has in-memory changes in the key paths affecting the sort
+					//    order, the object cache is updated, but the insertion is
+					//    deferred.
+					//
+					// 2. If the in-memory state fails the predicate, or it has been
+					//    deleted, the object is ignored.
 					if let registeredObject = context.registeredObject(for: id) as? E {
 						let changedKeys = registeredObject.changedValues().keys
 						let sortOrderIsAffected = sortKeyComponents.contains { changedKeys.contains($0.1[0]) }
+
+						guard predicateMatching(registeredObject) && !registeredObject.isDeleted else {
+							continue
+						}
 
 						if sortOrderIsAffected {
 							markAsChanged(object: registeredObject)
@@ -232,10 +259,10 @@ final public class ObjectCollection<E: NSManagedObject> {
 						}
 					}
 
-					/// If an object itself is not registered with the context, but its relationships are and
-					/// has changes, fault in the object, update the cache, then exclude the object from the set
-					/// and handle it later.
-
+					// If the sort order affecting relationships of the object are
+					// registered with the context and has in-memory changes, the object
+					// is faulted in and the object cache is updated subsequently. But the
+					// insertion is deferred.
 					let hasUpdatedRelationships = sortOrderAffectingRelationships.contains { key in
 						if let relationshipID = resultDictionaries[position][key] as? NSManagedObjectID,
 						   let relatedObject = context.registeredObject(for: relationshipID),
@@ -260,7 +287,12 @@ final public class ObjectCollection<E: NSManagedObject> {
 				sections.append(section)
 			}
 
-			if !inMemoryChangedObjects.isEmpty {
+			if !inMemoryResults.isEmpty || !inMemoryChangedObjects.isEmpty {
+				for result in inMemoryResults {
+					markAsChanged(object: result)
+					registerTemporaryObject(result)
+				}
+
 				_ = mergeChanges(inserted: inMemoryChangedObjects)
 			}
 		}
