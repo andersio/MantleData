@@ -33,6 +33,15 @@
 		9A2997FE1C510BF100801A30 /* NSManagedObjectContext+Additions.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A2997FD1C510BF100801A30 /* NSManagedObjectContext+Additions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A2D52C11D179CC900FEBC05 /* ManagedObjectID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */; };
 		9A2D52C21D179CC900FEBC05 /* ManagedObjectID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */; };
+		9A2E426A1DAA9167006D909F /* Nimble.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A2E42651DAA9167006D909F /* Nimble.framework */; };
+		9A2E426B1DAA9167006D909F /* Quick.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A2E42661DAA9167006D909F /* Quick.framework */; };
+		9A2E426C1DAA9167006D909F /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A2E42671DAA9167006D909F /* ReactiveCocoa.framework */; };
+		9A2E426D1DAA9167006D909F /* ReactiveSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A2E42681DAA9167006D909F /* ReactiveSwift.framework */; };
+		9A2E426E1DAA9167006D909F /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A2E42691DAA9167006D909F /* Result.framework */; };
+		9A2E426F1DAA916D006D909F /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A241D74476C0000CB17 /* CoreData.framework */; };
+		9A2E427D1DAAB615006D909F /* MantleData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A0D9A761C76AB9A0013C976 /* MantleData.framework */; };
+		9A2E42881DAABD08006D909F /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9A2E42851DAABD08006D909F /* Model.xcdatamodeld */; };
+		9A2E42891DAABD08006D909F /* ObjectCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2E42871DAABD08006D909F /* ObjectCollectionTests.swift */; };
 		9A39A6701BC958E100FC86E1 /* ManagedObject+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */; };
 		9A39A6731BC958E100FC86E1 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A39A6781BC958E100FC86E1 /* ObjectCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6661BC958E100FC86E1 /* ObjectCollection.swift */; };
@@ -65,6 +74,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		9A2E427E1DAAB615006D909F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9AFFA5041BC7CBEC00B63C58 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9A0D9A751C76AB9A0013C976;
+			remoteInfo = "MantleData-macOS";
+		};
 		9AD7A2081DA1338E00EAA24A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9AFFA5041BC7CBEC00B63C58 /* Project object */;
@@ -93,6 +109,15 @@
 		9A2997F71C510BE900801A30 /* Assertions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Assertions.swift; path = MantleData/Assertions.swift; sourceTree = "<group>"; };
 		9A2997FD1C510BF100801A30 /* NSManagedObjectContext+Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSManagedObjectContext+Additions.h"; path = "MantleData/NSManagedObjectContext+Additions.h"; sourceTree = "<group>"; };
 		9A2D52C01D179CC900FEBC05 /* ManagedObjectID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ManagedObjectID.swift; path = MantleData/ManagedObjectID.swift; sourceTree = "<group>"; };
+		9A2E42651DAA9167006D909F /* Nimble.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Nimble.framework; path = Carthage/Checkouts/Nimble/build/Debug/Nimble.framework; sourceTree = "<group>"; };
+		9A2E42661DAA9167006D909F /* Quick.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quick.framework; path = Carthage/Checkouts/Quick/build/Debug/Quick.framework; sourceTree = "<group>"; };
+		9A2E42671DAA9167006D909F /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = "../../Library/Developer/Xcode/DerivedData/MantleData-ceykjegisbuskbdgwnzzbwbfhodi/Build/Products/Debug/ReactiveCocoa.framework"; sourceTree = "<group>"; };
+		9A2E42681DAA9167006D909F /* ReactiveSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveSwift.framework; path = "../../Library/Developer/Xcode/DerivedData/MantleData-ceykjegisbuskbdgwnzzbwbfhodi/Build/Products/Debug/ReactiveSwift.framework"; sourceTree = "<group>"; };
+		9A2E42691DAA9167006D909F /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = "../../Library/Developer/Xcode/DerivedData/MantleData-ceykjegisbuskbdgwnzzbwbfhodi/Build/Products/Debug/Result.framework"; sourceTree = "<group>"; };
+		9A2E42781DAAB615006D909F /* MantleDataPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MantleDataPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9A2E427C1DAAB615006D909F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9A2E42861DAABD08006D909F /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
+		9A2E42871DAABD08006D909F /* ObjectCollectionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectCollectionTests.swift; sourceTree = "<group>"; };
 		9A39A6591BC958E100FC86E1 /* ViewModelCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelCollection.swift; path = MantleData/ViewModelCollection.swift; sourceTree = "<group>"; };
 		9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ManagedObject+Extension.swift"; path = "MantleData/ManagedObject+Extension.swift"; sourceTree = "<group>"; };
 		9A39A6611BC958E100FC86E1 /* MantleData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MantleData.h; path = MantleData/MantleData.h; sourceTree = "<group>"; };
@@ -139,10 +164,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9A2E42751DAAB615006D909F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9A2E427D1DAAB615006D909F /* MantleData.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9AD7A1FF1DA1338E00EAA24A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A2E426F1DAA916D006D909F /* CoreData.framework in Frameworks */,
+				9A2E426A1DAA9167006D909F /* Nimble.framework in Frameworks */,
+				9A2E426B1DAA9167006D909F /* Quick.framework in Frameworks */,
+				9A2E426C1DAA9167006D909F /* ReactiveCocoa.framework in Frameworks */,
+				9A2E426D1DAA9167006D909F /* ReactiveSwift.framework in Frameworks */,
+				9A2E426E1DAA9167006D909F /* Result.framework in Frameworks */,
 				9AD7A2071DA1338E00EAA24A /* MantleData.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -179,9 +218,25 @@
 			path = "MantleData-OSX";
 			sourceTree = "<group>";
 		};
+		9A2E42791DAAB615006D909F /* PerformanceTests */ = {
+			isa = PBXGroup;
+			children = (
+				9A2E42851DAABD08006D909F /* Model.xcdatamodeld */,
+				9A2E42871DAABD08006D909F /* ObjectCollectionTests.swift */,
+				9A2E427C1DAAB615006D909F /* Info.plist */,
+			);
+			name = PerformanceTests;
+			path = MantleDataPerformanceTests;
+			sourceTree = "<group>";
+		};
 		9A39A6201BC956BE00FC86E1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9A2E42651DAA9167006D909F /* Nimble.framework */,
+				9A2E42661DAA9167006D909F /* Quick.framework */,
+				9A2E42671DAA9167006D909F /* ReactiveCocoa.framework */,
+				9A2E42681DAA9167006D909F /* ReactiveSwift.framework */,
+				9A2E42691DAA9167006D909F /* Result.framework */,
 				9A6717571D9DD40E0026F2C1 /* ReactiveSwift.framework */,
 				9A6717551D9DD4080026F2C1 /* ReactiveSwift.framework */,
 				9A6717531D9DD3FF0026F2C1 /* ReactiveSwift.framework */,
@@ -284,6 +339,7 @@
 				9A0D9A771C76AB9A0013C976 /* macOS */,
 				9A3A77711BC96BD200ADFFE0 /* Supporting FIles */,
 				9AD7A2121DA133D200EAA24A /* Tests */,
+				9A2E42791DAAB615006D909F /* PerformanceTests */,
 				9AFFA50E1BC7CBEC00B63C58 /* Products */,
 				9A39A6201BC956BE00FC86E1 /* Frameworks */,
 			);
@@ -296,6 +352,7 @@
 				9A0D9A761C76AB9A0013C976 /* MantleData.framework */,
 				9AD7A2021DA1338E00EAA24A /* MantleDataTests-macOS.xctest */,
 				9AD7A2111DA133D200EAA24A /* MantleDataTests-iOS.xctest */,
+				9A2E42781DAAB615006D909F /* MantleDataPerformanceTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -341,6 +398,24 @@
 			productName = "MantleData-OSX";
 			productReference = 9A0D9A761C76AB9A0013C976 /* MantleData.framework */;
 			productType = "com.apple.product-type.framework";
+		};
+		9A2E42771DAAB615006D909F /* MantleDataPerformanceTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9A2E42801DAAB615006D909F /* Build configuration list for PBXNativeTarget "MantleDataPerformanceTests" */;
+			buildPhases = (
+				9A2E42741DAAB615006D909F /* Sources */,
+				9A2E42751DAAB615006D909F /* Frameworks */,
+				9A2E42761DAAB615006D909F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9A2E427F1DAAB615006D909F /* PBXTargetDependency */,
+			);
+			name = MantleDataPerformanceTests;
+			productName = MantleDataPerformanceTests;
+			productReference = 9A2E42781DAAB615006D909F /* MantleDataPerformanceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		9AD7A2011DA1338E00EAA24A /* MantleDataTests-macOS */ = {
 			isa = PBXNativeTarget;
@@ -409,14 +484,21 @@
 					9A0D9A751C76AB9A0013C976 = {
 						CreatedOnToolsVersion = 7.3;
 					};
+					9A2E42771DAAB615006D909F = {
+						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = 5FQJ4FWHM9;
+						ProvisioningStyle = Automatic;
+					};
 					9AD7A2011DA1338E00EAA24A = {
 						CreatedOnToolsVersion = 8.0;
 						DevelopmentTeam = 5FQJ4FWHM9;
+						LastSwiftMigration = 0800;
 						ProvisioningStyle = Automatic;
 					};
 					9AD7A2101DA133D200EAA24A = {
 						CreatedOnToolsVersion = 8.0;
 						DevelopmentTeam = 5FQJ4FWHM9;
+						LastSwiftMigration = 0800;
 						ProvisioningStyle = Automatic;
 					};
 					9AFFA50C1BC7CBEC00B63C58 = {
@@ -443,12 +525,20 @@
 				9A0D9A751C76AB9A0013C976 /* MantleData-macOS */,
 				9AD7A2011DA1338E00EAA24A /* MantleDataTests-macOS */,
 				9AD7A2101DA133D200EAA24A /* MantleDataTests-iOS */,
+				9A2E42771DAAB615006D909F /* MantleDataPerformanceTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		9A0D9A741C76AB9A0013C976 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9A2E42761DAAB615006D909F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -506,6 +596,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9A2E42741DAAB615006D909F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9A2E42891DAABD08006D909F /* ObjectCollectionTests.swift in Sources */,
+				9A2E42881DAABD08006D909F /* Model.xcdatamodeld in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9AD7A1FE1DA1338E00EAA24A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -551,6 +650,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		9A2E427F1DAAB615006D909F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9A0D9A751C76AB9A0013C976 /* MantleData-macOS */;
+			targetProxy = 9A2E427E1DAAB615006D909F /* PBXContainerItemProxy */;
+		};
 		9AD7A2091DA1338E00EAA24A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9A0D9A751C76AB9A0013C976 /* MantleData-macOS */;
@@ -621,7 +725,7 @@
 			};
 			name = Release;
 		};
-		9AD7A20B1DA1338E00EAA24A /* Debug */ = {
+		9A2E42811DAAB615006D909F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
@@ -631,6 +735,53 @@
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 5FQJ4FWHM9;
+				INFOPLIST_FILE = MantleDataPerformanceTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleDataPerformanceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 3.0;
+			};
+			name = Debug;
+		};
+		9A2E42821DAAB615006D909F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 5FQJ4FWHM9;
+				INFOPLIST_FILE = MantleDataPerformanceTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleDataPerformanceTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 3.0;
+			};
+			name = Release;
+		};
+		9AD7A20B1DA1338E00EAA24A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 5FQJ4FWHM9;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Checkouts/Nimble/build/Debug",
+					"$(PROJECT_DIR)/Carthage/Checkouts/Quick/build/Debug",
+				);
 				INFOPLIST_FILE = MantleDataTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
@@ -638,6 +789,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -646,12 +798,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 5FQJ4FWHM9;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Checkouts/Nimble/build/Debug",
+					"$(PROJECT_DIR)/Carthage/Checkouts/Quick/build/Debug",
+				);
 				INFOPLIST_FILE = MantleDataTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
@@ -666,6 +824,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
@@ -675,6 +834,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.andersio.MantleDataTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -683,6 +843,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
@@ -850,6 +1011,14 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		9A2E42801DAAB615006D909F /* Build configuration list for PBXNativeTarget "MantleDataPerformanceTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9A2E42811DAAB615006D909F /* Debug */,
+				9A2E42821DAAB615006D909F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		9AD7A20A1DA1338E00EAA24A /* Build configuration list for PBXNativeTarget "MantleDataTests-macOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -887,6 +1056,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		9A2E42851DAABD08006D909F /* Model.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				9A2E42861DAABD08006D909F /* Model.xcdatamodel */,
+			);
+			currentVersion = 9A2E42861DAABD08006D909F /* Model.xcdatamodel */;
+			path = Model.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 9AFFA5041BC7CBEC00B63C58 /* Project object */;
 }
