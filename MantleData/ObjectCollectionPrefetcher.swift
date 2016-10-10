@@ -157,7 +157,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollect
 			}
 		}
 
-		return prefetchingIds.flatMap { $0 }.map { $0.wrapped }
+		return prefetchingIds.flatMap { $0 }.flatMap { $0.wrapped.isTemporaryID ? nil : $0.wrapped }
 	}
 
 	func prefetch(at flattenedPosition: Int, forward isForwardPrefetching: Bool) throws {
@@ -231,7 +231,7 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefe
 		ids.reserveCapacity(objectCount)
 
 		for index in objectSet.sections.indices {
-			ids.append(contentsOf: objectSet.sections[index].storage.map { $0.wrapped })
+			ids.append(contentsOf: objectSet.sections[index].storage.flatMap { $0.wrapped.isTemporaryID ? nil : $0.wrapped })
 		}
 
 		let prefetchRequest = NSFetchRequest<NSManagedObject>()
@@ -255,7 +255,7 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefe
 			}
 		}
 
-		let insertedIds = insertedIds.flatMap { $0.1.value }.map { $0.wrapped }
+		let insertedIds = insertedIds.flatMap { $0.1.value }.flatMap { $0.wrapped.isTemporaryID ? nil : $0.wrapped }
 
 		if !insertedIds.isEmpty {
 			let prefetchRequest = NSFetchRequest<NSManagedObject>()
