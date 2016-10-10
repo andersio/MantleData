@@ -9,18 +9,6 @@
 import Foundation
 import ReactiveSwift
 
-protocol ObjectIdProtocol: Equatable {
-	var content: NSManagedObjectID { get }
-}
-
-extension NSManagedObjectID: ObjectIdProtocol {
-	var content: NSManagedObjectID {
-		return self
-	}
-}
-
-extension ObjectId: ObjectIdProtocol {}
-
 extension String {
 	public static func compareSectionNames(_ first: String?, with second: String?) -> ComparisonResult {
 		guard let unwrappedFirst = first, let unwrappedSecond = second else {
@@ -42,17 +30,10 @@ internal enum BinarySearchResult<Index> {
 	case notFound(next: Index)
 }
 
-extension Collection where Iterator.Element: ObjectIdProtocol, Index == Int {
-	internal func bidirectionalSearch(at center: Int,
-																		for element: Iterator.Element,
-																		using sortDescriptors: [NSSortDescriptor],
-																		with cachedValues: [NSManagedObjectID: NSDictionary])
-																		-> BinarySearchResult<Index> {
+extension Collection where Iterator.Element == ObjectId, Index == Int {
+	internal func bidirectionalSearch<E>(at center: Int, for element: ObjectId, with comparer: Comparer<E>) -> BinarySearchResult<Index> {
 		var leftIndex = center - 1
-		while leftIndex >= startIndex &&
-					sortDescriptors.compare(cachedValues[self[leftIndex].content]!,
-					                        to: cachedValues[element.content]!)
-					== .orderedSame {
+		while leftIndex >= startIndex && comparer.compare(self[leftIndex], to: element) == .orderedSame {
 			if self[leftIndex] == element {
 				return .found(at: leftIndex)
 			}
@@ -60,10 +41,7 @@ extension Collection where Iterator.Element: ObjectIdProtocol, Index == Int {
 		}
 
 		var rightIndex = center + 1
-		while rightIndex < endIndex &&
-					sortDescriptors.compare(cachedValues[self[rightIndex].content]!,
-					                        to: cachedValues[element.content]!)
-					== .orderedSame {
+		while rightIndex < endIndex && comparer.compare(self[rightIndex], to: element) == .orderedSame {
 			if self[rightIndex] == element {
 				return .found(at: rightIndex)
 			}
@@ -73,21 +51,15 @@ extension Collection where Iterator.Element: ObjectIdProtocol, Index == Int {
 		return .notFound(next: leftIndex + 1)
 	}
 
-	internal func index(of element: Iterator.Element,
-											using sortDescriptors: [NSSortDescriptor],
-											with cachedValues: [NSManagedObjectID: NSDictionary])
-											-> Index? {
-		if case let .found(index) = binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
+	internal func index<E>(of element: ObjectId, with comparer: Comparer<E>) -> Index? {
+		if case let .found(index) = binarySearch(of: element, with: comparer) {
 			return index
 		}
 
 		return nil
 	}
 
-	internal func binarySearch(of element: Iterator.Element,
-														using sortDescriptors: [NSSortDescriptor],
-														with cachedValues: [NSManagedObjectID: NSDictionary])
-														-> BinarySearchResult<Index> {
+	internal func binarySearch<E>(of element: ObjectId, with comparer: Comparer<E>) -> BinarySearchResult<Index> {
 		var low = startIndex
 		var high = endIndex - 1
 
@@ -97,8 +69,7 @@ extension Collection where Iterator.Element: ObjectIdProtocol, Index == Int {
 			if self[mid] == element {
 				return .found(at: mid)
 			} else {
-				switch sortDescriptors.compare(cachedValues[element.content]!,
-				                               to: cachedValues[self[mid].content]!) {
+				switch comparer.compare(element, to: self[mid]) {
 				case .orderedAscending:
 					high = mid - 1
 
@@ -106,7 +77,7 @@ extension Collection where Iterator.Element: ObjectIdProtocol, Index == Int {
 					low = mid + 1
 
 				case .orderedSame:
-					return bidirectionalSearch(at: mid, for: element, using: sortDescriptors, with: cachedValues)
+					return bidirectionalSearch(at: mid, for: element, with: comparer)
 				}
 			}
 		}
@@ -115,11 +86,9 @@ extension Collection where Iterator.Element: ObjectIdProtocol, Index == Int {
 	}
 }
 
-extension RangeReplaceableCollection where Iterator.Element: ObjectIdProtocol, Index == Int {
-	internal mutating func insert(_ element: Iterator.Element,
-	                              using sortDescriptors: [NSSortDescriptor],
-																with cachedValues: [NSManagedObjectID: NSDictionary]) {
-		switch binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
+extension RangeReplaceableCollection where Iterator.Element == ObjectId, Index == Int {
+	internal mutating func insert<E>(_ element: ObjectId, with comparer: Comparer<E>) {
+		switch binarySearch(of: element, with: comparer) {
 		case .found:
 			return
 

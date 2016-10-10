@@ -80,8 +80,6 @@
 		9ACB1FAC1CDC69720010555B /* SectionedCollectionEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FA91CDC69720010555B /* SectionedCollectionEvent.swift */; };
 		9ACB1FB11CDC698A0010555B /* Foundation+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */; };
 		9ACB1FB21CDC698A0010555B /* Foundation+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */; };
-		9ACB1FB31CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */; };
-		9ACB1FB41CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */; };
 		9ACB1FB51CDC69A20010555B /* SectionedCollectionEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB1FA91CDC69720010555B /* SectionedCollectionEvent.swift */; };
 		9AD114831D1CF1210067F20C /* ExistentialCollections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD114821D1CF1210067F20C /* ExistentialCollections.swift */; };
 		9AD114841D1CF1210067F20C /* ExistentialCollections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD114821D1CF1210067F20C /* ExistentialCollections.swift */; };
@@ -178,7 +176,6 @@
 		9AA6AD941DAC30A100E1F9B0 /* Quick.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quick.framework; path = "../../Library/Developer/Xcode/DerivedData/MantleData-ceykjegisbuskbdgwnzzbwbfhodi/Build/Products/Debug/Quick.framework"; sourceTree = "<group>"; };
 		9ACB1FA91CDC69720010555B /* SectionedCollectionEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SectionedCollectionEvent.swift; path = MantleData/SectionedCollectionEvent.swift; sourceTree = "<group>"; };
 		9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Foundation+Extension.swift"; path = "MantleData/Foundation+Extension.swift"; sourceTree = "<group>"; };
-		9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "StdlibCollections+Extension.swift"; path = "MantleData/StdlibCollections+Extension.swift"; sourceTree = "<group>"; };
 		9AD114821D1CF1210067F20C /* ExistentialCollections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ExistentialCollections.swift; path = MantleData/ExistentialCollections.swift; sourceTree = "<group>"; };
 		9AD7A2021DA1338E00EAA24A /* MantleDataTests-macOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MantleDataTests-macOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9AD7A2111DA133D200EAA24A /* MantleDataTests-iOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "MantleDataTests-iOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -344,7 +341,6 @@
 			children = (
 				9ACB1FAF1CDC698A0010555B /* Foundation+Extension.swift */,
 				9A2997EB1C510BB700801A30 /* StdlibCollections+PrivateExtension.swift */,
-				9ACB1FB01CDC698A0010555B /* StdlibCollections+Extension.swift */,
 				9A2997F71C510BE900801A30 /* Assertions.swift */,
 			);
 			name = Utilities;
@@ -703,7 +699,6 @@
 				9A0D9A881C76ABD30013C976 /* SectionedCollection.swift in Sources */,
 				9AD7A2291DA1626100EAA24A /* NSCollectionViewAdapter.swift in Sources */,
 				9A0D9A891C76ABD30013C976 /* ObjectCollection.swift in Sources */,
-				9ACB1FB41CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */,
 				9A2D52C21D179CC900FEBC05 /* ManagedObjectID.swift in Sources */,
 				9A0D9A8B1C76ABD30013C976 /* ViewModelCollection.swift in Sources */,
 				9A0D9A8C1C76ABD30013C976 /* StdlibCollections+PrivateExtension.swift in Sources */,
@@ -765,7 +760,6 @@
 				9AD7A2241DA1625700EAA24A /* UIKit+Additions.swift in Sources */,
 				9A2997F21C510BD100801A30 /* CocoaBridgeable.swift in Sources */,
 				9A2997ED1C510BB700801A30 /* StdlibCollections+PrivateExtension.swift in Sources */,
-				9ACB1FB31CDC698A0010555B /* StdlibCollections+Extension.swift in Sources */,
 				9A2997EA1C510BAD00801A30 /* SectionedCollection.swift in Sources */,
 				9AD7A2261DA1625700EAA24A /* UITableViewAdapter.swift in Sources */,
 				9A2997F41C510BD100801A30 /* ObjectQuery.swift in Sources */,
