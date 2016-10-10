@@ -1,0 +1,18 @@
+language: objective-c
+osx_image: xcode8
+before_install: true
+install: true
+git:
+  submodules: false
+before_script:
+  - git submodule update --init --recursive
+script:
+  - script/build
+xcode_workspace: MantleData.xcworkspace
+matrix:
+  include:
+    - xcode_scheme: MantleDataPerformanceTests-iOS
+      env:
+        - XCODE_SDK=iphonesimulator
+        - XCODE_ACTION="build-for-testing test-without-building"
+        - XCODE_DESTINATION="platform=iOS Simulator,name=iPhone 6s"

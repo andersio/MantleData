@@ -8,92 +8,92 @@
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D45480561A9572F5009D7229"
+               BlueprintIdentifier = "D454807C1A957361009D7229"
                BuildableName = "Result.framework"
-               BlueprintName = "Result-Mac"
+               BlueprintName = "Result-iOS"
                ReferencedContainer = "container:Carthage/Checkouts/Result/Result.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D04725E919E49ED7006002AA"
+               BlueprintIdentifier = "D047260B19E49F82006002AA"
                BuildableName = "ReactiveSwift.framework"
-               BlueprintName = "ReactiveSwift-macOS"
+               BlueprintName = "ReactiveSwift-iOS"
                ReferencedContainer = "container:Carthage/Checkouts/ReactiveSwift/ReactiveSwift.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D04725E919E49ED7006002AA"
+               BlueprintIdentifier = "D047260B19E49F82006002AA"
                BuildableName = "ReactiveCocoa.framework"
-               BlueprintName = "ReactiveCocoa-macOS"
+               BlueprintName = "ReactiveCocoa-iOS"
                ReferencedContainer = "container:Carthage/Checkouts/ReactiveCocoa/ReactiveCocoa.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9A0D9A751C76AB9A0013C976"
+               BlueprintIdentifier = "9AFFA50C1BC7CBEC00B63C58"
                BuildableName = "MantleData.framework"
-               BlueprintName = "MantleData-macOS"
+               BlueprintName = "MantleData-iOS"
                ReferencedContainer = "container:MantleData.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
             buildForRunning = "NO"
-            buildForProfiling = "YES"
+            buildForProfiling = "NO"
             buildForArchiving = "NO"
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1F925EAC195C0D6300ED456B"
-               BuildableName = "Nimble.framework"
-               BlueprintName = "Nimble-macOS"
-               ReferencedContainer = "container:Carthage/Checkouts/Nimble/Nimble.xcodeproj">
+               BlueprintIdentifier = "5A5D117B19473F2100F6D13D"
+               BuildableName = "Quick.framework"
+               BlueprintName = "Quick-iOS"
+               ReferencedContainer = "container:Carthage/Checkouts/Quick/Quick.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
             buildForRunning = "NO"
-            buildForProfiling = "YES"
+            buildForProfiling = "NO"
             buildForArchiving = "NO"
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "DAEB6B8D1943873100289F44"
-               BuildableName = "Quick.framework"
-               BlueprintName = "Quick-macOS"
-               ReferencedContainer = "container:Carthage/Checkouts/Quick/Quick.xcodeproj">
+               BlueprintIdentifier = "1F1A74281940169200FFFC47"
+               BuildableName = "Nimble.framework"
+               BlueprintName = "Nimble-iOS"
+               ReferencedContainer = "container:Carthage/Checkouts/Nimble/Nimble.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
@@ -102,27 +102,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9AD7A2011DA1338E00EAA24A"
-               BuildableName = "MantleDataTests-macOS.xctest"
-               BlueprintName = "MantleDataTests-macOS"
-               ReferencedContainer = "container:MantleData.xcodeproj">
-            </BuildableReference>
-            <SkippedTests>
-               <Test
-                  Identifier = "ObjectCollectionTests/testFRCPredicateFailingObjects()">
-               </Test>
-               <Test
-                  Identifier = "ObjectCollectionTests/testOCPredicateFailingObjects()">
-               </Test>
-            </SkippedTests>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9A2E42771DAAB615006D909F"
-               BuildableName = "MantleDataPerformanceTests-macOS.xctest"
-               BlueprintName = "MantleDataPerformanceTests-macOS"
+               BlueprintIdentifier = "9A04125A1DAC7189004E1816"
+               BuildableName = "MantleDataPerformanceTests-iOS.xctest"
+               BlueprintName = "MantleDataPerformanceTests-iOS"
                ReferencedContainer = "container:MantleData.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -130,10 +112,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9A0D9A751C76AB9A0013C976"
-            BuildableName = "MantleData.framework"
-            BlueprintName = "MantleData-macOS"
-            ReferencedContainer = "container:MantleData.xcodeproj">
+            BlueprintIdentifier = "5A5D117B19473F2100F6D13D"
+            BuildableName = "Quick.framework"
+            BlueprintName = "Quick-iOS"
+            ReferencedContainer = "container:Carthage/Checkouts/Quick/Quick.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -149,15 +131,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9A0D9A751C76AB9A0013C976"
-            BuildableName = "MantleData.framework"
-            BlueprintName = "MantleData-macOS"
-            ReferencedContainer = "container:MantleData.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -167,15 +140,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9A0D9A751C76AB9A0013C976"
-            BuildableName = "MantleData.framework"
-            BlueprintName = "MantleData-macOS"
-            ReferencedContainer = "container:MantleData.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
