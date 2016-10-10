@@ -78,9 +78,10 @@ class ObjectCollectionTests: XCTestCase {
 			.sort(by: .ascending("value"))
 			.makeCollection(prefetching: .none)
 
-		expect { try collection.fetch() }.toNot(throwError())
-
 		measure {
+			self.mainContext.reset()
+			expect { try collection.fetch() }.toNot(throwError())
+
 			for i in 0 ..< times {
 				let children = Children(context: self.mainContext)
 				children.value = Int64(i)
@@ -89,12 +90,15 @@ class ObjectCollectionTests: XCTestCase {
 			self.mainContext.processPendingChanges()
 
 			// verify results
+			expect(collection.sectionCount) == 1
+			expect(collection.rowCount(for: 0)) == times
+
 			for indexPath in collection.indices {
 				expect(collection[indexPath].value) == Int64(indexPath.row)
 			}
-
-			self.mainContext.reset()
 		}
+
+		self.mainContext.reset()
 	}
 
 	func testOCInsertionPerformance_10000_iterations() {
@@ -171,9 +175,11 @@ class ObjectCollectionTests: XCTestCase {
 
 		let receiver = Receiver()
 		controller.delegate = receiver
-		expect { try controller.performFetch() }.toNot(throwError())
 
 		measure {
+			self.mainContext.reset()
+			expect { try controller.performFetch() }.toNot(throwError())
+
 			for i in 0 ..< times {
 				let children = Children(context: self.mainContext)
 				children.value = Int64(i)
@@ -182,16 +188,20 @@ class ObjectCollectionTests: XCTestCase {
 			self.mainContext.processPendingChanges()
 
 			// verify results
-			var i = 0
-			for (sectionIndex, section) in (controller.sections ?? []).enumerated() {
-				for objectIndex in 0 ..< section.numberOfObjects {
-					expect(controller.object(at: IndexPath(row: objectIndex, section: sectionIndex)).value) == Int64(i)
-					i += 1
-				}
-			}
+			expect(controller.sections?.count) == 1
+			expect(controller.sections!.first!.numberOfObjects) == times
 
-			self.mainContext.reset()
+			for objectIndex in 0 ..< controller.sections!.first!.numberOfObjects {
+				let object = controller.object(at: IndexPath(row: objectIndex, section: 0))
+				expect(object.value) == Int64(objectIndex)
+			}
 		}
+
+		self.mainContext.reset()
+	}
+
+	func testFRCInsertionPerformance_10000_iteration() {
+		measureFRCInsertionPerformance(times: 10000)
 	}
 
 	func testFRCInsertionPerformance_2000_iteration() {
