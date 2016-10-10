@@ -138,39 +138,51 @@ extension Collection where Iterator.Element: Comparable, Index == Int {
 	}
 }
 
-extension MutableCollection where Iterator.Element: MutableCollection & RangeReplaceableCollection, Iterator.Element.Iterator.Element: Comparable, Iterator.Element.Index == Int {
-	internal mutating func orderedInsert(_ value: Iterator.Element.Iterator.Element, toCollectionAt index: Index, ascending: Bool = true) {
-		if case let .notFound(insertionPoint) = self[index].binarySearch(value, ascending: ascending) {
-			self[index].insert(value, at: insertionPoint)
+extension MutableCollection where Iterator.Element: BoxProtocol, Iterator.Element.Value: MutableCollection & RangeReplaceableCollection, Iterator.Element.Value.Iterator.Element: Comparable, Iterator.Element.Value.Index == Int {
+	internal mutating func orderedInsert(_ value: Iterator.Element.Value.Iterator.Element, toCollectionAt index: Index, ascending: Bool = true) {
+		let box = self[index]
+		if case let .notFound(insertionPoint) = box.value.binarySearch(value, ascending: ascending) {
+			box.value.insert(value, at: insertionPoint)
 		}
-	}
-}
-extension Array where Element: SetAlgebra {
-	internal mutating func insert(_ value: Element.Element, intoSetAt index: Index) {
-		self[index].insert(value)
 	}
 }
 
-extension Dictionary where Value: SetAlgebra {
-	internal mutating func insert(_ value: Value.Element, intoSetOf key: Key) {
-		if !keys.contains(key) {
-			self[key] = Value()
-		}
-		self[key]?.insert(value)
+extension Array where Element: BoxProtocol, Element.Value: SetAlgebra {
+	internal mutating func insert(_ value: Element.Value.Element, intoSetAt index: Index) {
+		self[index].value.insert(value)
 	}
 }
 
-extension Dictionary where Value: ExpressibleByArrayLiteral & RangeReplaceableCollection, Value.Iterator.Element == Value.Element {
-	internal mutating func append(_ value: Value.Element, toCollectionOf key: Key) {
-		if !keys.contains(key) {
-			self[key] = Value()
+extension Dictionary where Value: BoxProtocol, Value.Value: SetAlgebra {
+	internal mutating func insert(_ value: Value.Value.Element, intoSetOf key: Key) {
+		var box = self[key]
+		if box == nil {
+			box = Value(Value.Value())
+			self[key] = box!
 		}
-		self[key]?.append(value)
+
+		box!.value.insert(value)
 	}
 }
 
 extension Collection where Iterator.Element: Hashable {
 	internal func uniquing() -> [Iterator.Element] {
 		return Array(Set(self))
+	}
+}
+
+protocol BoxProtocol: class {
+	associatedtype Value
+
+	var value: Value { get set }
+
+	init(_ value: Value)
+}
+
+internal final class Box<Value>: BoxProtocol {
+	var value: Value
+
+	init(_ value: Value) {
+		self.value = value
 	}
 }

@@ -28,7 +28,7 @@ internal class ObjectCollectionPrefetcher<E: NSManagedObject> {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	func acknowledgeChanges(inserted insertedIds: [SectionKey: Set<NSManagedObjectID>], deleted deletedIds: [[Int]]) {
+	func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<NSManagedObjectID>>], deleted deletedIds: [Box<[Int]>]) {
 		_abstractMethod_subclassMustImplement()
 	}
 }
@@ -210,7 +210,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollect
 	}
 
 	override func acknowledgeFetchCompletion(_ objectCount: Int) {}
-	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Set<NSManagedObjectID>], deleted deletedIds: [[Int]]) {}
+	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<NSManagedObjectID>>], deleted deletedIds: [Box<[Int]>]) {}
 }
 
 /// GreedyPrefetcher
@@ -248,14 +248,14 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefe
 		}
 	}
 
-	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Set<NSManagedObjectID>], deleted deletedIds: [[Int]]) {
+	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<NSManagedObjectID>>], deleted deletedIds: [Box<[Int]>]) {
 		for (sectionIndex, objectIndices) in deletedIds.enumerated() {
-			for index in objectIndices {
+			for index in objectIndices.value {
 				retainingPool.remove(objectSet.sections[sectionIndex][index])
 			}
 		}
 
-		let insertedIds = insertedIds.flatMap { $0.1 }
+		let insertedIds = insertedIds.flatMap { $0.1.value }
 
 		if !insertedIds.isEmpty {
 			let prefetchRequest = NSFetchRequest<E>()
