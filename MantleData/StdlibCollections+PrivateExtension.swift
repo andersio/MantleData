@@ -34,12 +34,12 @@ extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 	internal func bidirectionalSearch(at center: Int,
 																		for element: NSManagedObjectID,
 																		using sortDescriptors: [NSSortDescriptor],
-																		with cachedValues: [NSManagedObjectID: [String: NSObject]])
+																		with cachedValues: [NSManagedObjectID: NSDictionary])
 																		-> BinarySearchResult<Index> {
 		var leftIndex = center - 1
 		while leftIndex >= startIndex &&
-					sortDescriptors.compare(cachedValues[self[leftIndex]]! as NSDictionary,
-					                        to: cachedValues[element]! as NSDictionary)
+					sortDescriptors.compare(cachedValues[self[leftIndex]]!,
+					                        to: cachedValues[element]!)
 					== .orderedSame {
 			if self[leftIndex] == element {
 				return .found(at: leftIndex)
@@ -49,8 +49,8 @@ extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 
 		var rightIndex = center + 1
 		while rightIndex < endIndex &&
-					sortDescriptors.compare(cachedValues[self[rightIndex]]! as NSDictionary,
-					                        to: cachedValues[element]! as NSDictionary)
+					sortDescriptors.compare(cachedValues[self[rightIndex]]!,
+					                        to: cachedValues[element]!)
 					== .orderedSame {
 			if self[rightIndex] == element {
 				return .found(at: rightIndex)
@@ -63,7 +63,7 @@ extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 
 	internal func index(of element: NSManagedObjectID,
 											using sortDescriptors: [NSSortDescriptor],
-											with cachedValues: [NSManagedObjectID: [String: NSObject]])
+											with cachedValues: [NSManagedObjectID: NSDictionary])
 											-> Index? {
 		if case let .found(index) = binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
 			return index
@@ -74,7 +74,7 @@ extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 
 	internal func binarySearch(of element: NSManagedObjectID,
 														using sortDescriptors: [NSSortDescriptor],
-														with cachedValues: [NSManagedObjectID: [String: NSObject]])
+														with cachedValues: [NSManagedObjectID: NSDictionary])
 														-> BinarySearchResult<Index> {
 		var low = startIndex
 		var high = endIndex - 1
@@ -85,8 +85,8 @@ extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 			if self[mid] == element {
 				return .found(at: mid)
 			} else {
-				switch sortDescriptors.compare(cachedValues[element]! as NSDictionary,
-				                               to: cachedValues[self[mid]]! as NSDictionary) {
+				switch sortDescriptors.compare(cachedValues[element]!,
+				                               to: cachedValues[self[mid]]!) {
 				case .orderedAscending:
 					high = mid - 1
 
@@ -106,7 +106,7 @@ extension Collection where Iterator.Element == NSManagedObjectID, Index == Int {
 extension RangeReplaceableCollection where Iterator.Element == NSManagedObjectID, Index == Int {
 	internal mutating func insert(_ element: NSManagedObjectID,
 	                              using sortDescriptors: [NSSortDescriptor],
-																with cachedValues: [NSManagedObjectID: [String: NSObject]]) {
+																with cachedValues: [NSManagedObjectID: NSDictionary]) {
 		switch binarySearch(of: element, using: sortDescriptors, with: cachedValues) {
 		case .found:
 			return

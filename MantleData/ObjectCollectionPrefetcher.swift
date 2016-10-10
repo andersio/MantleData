@@ -28,7 +28,7 @@ internal class ObjectCollectionPrefetcher<E: NSManagedObject> {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<NSManagedObjectID>>], deleted deletedIds: [Box<[Int]>]) {
+	func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<NSManagedObjectID>>], deleted deletedIds: [Box<Set<NSManagedObjectID>>]) {
 		_abstractMethod_subclassMustImplement()
 	}
 }
@@ -210,13 +210,13 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollect
 	}
 
 	override func acknowledgeFetchCompletion(_ objectCount: Int) {}
-	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<NSManagedObjectID>>], deleted deletedIds: [Box<[Int]>]) {}
+	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<NSManagedObjectID>>], deleted deletedIds: [Box<Set<NSManagedObjectID>>]) {}
 }
 
 /// GreedyPrefetcher
 
 internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefetcher<E> {
-	var retainingPool = Set<E>()
+	var retainingPool = Set<NSManagedObject>()
 	unowned var objectSet: ObjectCollection<E>
 
 	init(for objectSet: ObjectCollection<E>) {
@@ -234,7 +234,7 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefe
 			ids.append(contentsOf: objectSet.sections[index].storage)
 		}
 
-		let prefetchRequest = NSFetchRequest<E>()
+		let prefetchRequest = NSFetchRequest<NSManagedObject>()
 		prefetchRequest.entity = E.entity(in: objectSet.context)
 		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
 		                                        argumentArray: [ids as NSArray])
@@ -248,17 +248,17 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefe
 		}
 	}
 
-	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<NSManagedObjectID>>], deleted deletedIds: [Box<[Int]>]) {
-		for (sectionIndex, objectIndices) in deletedIds.enumerated() {
-			for index in objectIndices.value {
-				retainingPool.remove(objectSet.sections[sectionIndex][index])
+	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<NSManagedObjectID>>], deleted deletedIds: [Box<Set<NSManagedObjectID>>]) {
+		for ids in deletedIds {
+			for id in ids.value {
+				retainingPool.remove(objectSet.context.object(with: id))
 			}
 		}
 
 		let insertedIds = insertedIds.flatMap { $0.1.value }
 
 		if !insertedIds.isEmpty {
-			let prefetchRequest = NSFetchRequest<E>()
+			let prefetchRequest = NSFetchRequest<NSManagedObject>()
 			prefetchRequest.entity = E.entity(in: objectSet.context)
 			prefetchRequest.predicate = NSPredicate(format: "self IN %@",
 																							argumentArray: [insertedIds as NSArray])
