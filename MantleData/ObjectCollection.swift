@@ -62,13 +62,14 @@ public final class ObjectCollection<E: NSManagedObject> {
 	private let sectionNameOrdering: ComparisonResult
 	fileprivate let objectSortDescriptors: [NSSortDescriptor]
 	private let sortKeys: [String]
+	private let _sortKeys: [NSCopying]
 	private let sortKeyComponents: [(String, [String])]
 	private let sortOrderAffectingRelationships: [String]
 	private let sortKeysInSections: [String]
 
 	fileprivate var objectCache = [NSManagedObjectID: NSDictionary]()
 
-	private var temporaryObjects = [E: NSManagedObjectID]()
+	private var temporaryObjects = [ObjectIdentifier: ObjectId]()
 	private var isAwaitingContextSave = false
 
 	public let events: Signal<SectionedCollectionEvent, NoError>
@@ -112,6 +113,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 		predicate = fetchRequest.predicate ?? NSPredicate(value: true)
 
 		sortKeys = fetchRequest.sortDescriptors!.map { $0.key! }
+		_sortKeys = sortKeys as [NSCopying]
 		sortKeysInSections = Array(sortKeys.dropFirst())
 		sortKeyComponents = sortKeys.map { ($0, $0.components(separatedBy: ".")) }
 		sortOrderAffectingRelationships = sortKeyComponents.flatMap { $0.1.count > 1 ? $0.1[0] : nil }.uniquing()
@@ -195,15 +197,17 @@ public final class ObjectCollection<E: NSManagedObject> {
 
 	private func sectionize(using resultDictionaries: [NSDictionary], inMemoryResults: [E]) {
 		sections = []
-		var inMemoryChangedObjects = [SectionKey: Box<Set<NSManagedObjectID>>]()
+		var inMemoryChangedObjects = [SectionKey: Box<Set<ObjectId>>]()
 
 		func markAsChanged(object registeredObject: E) {
+			let id = ObjectId(registeredObject.objectID)
 			updateCache(for: registeredObject.objectID, with: registeredObject)
+
 			if let sectionNameKeyPath = sectionNameKeyPath {
 				let sectionName = converting(sectionName: registeredObject.value(forKeyPath: sectionNameKeyPath) as! NSObject?)
-				inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(sectionName))
+				inMemoryChangedObjects.insert(id, intoSetOf: SectionKey(sectionName))
 			} else {
-				inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(nil))
+				inMemoryChangedObjects.insert(id, intoSetOf: SectionKey(nil))
 			}
 		}
 
@@ -234,11 +238,11 @@ public final class ObjectCollection<E: NSManagedObject> {
 			sections.reserveCapacity(ranges.count)
 
 			for (range, name) in ranges {
-				var objectIDs = ContiguousArray<NSManagedObjectID>()
+				var objectIDs = [ObjectId]()
 				objectIDs.reserveCapacity(range.count)
 
 				for position in range {
-					let id = resultDictionaries[position]["objectID"] as! NSManagedObjectID
+					let objectId = resultDictionaries[position]["objectID"] as! NSManagedObjectID
 
 					// Deferred Insertion:
 					//
@@ -256,7 +260,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 					//
 					// 2. If the in-memory state fails the predicate, or it has been
 					//    deleted, the object is ignored.
-					if let registeredObject = context.registeredObject(for: id) as? E {
+					if let registeredObject = context.registeredObject(for: objectId) as? E {
 						let changedKeys = registeredObject.changedValues().keys
 						let sortOrderIsAffected = sortKeyComponents.contains { changedKeys.contains($0.1[0]) }
 
@@ -284,14 +288,14 @@ public final class ObjectCollection<E: NSManagedObject> {
 					}
 
 					if hasUpdatedRelationships {
-						let object = context.object(with: id) as! E
+						let object = context.object(with: objectId) as! E
 						markAsChanged(object: object)
 						continue
 					}
 
 					/// Use the results in the dictionary to update the cache.
-					updateCache(for: id, with: resultDictionaries[position])
-					objectIDs.append(id)
+					updateCache(for: objectId, with: resultDictionaries[position])
+					objectIDs.append(ObjectId(objectId))
 				}
 
 				let section = ObjectCollectionSection(at: sections.count, name: name, array: objectIDs, in: self)
@@ -314,7 +318,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 	}
 
 	private func registerTemporaryObject(_ object: E) {
-		temporaryObjects[object] = object.objectID
+		temporaryObjects[ObjectIdentifier(object)] = ObjectId(object.objectID)
 
 		if !isAwaitingContextSave {
 			NotificationCenter.default
@@ -339,7 +343,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 				}
 
 				let object = object as! E
-				if let temporaryId = temporaryObjects[object] {
+				if let temporaryId = temporaryObjects[ObjectIdentifier(object)] {
 					if !object.objectID.isTemporaryID {
 						/// If the object ID is no longer temporary, find the position of the object.
 						/// Then update the object and the cache with the permanent ID.
@@ -349,8 +353,8 @@ public final class ObjectCollection<E: NSManagedObject> {
 																																	 using: objectSortDescriptors,
 																																	 with: objectCache)!
 
-						sections[sectionIndex].storage[objectIndex] = object.objectID
-						clearCache(for: temporaryId)
+						sections[sectionIndex].storage[objectIndex] = ObjectId(object.objectID)
+						clearCache(for: temporaryId.content)
 						updateCache(for: object.objectID, with: object)
 					} else {
 						fatalError("ObjectCollection does not implement any workaround to the temporary ID issue with parent-child context relationships. Please use `NSManagedObjectContext.obtainPermanentIDsForObjects(_:)` before saving your objects in a child context.")
@@ -363,18 +367,17 @@ public final class ObjectCollection<E: NSManagedObject> {
 		isAwaitingContextSave = false
 	}
 
-	private func updateCache(for objectID: NSManagedObjectID, with object: NSObject) {
+	private func updateCache(for id: NSManagedObjectID, with object: NSObject) {
 		let dictionary = NSMutableDictionary()
-
-		for sortKey in sortKeys {
-			dictionary[sortKey] = (object.value(forKeyPath: sortKey) as? NSObject) ?? NSNull()
+		for key in sortKeys {
+			dictionary.setValue(object.value(forKeyPath: key) ?? NSNull(), forKey: key)
 		}
 
-		objectCache[objectID] = dictionary
+		objectCache.updateValue(dictionary, forKey: id)
 	}
 
-	private func clearCache(for objectID: NSManagedObjectID) {
-		objectCache.removeValue(forKey: objectID)
+	private func clearCache(for id: NSManagedObjectID) {
+		objectCache.removeValue(forKey: id)
 	}
 
 	private func converting(sectionName: Any?) -> String? {
@@ -431,15 +434,17 @@ public final class ObjectCollection<E: NSManagedObject> {
 	}
 
 	private func processDeletedObjects(_ set: NSSet,
-	                                   deleted deletedIds: inout [Box<Set<NSManagedObjectID>>],
-	                                   cacheClearing cacheClearingIds: inout ContiguousArray<NSManagedObjectID>) {
+	                                   deleted deletedIds: inout [Box<Set<ObjectId>>],
+	                                   cacheClearing cacheClearingIds: inout [ObjectId]) {
 		for object in set {
 			guard type(of: object) is E.Type else {
 				continue
 			}
 
 			let object = object as! E
-			if let cache = objectCache[object.objectID] {
+			let id = ObjectId(object.objectID)
+
+			if let cache = objectCache[id.content] {
 				let sectionName: String?
 
 				if let sectionNameKeyPath = sectionNameKeyPath {
@@ -449,26 +454,27 @@ public final class ObjectCollection<E: NSManagedObject> {
 				}
 
 				if let index = sections.index(of: sectionName) {
-					deletedIds.insert(object.objectID, intoSetAt: index)
-					cacheClearingIds.append(object.objectID)
+					deletedIds.insert(id, intoSetAt: index)
+					cacheClearingIds.append(id)
 				}
 			}
 		}
 	}
 
 	private func processUpdatedObjects(_ set: NSSet,
-	                                   inserted insertedIds: inout [SectionKey: Box<Set<NSManagedObjectID>>],
-	                                   updated updatedIds: inout [Box<Set<NSManagedObjectID>>],
+	                                   inserted insertedIds: inout [SectionKey: Box<Set<ObjectId>>],
+	                                   updated updatedIds: inout [Box<Set<ObjectId>>],
 	                                   sortOrderAffecting sortOrderAffectingIndexPaths: inout [Box<Set<Int>>],
 	                                   sectionChanged sectionChangedIndexPaths: inout [Box<Set<Int>>],
-	                                   deleted deletedIds: inout [Box<Set<NSManagedObjectID>>],
-	                                   cacheClearing cacheClearingIds: inout ContiguousArray<NSManagedObjectID>) {
+	                                   deleted deletedIds: inout [Box<Set<ObjectId>>],
+	                                   cacheClearing cacheClearingIds: inout [ObjectId]) {
 		for object in set {
 			let type = type(of: object)
 
 			if type is E.Type {
 				let object = object as! E
-				let cache = objectCache[object.objectID]
+				let id = ObjectId(object.objectID)
+				let cache = objectCache[id.content]
 
 				if !predicate.evaluate(with: object) {
 					guard let cache = cache else {
@@ -486,8 +492,8 @@ public final class ObjectCollection<E: NSManagedObject> {
 
 					if let index = sections.index(of: sectionName) {
 						/// Use binary search, but compare against the previous values dictionary.
-						deletedIds.insert(object.objectID, intoSetAt: index)
-						cacheClearingIds.append(object.objectID)
+						deletedIds.insert(id, intoSetAt: index)
+						cacheClearingIds.append(id)
 						continue
 					}
 				} else if let cache = cache {
@@ -503,14 +509,14 @@ public final class ObjectCollection<E: NSManagedObject> {
 								preconditionFailure("current section name is supposed to exist, but not found.")
 							}
 
-							guard let objectIndex = sections[previousSectionIndex].storage.index(of: object.objectID,
+							guard let objectIndex = sections[previousSectionIndex].storage.index(of: id,
 																																									 using: objectSortDescriptors,
 																																									 with: objectCache) else {
 								preconditionFailure("An object should be in section \(previousSectionIndex), but it cannot be found. (ID: \(object.objectID.uriRepresentation()))")
 							}
 
 							sectionChangedIndexPaths.insert(objectIndex, intoSetAt: previousSectionIndex)
-							updateCache(for: object.objectID, with: object)
+							updateCache(for: id.content, with: object)
 							continue
 						}
 					} else {
@@ -522,24 +528,24 @@ public final class ObjectCollection<E: NSManagedObject> {
 					}
 
 					guard !sortOrderIsAffected(by: object, comparingWith: cache) else {
-						guard let objectIndex = sections[currentSectionIndex].storage.index(of: object.objectID,
+						guard let objectIndex = sections[currentSectionIndex].storage.index(of: id,
 																																								using: objectSortDescriptors,
 																																								with: objectCache) else {
 							preconditionFailure("An object should be in section \(currentSectionIndex), but it cannot be found. (ID: \(object.objectID.uriRepresentation()))")
 						}
 
 						sortOrderAffectingIndexPaths.insert(objectIndex, intoSetAt: currentSectionIndex)
-						updateCache(for: object.objectID, with: object)
+						updateCache(for: id.content, with: object)
 						continue
 					}
 					
 					if !shouldExcludeUpdatedRows {
-						updatedIds.insert(object.objectID, intoSetAt: currentSectionIndex)
+						updatedIds.insert(id, intoSetAt: currentSectionIndex)
 					}
 				} else {
 					let currentSectionName = sectionName(of: object)
-					insertedIds.insert(object.objectID, intoSetOf: SectionKey(currentSectionName))
-					updateCache(for: object.objectID, with: object)
+					insertedIds.insert(id, intoSetOf: SectionKey(currentSectionName))
+					updateCache(for: id.content, with: object)
 					continue
 				}
 			}
@@ -565,26 +571,28 @@ public final class ObjectCollection<E: NSManagedObject> {
 		}
 
 		/// Reference sections by name, since these objects may lead to creating a new section.
-		var insertedIds = [SectionKey: Box<Set<NSManagedObjectID>>]()
+		var insertedIds = [SectionKey: Box<Set<ObjectId>>]()
 
 		/// Referencing sections by the index in snapshot.
 		var sectionChangedIndexPaths = sections.indices.map { _ in Box(Set<Int>()) }
-		var deletedIds = sections.indices.map { _ in Box(Set<NSManagedObjectID>()) }
-		var updatedIds = sections.indices.map { _ in Box(Set<NSManagedObjectID>()) }
+		var deletedIds = sections.indices.map { _ in Box(Set<ObjectId>()) }
+		var updatedIds = sections.indices.map { _ in Box(Set<ObjectId>()) }
 		var sortOrderAffectingIndexPaths = sections.indices.map { _ in Box(Set<Int>()) }
-		var cacheClearingIds = ContiguousArray<NSManagedObjectID>()
+		var cacheClearingIds = [ObjectId]()
 
 		if let _insertedObjects = userInfo[NSInsertedObjectsKey] as? NSSet {
 			let previouslyInsertedObjects = NSMutableSet()
 
 			for object in _insertedObjects {
 				if let object = qualifyingObject(object) {
-					if nil != objectCache.index(forKey: object.objectID) {
+					let id = ObjectId(object.objectID)
+
+					if nil != objectCache.index(forKey: id.content) {
 						previouslyInsertedObjects.add(object)
 					} else {
 						let name = sectionName(of: object)
-						insertedIds.insert(object.objectID, intoSetOf: SectionKey(name))
-						updateCache(for: object.objectID, with: object)
+						insertedIds.insert(id, intoSetOf: SectionKey(name))
+						updateCache(for: id.content, with: object)
 
 						if object.objectID.isTemporaryID {
 							registerTemporaryObject(object)
@@ -637,7 +645,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 		}
 
 		for id in cacheClearingIds {
-			clearCache(for: id)
+			clearCache(for: id.content)
 		}
 
 		let changes = mergeChanges(inserted: insertedIds,
@@ -663,9 +671,9 @@ public final class ObjectCollection<E: NSManagedObject> {
 	/// - returns:
 	///   The changes descriptor.
 	private func mergeChanges(
-		inserted insertedObjects: [SectionKey: Box<Set<NSManagedObjectID>>],
-		deleted deletedObjects: [Box<Set<NSManagedObjectID>>],
-		updated updatedObjects: [Box<Set<NSManagedObjectID>>],
+		inserted insertedObjects: [SectionKey: Box<Set<ObjectId>>],
+		deleted deletedObjects: [Box<Set<ObjectId>>],
+		updated updatedObjects: [Box<Set<ObjectId>>],
 		sortOrderAffecting sortOrderAffectingObjects: [Box<Set<Int>>],
 		sectionChanged sectionChangedObjects: [Box<Set<Int>>]
 	) -> SectionedCollectionChanges {
@@ -678,12 +686,12 @@ public final class ObjectCollection<E: NSManagedObject> {
 		let updatedObjectsCount = updatedObjects.reduce(0) { $0 + $1.value.count }
 		let sortOrderAffectingObjectsCount = sortOrderAffectingObjects.reduce(0) { $0 + $1.value.count }
 
-		var inboundObjects = [SectionKey: Box<Set<NSManagedObjectID>>]()
-		var inPlaceMovingObjects = sectionSnapshots.indices.map { _ in Box(Set<NSManagedObjectID>()) }
+		var inboundObjects = [SectionKey: Box<Set<ObjectId>>]()
+		var inPlaceMovingObjects = sectionSnapshots.indices.map { _ in Box(Set<ObjectId>()) }
 		var deletedObjects = deletedObjects
 
-		var originOfSectionChangedObjects = [NSManagedObjectID: _IndexPath](minimumCapacity: sectionChangedObjectsCount)
-		var originOfMovedObjects = [NSManagedObjectID: _IndexPath](minimumCapacity: sortOrderAffectingObjectsCount)
+		var originOfSectionChangedObjects = [ObjectId: _IndexPath](minimumCapacity: sectionChangedObjectsCount)
+		var originOfMovedObjects = [ObjectId: _IndexPath](minimumCapacity: sortOrderAffectingObjectsCount)
 
 		var indexPathsOfInsertedRows = [_IndexPath]()
 		var indexPathsOfUpdatedRows = [_IndexPath]()
@@ -706,7 +714,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 				let indexPath = IndexPath(row: previousObjectIndex, section: previousSectionIndex)
 				originOfSectionChangedObjects[id] = indexPath
 
-				let newSectionName = sectionName(of: context.registeredObject(for: id) as! E)
+				let newSectionName = sectionName(of: context.registeredObject(for: id.content) as! E)
 				inboundObjects.insert(id, intoSetOf: SectionKey(newSectionName))
 			}
 		}
@@ -715,6 +723,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 		for (sectionIndex, indices) in sortOrderAffectingObjects.enumerated() {
 			for previousObjectIndex in indices.value {
 				let id = sectionSnapshots[sectionIndex].storage[previousObjectIndex]
+
 				deletedObjects.insert(id, intoSetAt: sectionIndex)
 
 				let indexPath = IndexPath(row: previousObjectIndex, section: sectionIndex)
@@ -752,7 +761,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 
 		/// MARK: Handle insertions.
 
-		func insert(_ ids: Box<Set<NSManagedObjectID>>, intoSectionFor name: String?) {
+		func insert(_ ids: Box<Set<ObjectId>>, intoSectionFor name: String?) {
 			let sectionIndex = sections.index(of: name) ?? {
 				let section = ObjectCollectionSection(at: -1, name: name, array: [], in: self)
 				return self.sections.insert(section, name: name, ordering: sectionNameOrdering)
@@ -788,11 +797,11 @@ public final class ObjectCollection<E: NSManagedObject> {
 			let insertedObjects = insertedObjects[SectionKey(sectionName)] ?? Box([])
 			let inboundObjects = inboundObjects[SectionKey(sectionName)] ?? Box([])
 
-			for (objectIndex, object) in sections[sectionIndex].storage.enumerated() {
+			for (objectIndex, objectId) in sections[sectionIndex].storage.enumerated() {
 				// Emit index paths for updated rows, if enabled.
 				if !shouldExcludeUpdatedRows {
 					if let oldSectionIndex = previousSectionIndex,
-					   updatedObjects[oldSectionIndex].value.contains(object) {
+					   updatedObjects[oldSectionIndex].value.contains(objectId) {
 						let indexPath = _IndexPath(row: objectIndex, section: sectionIndex)
 						indexPathsOfUpdatedRows.append(indexPath)
 						continue
@@ -800,14 +809,14 @@ public final class ObjectCollection<E: NSManagedObject> {
 				}
 
 				// Insertions to existing sections.
-				if previousSectionIndex != nil && insertedObjects.value.contains(object) {
+				if previousSectionIndex != nil && insertedObjects.value.contains(objectId) {
 					let indexPath = _IndexPath(row: objectIndex, section: sectionIndex)
 					indexPathsOfInsertedRows.append(indexPath)
 					continue
 				}
 
 				// Moved objects within the same section.
-				if let indexPath = originOfMovedObjects[object] {
+				if let indexPath = originOfMovedObjects[objectId] {
 					let from = indexPath
 					let to = _IndexPath(row: objectIndex, section: sectionIndex)
 					indexPathsOfMovedRows.append((from, to))
@@ -815,8 +824,8 @@ public final class ObjectCollection<E: NSManagedObject> {
 				}
 
 				// Moved objects across sections.
-				if inboundObjects.value.contains(object) {
-					let origin = originOfSectionChangedObjects[object]!
+				if inboundObjects.value.contains(objectId) {
+					let origin = originOfSectionChangedObjects[objectId]!
 
 					if indiceOfDeletedSections.contains(origin.section) {
 						/// The originated section no longer exists, treat it as an inserted row.
@@ -971,7 +980,7 @@ extension ObjectCollection: SectionedCollection {
 		let name = sectionName(of: element)
 		if let sectionIndex = sections.index(of: name) {
 			if let objectIndex = sections[sectionIndex].storage.index(
-				of: element.objectID,
+				of: ObjectId(element.objectID),
 				using: objectSortDescriptors,
 				with: objectCache
 			) {
@@ -1007,13 +1016,20 @@ internal final class ObjectCollectionSection<E: NSManagedObject>: BidirectionalC
 	let name: String?
 
 	var indexInSet: Int
-	var storage: ContiguousArray<NSManagedObjectID>
+	var storage: [ObjectId]
 	unowned var parentSet: ObjectCollection<E>
 
 	init(at index: Int, name: String?, array: ContiguousArray<NSManagedObjectID>?, in parentSet: ObjectCollection<E>) {
 		self.indexInSet = index
 		self.name = name
-		self.storage = array ?? []
+		self.storage = array.map { $0.map(ObjectId.init) } ?? []
+		self.parentSet = parentSet
+	}
+
+	init(at index: Int, name: String?, array: [ObjectId], in parentSet: ObjectCollection<E>) {
+		self.indexInSet = index
+		self.name = name
+		self.storage = array
 		self.parentSet = parentSet
 	}
 
@@ -1029,13 +1045,13 @@ internal final class ObjectCollectionSection<E: NSManagedObject>: BidirectionalC
 		get {
 			parentSet.prefetcher?.acknowledgeNextAccess(at: IndexPath(row: position, section: indexInSet))
 			
-			if let object = parentSet.context.registeredObject(for: storage[position]) as? E {
+			if let object = parentSet.context.registeredObject(for: storage[position].content) as? E {
 				return object
 			}
 
-			return parentSet.context.object(with: storage[position]) as! E
+			return parentSet.context.object(with: storage[position].content) as! E
 		}
-		set { storage[position] = newValue.objectID }
+		set { storage[position] = ObjectId(newValue.objectID) }
 	}
 
 	subscript(subRange: Range<Int>) -> BidirectionalSlice<ObjectCollectionSection<E>> {
@@ -1077,5 +1093,26 @@ extension RangeReplaceableCollection where Iterator.Element: ObjectCollectionSec
 
 		insert(section, at: position)
 		return position
+	}
+}
+
+internal struct ObjectId: Hashable {
+	unowned(unsafe) let reference: NSManagedObjectID
+
+	var hashValue: Int {
+		return reference.hashValue
+	}
+
+	var content: NSManagedObjectID {
+		let strong = reference
+		return strong
+	}
+
+	init(_ id: NSManagedObjectID) {
+		reference = id
+	}
+
+	static func ==(left: ObjectId, right: ObjectId) -> Bool {
+		return left.reference.isEqual(right.reference)
 	}
 }

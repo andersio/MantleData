@@ -116,6 +116,16 @@
                </Test>
             </SkippedTests>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9A2E42771DAAB615006D909F"
+               BuildableName = "MantleDataPerformanceTests.xctest"
+               BlueprintName = "MantleDataPerformanceTests"
+               ReferencedContainer = "container:MantleData.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
