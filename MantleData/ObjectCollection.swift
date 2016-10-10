@@ -314,7 +314,6 @@ public final class ObjectCollection<E: NSManagedObject> {
 		}
 	}
 
-	@inline(__always)
 	private func registerTemporaryObject(_ object: E) {
 		temporaryObjects[object] = object.objectID
 
