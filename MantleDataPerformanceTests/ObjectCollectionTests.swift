@@ -25,7 +25,55 @@ class ObjectCollectionTests: XCTestCase {
 	var storeCoordinator: NSPersistentStoreCoordinator!
 	var mainContext: NSManagedObjectContext!
 
-	func testOCInsertionPerformance_10000_iterations() {
+	func measureOCDeletionPerformance(times: Int) {
+		let collection = Children.query(mainContext)
+			.sort(by: .ascending("value"))
+			.makeCollection(prefetching: .none)
+
+		measure {
+			var children = [Children]()
+			children.reserveCapacity(times)
+
+			for i in 0 ..< times {
+				let child = Children(context: self.mainContext)
+				child.value = Int64(i)
+				children.append(child)
+			}
+
+			self.mainContext.processPendingChanges()
+
+			expect { try collection.fetch() }.toNot(throwError())
+			expect(collection.count) == times
+
+			children.forEach(self.mainContext.delete)
+			self.mainContext.processPendingChanges()
+
+			expect(collection.count) == 0
+			self.mainContext.reset()
+		}
+	}
+
+	func testOCDeletionPerformance_10000_iterations() {
+		measureOCDeletionPerformance(times: 10000)
+	}
+
+	func testOCDeletionPerformance_2000_iterations() {
+		measureOCDeletionPerformance(times: 2000)
+	}
+
+	func testOCDeletionPerformance_1000_iterations() {
+		measureOCDeletionPerformance(times: 1000)
+	}
+
+	func testOCDeletionPerformance_100_iterations() {
+		measureOCDeletionPerformance(times: 100)
+	}
+
+	func testOCDeletionPerformance_10_iterations() {
+		measureOCDeletionPerformance(times: 10)
+	}
+
+	func measureOCInsertionPerformance(times: Int) {
 		let collection = Children.query(mainContext)
 			.sort(by: .ascending("value"))
 			.makeCollection(prefetching: .none)
@@ -33,89 +81,90 @@ class ObjectCollectionTests: XCTestCase {
 		expect { try collection.fetch() }.toNot(throwError())
 
 		measure {
-			for i in 0 ..< 10000 {
+			for i in 0 ..< times {
 				let children = Children(context: self.mainContext)
-				children.value = "\(i)"
+				children.value = Int64(i)
 			}
 
 			self.mainContext.processPendingChanges()
+
+			// verify results
+			for indexPath in collection.indices {
+				expect(collection[indexPath].value) == Int64(indexPath.row)
+			}
+
 			self.mainContext.reset()
 		}
+	}
+
+	func testOCInsertionPerformance_10000_iterations() {
+		measureOCInsertionPerformance(times: 10000)
 	}
 
 	func testOCInsertionPerformance_2000_iterations() {
-		let collection = Children.query(mainContext)
-			.sort(by: .ascending("value"))
-			.makeCollection(prefetching: .none)
-
-		expect { try collection.fetch() }.toNot(throwError())
-
-		measure {
-			for i in 0 ..< 2000 {
-				let children = Children(context: self.mainContext)
-				children.value = "\(i)"
-			}
-
-			self.mainContext.processPendingChanges()
-			self.mainContext.reset()
-		}
+		measureOCInsertionPerformance(times: 2000)
 	}
 
 	func testOCInsertionPerformance_1000_iterations() {
-		let collection = Children.query(mainContext)
-			.sort(by: .ascending("value"))
-			.makeCollection(prefetching: .none)
-
-		expect { try collection.fetch() }.toNot(throwError())
-
-		measure {
-			for i in 0 ..< 1000 {
-				let children = Children(context: self.mainContext)
-				children.value = "\(i)"
-			}
-
-			self.mainContext.processPendingChanges()
-			self.mainContext.reset()
-		}
+		measureOCInsertionPerformance(times: 1000)
 	}
 
 	func testOCInsertionPerformance_100_iterations() {
-		let collection = Children.query(mainContext)
-			.sort(by: .ascending("value"))
-			.makeCollection(prefetching: .none)
-
-		expect { try collection.fetch() }.toNot(throwError())
-
-		measure {
-			for i in 0 ..< 100 {
-				let children = Children(context: self.mainContext)
-				children.value = "\(i)"
-			}
-
-			self.mainContext.processPendingChanges()
-			self.mainContext.reset()
-		}
+		measureOCInsertionPerformance(times: 100)
 	}
 
 	func testOCInsertionPerformance_10_iterations() {
-		let collection = Children.query(mainContext)
-			.sort(by: .ascending("value"))
-			.makeCollection(prefetching: .none)
+		measureOCInsertionPerformance(times: 10)
+	}
 
-		expect { try collection.fetch() }.toNot(throwError())
+	func measureFRCDeletionPerformance(times: Int) {
+		let controller = Children.query(mainContext)
+			.sort(by: .ascending("value"))
+			.makeController()
+
+		let receiver = Receiver()
+		controller.delegate = receiver
 
 		measure {
-			for i in 0 ..< 10 {
-				let children = Children(context: self.mainContext)
-				children.value = "\(i)"
-			}
+			var children = [Children]()
+			children.reserveCapacity(times)
 
+			for i in 0 ..< times {
+				let child = Children(context: self.mainContext)
+				child.value = Int64(i)
+				children.append(child)
+			}
 			self.mainContext.processPendingChanges()
+
+			expect { try controller.performFetch() }.toNot(throwError())
+
+			expect(controller.fetchedObjects!.count) == times
+
+			children.forEach(self.mainContext.delete)
+			self.mainContext.processPendingChanges()
+
+			expect(controller.fetchedObjects!.count) == 0
 			self.mainContext.reset()
 		}
 	}
 
-	func testFRCInsertionPerformance_2000_iterations() {
+	func testFRCDeletionPerformance_2000_iteration() {
+		measureFRCDeletionPerformance(times: 2000)
+	}
+
+	func testFRCDeletionPerformance_1000_iterations() {
+		measureFRCDeletionPerformance(times: 1000)
+	}
+
+	func testFRCDeletionPerformance_100_iterations() {
+		measureFRCDeletionPerformance(times: 100)
+	}
+
+	func testFRCDeletionPerformance_10_iterations() {
+		measureFRCDeletionPerformance(times: 10)
+	}
+
+	func measureFRCInsertionPerformance(times: Int) {
 		let controller = Children.query(mainContext)
 			.sort(by: .ascending("value"))
 			.makeController()
@@ -125,74 +174,40 @@ class ObjectCollectionTests: XCTestCase {
 		expect { try controller.performFetch() }.toNot(throwError())
 
 		measure {
-			for i in 0 ..< 2000 {
+			for i in 0 ..< times {
 				let children = Children(context: self.mainContext)
-				children.value = "\(i)"
+				children.value = Int64(i)
 			}
 
 			self.mainContext.processPendingChanges()
+
+			// verify results
+			var i = 0
+			for (sectionIndex, section) in (controller.sections ?? []).enumerated() {
+				for objectIndex in 0 ..< section.numberOfObjects {
+					expect(controller.object(at: IndexPath(row: objectIndex, section: sectionIndex)).value) == Int64(i)
+					i += 1
+				}
+			}
+
 			self.mainContext.reset()
 		}
+	}
+
+	func testFRCInsertionPerformance_2000_iteration() {
+		measureFRCInsertionPerformance(times: 2000)
 	}
 
 	func testFRCInsertionPerformance_1000_iterations() {
-		let controller = Children.query(mainContext)
-			.sort(by: .ascending("value"))
-			.makeController()
-
-		let receiver = Receiver()
-		controller.delegate = receiver
-		expect { try controller.performFetch() }.toNot(throwError())
-
-		measure {
-			for i in 0 ..< 1000 {
-				let children = Children(context: self.mainContext)
-				children.value = "\(i)"
-			}
-
-			self.mainContext.processPendingChanges()
-			self.mainContext.reset()
-		}
+		measureFRCInsertionPerformance(times: 1000)
 	}
 
 	func testFRCInsertionPerformance_100_iterations() {
-		let controller = Children.query(mainContext)
-			.sort(by: .ascending("value"))
-			.makeController()
-
-		let receiver = Receiver()
-		controller.delegate = receiver
-		expect { try controller.performFetch() }.toNot(throwError())
-
-		measure {
-			for i in 0 ..< 100 {
-				let children = Children(context: self.mainContext)
-				children.value = "\(i)"
-			}
-
-			self.mainContext.processPendingChanges()
-			self.mainContext.reset()
-		}
+		measureFRCInsertionPerformance(times: 100)
 	}
 
 	func testFRCInsertionPerformance_10_iterations() {
-		let controller = Children.query(mainContext)
-			.sort(by: .ascending("value"))
-			.makeController()
-
-		let receiver = Receiver()
-		controller.delegate = receiver
-		expect { try controller.performFetch() }.toNot(throwError())
-
-		measure {
-			for i in 0 ..< 10 {
-				let children = Children(context: self.mainContext)
-				children.value = "\(i)"
-			}
-
-			self.mainContext.processPendingChanges()
-			self.mainContext.reset()
-		}
+		measureFRCInsertionPerformance(times: 10)
 	}
 
 	override func setUp() {
@@ -224,3 +239,5 @@ class ObjectCollectionTests: XCTestCase {
 		try! FileManager.default.removeItem(at: directoryUrl)
 	}
 }
+
+class TestOperation: Operation {}
