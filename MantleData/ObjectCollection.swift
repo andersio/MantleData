@@ -765,13 +765,13 @@ public final class ObjectCollection<E: NSManagedObject> {
 		/// MARK: Handle insertions.
 
 		func insert(_ ids: Set<NSManagedObjectID>, intoSectionFor name: String?) {
-			if let sectionIndex = sections.index(of: name) {
-				for id in ids {
-					sections[sectionIndex].storage.insert(id, using: objectSortDescriptors, with: objectCache)
-				}
-			} else {
-				let section = ObjectCollectionSection(at: -1, name: name, array: ContiguousArray(ids), in: self)
-				_ = sections.insert(section, name: name, ordering: sectionNameOrdering)
+			let sectionIndex = sections.index(of: name) ?? {
+				let section = ObjectCollectionSection(at: -1, name: name, array: [], in: self)
+				return self.sections.insert(section, name: name, ordering: sectionNameOrdering)
+			}()
+
+			for id in ids {
+				sections[sectionIndex].storage.insert(id, using: objectSortDescriptors, with: objectCache)
 			}
 		}
 
