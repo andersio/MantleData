@@ -195,6 +195,17 @@ public final class ObjectCollection<E: NSManagedObject> {
 
 	private func sectionize(using resultDictionaries: [NSDictionary], inMemoryResults: [E]) {
 		sections = []
+		var inMemoryChangedObjects = [SectionKey: Box<Set<NSManagedObjectID>>]()
+
+		func markAsChanged(object registeredObject: E) {
+			updateCache(for: registeredObject.objectID, with: registeredObject)
+			if let sectionNameKeyPath = sectionNameKeyPath {
+				let sectionName = converting(sectionName: registeredObject.value(forKeyPath: sectionNameKeyPath) as! NSObject?)
+				inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(sectionName))
+			} else {
+				inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(nil))
+			}
+		}
 
 		if !resultDictionaries.isEmpty {
 			var ranges: [(range: CountableRange<Int>, name: String?)] = []
@@ -221,18 +232,6 @@ public final class ObjectCollection<E: NSManagedObject> {
 			}
 
 			sections.reserveCapacity(ranges.count)
-
-			var inMemoryChangedObjects = [SectionKey: Set<NSManagedObjectID>]()
-
-			func markAsChanged(object registeredObject: E) {
-				updateCache(for: registeredObject.objectID, with: registeredObject)
-				if let sectionNameKeyPath = sectionNameKeyPath {
-					let sectionName = converting(sectionName: registeredObject.value(forKeyPath: sectionNameKeyPath) as! NSObject?)
-					inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(sectionName))
-				} else {
-					inMemoryChangedObjects.insert(registeredObject.objectID, intoSetOf: SectionKey(nil))
-				}
-			}
 
 			for (range, name) in ranges {
 				var objectIDs = ContiguousArray<NSManagedObjectID>()
@@ -298,19 +297,19 @@ public final class ObjectCollection<E: NSManagedObject> {
 				let section = ObjectCollectionSection(at: sections.count, name: name, array: objectIDs, in: self)
 				sections.append(section)
 			}
+		}
 
-			if !inMemoryResults.isEmpty || !inMemoryChangedObjects.isEmpty {
-				for result in inMemoryResults {
-					markAsChanged(object: result)
-					registerTemporaryObject(result)
-				}
-
-				_ = mergeChanges(inserted: inMemoryChangedObjects,
-				                 deleted: [],
-				                 updated: [],
-				                 sortOrderAffecting: [],
-				                 sectionChanged: [])
+		if !inMemoryResults.isEmpty || !inMemoryChangedObjects.isEmpty {
+			for result in inMemoryResults {
+				markAsChanged(object: result)
+				registerTemporaryObject(result)
 			}
+
+			_ = mergeChanges(inserted: inMemoryChangedObjects,
+			                 deleted: [],
+			                 updated: [],
+			                 sortOrderAffecting: [],
+			                 sectionChanged: [])
 		}
 	}
 
