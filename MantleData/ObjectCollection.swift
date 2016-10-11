@@ -751,11 +751,20 @@ public final class ObjectCollection<E: NSManagedObject> {
 			let deletedObjects = deletedObjects[sectionIndex]
 			var indices = [Int]()
 
+			var removal = section.storage.endIndex ..< section.storage.endIndex
+
 			for objectIndex in section.storage.indices.reversed() {
 				if deletedObjects.value.contains(section.storage[objectIndex]) {
-					section.storage.remove(at: objectIndex)
-					indices.append(objectIndex)
+					removal = objectIndex ..< removal.upperBound
+				} else {
+					section.storage.removeSubrange(removal)
+					let index = section.storage.index(before: objectIndex)
+					removal = objectIndex ..< objectIndex
 				}
+			}
+
+			if !removal.isEmpty {
+				section.storage.removeSubrange(removal)
 			}
 
 			if section.storage.count == 0 && inPlaceMovingObjects[sectionIndex].value.count == 0 {
