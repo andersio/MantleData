@@ -54,12 +54,12 @@ public final class ObjectCollection<E: NSManagedObject> {
 
 	private(set) public weak var context: NSManagedObjectContext!
 
-	internal var sections: [ObjectCollectionSection<E>] = []
+	internal var sections: [ObjectCollectionSection] = []
 	internal var prefetcher: ObjectCollectionPrefetcher<E>?
 
 	private let predicate: NSPredicate
 
-	private let sectionNameOrdering: ComparisonResult
+	fileprivate let sortsAscendingSectionName: Bool
 	fileprivate let objectComparer: Comparer<E>
 	private let sortKeys: [String]
 	private let _sortKeys: [NSCopying]
@@ -103,10 +103,10 @@ public final class ObjectCollection<E: NSManagedObject> {
 			precondition(fetchRequest.sortDescriptors!.count >= 2,
 			             "Unsufficient number of sort descriptors.")
 
-			self.sectionNameOrdering = fetchRequest.sortDescriptors!.first!.ascending ? .orderedAscending : .orderedDescending
+			self.sortsAscendingSectionName = fetchRequest.sortDescriptors!.first!.ascending
 			self.objectComparer = Comparer<E>(Array(fetchRequest.sortDescriptors!.dropFirst()))
 		} else {
-			self.sectionNameOrdering = .orderedSame
+			self.sortsAscendingSectionName = true
 			self.objectComparer = Comparer<E>(fetchRequest.sortDescriptors ?? [])
 		}
 
@@ -300,7 +300,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 					objectIDs.append(ObjectId(objectId))
 				}
 
-				let section = ObjectCollectionSection(at: sections.count, name: name, array: objectIDs, in: self)
+				let section = ObjectCollectionSection(name: name, array: objectIDs)
 				sections.append(section)
 			}
 		}
@@ -350,7 +350,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 						/// If the object ID is no longer temporary, find the position of the object.
 						/// Then update the object and the cache with the permanent ID.
 
-						let sectionIndex = sections.index(of: sectionName(of: object)!)!
+						let sectionIndex = sections.index(of: sectionName(of: object)!, ascending: sortsAscendingSectionName)!
 						let objectIndex = sections[sectionIndex].storage.index(of: temporaryId, with: objectComparer)!
 
 						sections[sectionIndex].storage[objectIndex] = ObjectId(object.objectID)
@@ -466,7 +466,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 					sectionName = nil
 				}
 
-				if let index = sections.index(of: sectionName) {
+				if let index = sections.index(of: sectionName, ascending: sortsAscendingSectionName) {
 					deletedIds.insert(id, intoSetAt: index)
 					cacheClearingIds.append(id)
 				}
@@ -503,7 +503,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 						sectionName = nil
 					}
 
-					if let index = sections.index(of: sectionName) {
+					if let index = sections.index(of: sectionName, ascending: sortsAscendingSectionName) {
 						/// Use binary search, but compare against the previous values dictionary.
 						deletedIds.insert(id, intoSetAt: index)
 						cacheClearingIds.append(id)
@@ -518,7 +518,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 						currentSectionName = sectionName(of: object)
 
 						guard previousSectionName == currentSectionName else {
-							guard let previousSectionIndex = sections.index(of: currentSectionName) else {
+							guard let previousSectionIndex = sections.index(of: currentSectionName, ascending: sortsAscendingSectionName) else {
 								preconditionFailure("current section name is supposed to exist, but not found.")
 							}
 
@@ -534,7 +534,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 						currentSectionName = nil
 					}
 
-					guard let currentSectionIndex = sections.index(of: currentSectionName) else {
+					guard let currentSectionIndex = sections.index(of: currentSectionName, ascending: sortsAscendingSectionName) else {
 						preconditionFailure("current section name is supposed to exist, but not found.")
 					}
 
@@ -780,9 +780,9 @@ public final class ObjectCollection<E: NSManagedObject> {
 		/// MARK: Handle insertions.
 
 		func insert(_ ids: Box<Set<ObjectId>>, intoSectionFor name: String?) {
-			let sectionIndex = sections.index(of: name) ?? {
-				let section = ObjectCollectionSection(at: -1, name: name, array: [], in: self)
-				return self.sections.insert(section, name: name, ordering: sectionNameOrdering)
+			let sectionIndex = sections.index(of: name, ascending: sortsAscendingSectionName) ?? {
+				let section = ObjectCollectionSection(name: name, array: [])
+				return self.sections.insert(section, name: name, ascending: sortsAscendingSectionName)
 			}()
 
 			for id in ids.value {
@@ -802,7 +802,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 
 		for sectionIndex in sections.indices {
 			let sectionName = sections[sectionIndex].name
-			let previousSectionIndex = sectionSnapshots.index(of: sectionName)
+			let previousSectionIndex = sectionSnapshots.index(of: sectionName, ascending: sortsAscendingSectionName)
 
 			if let previousSectionIndex = previousSectionIndex {
 				for id in inPlaceMovingObjects[previousSectionIndex].value {
@@ -864,11 +864,6 @@ public final class ObjectCollection<E: NSManagedObject> {
 			}
 		}
 
-		// Update the sections' `indexInSet`.
-		for position in sections.indices {
-			sections[position].indexInSet = position
-		}
-
 		let resultSetChanges: SectionedCollectionChanges
 		resultSetChanges = SectionedCollectionChanges(
 			deletedRows: indexPathsOfDeletedRows.isEmpty ? nil : indexPathsOfDeletedRows,
@@ -888,8 +883,6 @@ public final class ObjectCollection<E: NSManagedObject> {
 }
 
 extension ObjectCollection: SectionedCollection {
-	public typealias Index = IndexPath
-
 	public var sectionCount: Int {
 		return sections.count
 	}
@@ -980,11 +973,14 @@ extension ObjectCollection: SectionedCollection {
 	}
 	
 	public subscript(position: IndexPath) -> E {
-		return sections[position.section][position.row]
-	}
+		let id = sections[position.section][position.row]
+		prefetcher?.acknowledgeNextAccess(at: position)
 
-	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<ObjectCollection<E>> {
-		return RandomAccessSlice(base: self, bounds: subRange)
+		if let object = context.registeredObject(for: id.wrapped) as? E {
+			return object
+		} else {
+			return context.object(with: id.wrapped) as! E
+		}
 	}
 
 	public func sectionName(for section: Int) -> String? {
@@ -997,7 +993,7 @@ extension ObjectCollection: SectionedCollection {
 
 	public func indexPath(of element: E) -> IndexPath? {
 		let name = sectionName(of: element)
-		if let sectionIndex = sections.index(of: name) {
+		if let sectionIndex = sections.index(of: name, ascending: sortsAscendingSectionName) {
 			if let objectIndex = sections[sectionIndex].storage.index(of: ObjectId(element.objectID), with: objectComparer) {
 				return IndexPath(row: objectIndex, section: sectionIndex)
 			}
@@ -1015,37 +1011,24 @@ internal struct SectionKey: Hashable {
 		self.value = value
 		self.hashValue = (value?.hashValue ?? -1) + 1
 	}
+
+	static func ==(left: SectionKey, right: SectionKey) -> Bool {
+		return left.value == right.value
+	}
 }
 
-internal func ==(left: SectionKey, right: SectionKey) -> Bool {
-	return left.value == right.value
-}
 
-private protocol ObjectCollectionSectionProtocol {
+internal protocol ObjectCollectionSectionProtocol: class {
 	var name: String? { get }
 }
 
-internal final class ObjectCollectionSection<E: NSManagedObject>: BidirectionalCollection, ObjectCollectionSectionProtocol {
-	typealias Index = Int
-
+internal final class ObjectCollectionSection: RandomAccessCollection, ObjectCollectionSectionProtocol {
 	let name: String?
-
-	var indexInSet: Int
 	var storage: [ObjectId]
-	unowned var parentSet: ObjectCollection<E>
 
-	init(at index: Int, name: String?, array: ContiguousArray<NSManagedObjectID>?, in parentSet: ObjectCollection<E>) {
-		self.indexInSet = index
-		self.name = name
-		self.storage = array.map { $0.map(ObjectId.init) } ?? []
-		self.parentSet = parentSet
-	}
-
-	init(at index: Int, name: String?, array: [ObjectId], in parentSet: ObjectCollection<E>) {
-		self.indexInSet = index
+	init(name: String?, array: [ObjectId]) {
 		self.name = name
 		self.storage = array
-		self.parentSet = parentSet
 	}
 
 	var startIndex: Int {
@@ -1056,58 +1039,20 @@ internal final class ObjectCollectionSection<E: NSManagedObject>: BidirectionalC
 		return storage.count
 	}
 
-	subscript(position: Int) -> E {
-		get {
-			parentSet.prefetcher?.acknowledgeNextAccess(at: IndexPath(row: position, section: indexInSet))
-			
-			if let object = parentSet.context.registeredObject(for: storage[position].wrapped) as? E {
-				return object
-			}
-
-			return parentSet.context.object(with: storage[position].wrapped) as! E
-		}
-		set { storage[position] = ObjectId(newValue.objectID) }
+	subscript(position: Int) -> ObjectId {
+		return storage[position]
 	}
 
-	subscript(subRange: Range<Int>) -> BidirectionalSlice<ObjectCollectionSection<E>> {
-		return BidirectionalSlice(base: self, bounds: subRange)
-	}
-
-	func index(after i: Index) -> Index {
+	func index(after i: Int) -> Int {
 		return i + 1
 	}
 
-	func index(before i: Index) -> Index {
+	func index(before i: Int) -> Int {
 		return i - 1
 	}
 
-	func copy() -> ObjectCollectionSection<E> {
-		return ObjectCollectionSection(at: indexInSet,
-		                               name: name,
-		                               array: storage,
-		                               in: parentSet)
-	}
-}
-
-extension Collection where Iterator.Element: ObjectCollectionSectionProtocol {
-	fileprivate func index(of name: String?) -> Index? {
-		return index { String.compareSectionNames($0.name, with: name) == .orderedSame }
-	}
-}
-
-extension RangeReplaceableCollection where Iterator.Element: ObjectCollectionSectionProtocol {
-	mutating func insert(_ section: Iterator.Element,
-	                              name: String?,
-	                              ordering: ComparisonResult) -> Index {
-		let position: Index
-		if let searchResult = self.index(where: { String.compareSectionNames($0.name, with: name) != ordering }) {
-			position = searchResult
-		} else {
-			position = ordering == .orderedAscending ? startIndex : endIndex
-		}
-
-		insert(section, at: position)
-		return position
+	func copy() -> ObjectCollectionSection {
+		return ObjectCollectionSection(name: name, array: storage)
 	}
 }
 

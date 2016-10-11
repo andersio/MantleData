@@ -9,16 +9,6 @@
 import Foundation
 import ReactiveSwift
 
-extension String {
-	public static func compareSectionNames(_ first: String?, with second: String?) -> ComparisonResult {
-		guard let unwrappedFirst = first, let unwrappedSecond = second else {
-			return first == nil ? (first == second ? .orderedSame : .orderedAscending) : .orderedDescending
-		}
-
-		return unwrappedFirst.compare(unwrappedSecond)
-	}
-}
-
 extension SignedInteger {
 	internal init<I: SignedInteger>(unsafeCasting integer: I) {
 		self.init(integer.toIntMax())
@@ -116,6 +106,68 @@ extension Collection where Iterator.Element: Comparable, Index == Int {
 		}
 
 		return .notFound(next: high + 1)
+	}
+}
+
+extension String {
+	internal static func compareSectionNames(_ first: String?, with second: String?) -> ComparisonResult {
+		guard let unwrappedFirst = first, let unwrappedSecond = second else {
+			return first == nil ? (first == second ? .orderedSame : .orderedAscending) : .orderedDescending
+		}
+
+		return unwrappedFirst.compare(unwrappedSecond)
+	}
+}
+
+extension Collection where Iterator.Element: ObjectCollectionSectionProtocol, Index == Int {
+	fileprivate func binarySearch(name: String?, ascending: Bool) -> BinarySearchResult<Int> {
+		var low = startIndex
+		var high = endIndex - 1
+
+		while low <= high {
+			let mid = (high + low) / 2
+
+			switch String.compareSectionNames(self[mid].name, with: name) {
+			case .orderedSame:
+				return .found(at: mid)
+
+			case .orderedAscending:
+				if ascending {
+					low = mid + 1
+				} else {
+					high = mid - 1
+				}
+
+			case .orderedDescending:
+				if ascending {
+					high = mid - 1
+				} else {
+					low = mid + 1
+				}
+			}
+		}
+
+		return .notFound(next: high + 1)
+	}
+
+	internal func index(of name: String?, ascending: Bool) -> Int? {
+		switch binarySearch(name: name, ascending: ascending) {
+		case let .found(position):
+			return position
+		case .notFound:
+			return nil
+		}
+	}
+}
+
+extension RangeReplaceableCollection where Iterator.Element: ObjectCollectionSectionProtocol, Index == Int {
+	internal mutating func insert(_ section: Iterator.Element, name: String?, ascending: Bool) -> Index {
+		if case let .notFound(next) = binarySearch(name: name, ascending: ascending) {
+			insert(section, at: next)
+			return next
+		}
+
+		preconditionFailure("Cannot insert sections with existing name.")
 	}
 }
 

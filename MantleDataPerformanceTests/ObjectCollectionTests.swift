@@ -73,6 +73,39 @@ class ObjectCollectionTests: XCTestCase {
 		measureOCDeletionPerformance(times: 10)
 	}
 
+	func measureOCSectionInsertionPerformance(times: Int) {
+		let collection = Children.query(mainContext)
+			.sort(by: .ascending("value"))
+			.group(by: .ascending("group"))
+			.makeCollection(prefetching: .none)
+
+		measure {
+			self.mainContext.reset()
+			expect { try collection.fetch() }.toNot(throwError())
+
+			for i in 0 ..< times {
+				let children = Children(context: self.mainContext)
+				children.group = String(format: "%010d", i)
+				children.value = Int64(i)
+			}
+
+			self.mainContext.processPendingChanges()
+
+			// verify results
+			expect(collection.sectionCount) == times
+
+			for indexPath in collection.indices {
+				expect(collection[indexPath].value) == Int64(indexPath.section)
+			}
+		}
+
+		self.mainContext.reset()
+	}
+
+	func testOCSectionInsertionPerformance_10000_iterations() {
+		measureOCSectionInsertionPerformance(times: 10000)
+	}
+
 	func measureOCInsertionPerformance(times: Int) {
 		let collection = Children.query(mainContext)
 			.sort(by: .ascending("value"))
