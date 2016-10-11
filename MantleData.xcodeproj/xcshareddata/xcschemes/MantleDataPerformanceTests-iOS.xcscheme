@@ -109,15 +109,6 @@
             </BuildableReference>
          </TestableReference>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "5A5D117B19473F2100F6D13D"
-            BuildableName = "Quick.framework"
-            BlueprintName = "Quick-iOS"
-            ReferencedContainer = "container:Carthage/Checkouts/Quick/Quick.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>

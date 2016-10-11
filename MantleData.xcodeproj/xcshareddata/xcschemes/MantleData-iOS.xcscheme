@@ -108,6 +108,16 @@
                ReferencedContainer = "container:MantleData.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9A2E42771DAAB615006D909F"
+               BuildableName = "MantleDataPerformanceTests-macOS.xctest"
+               BlueprintName = "MantleDataPerformanceTests-macOS"
+               ReferencedContainer = "container:MantleData.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

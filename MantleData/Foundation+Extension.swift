@@ -23,3 +23,15 @@ import Foundation
 		}
 	}
 #endif
+
+extension IndexPath {
+	static func < (left: IndexPath, right: IndexPath) -> Bool {
+		assert(left.count == right.count)
+		for index in left.indices {
+			if left[index] < right[index] {
+				return true
+			}
+		}
+		return false
+	}
+}

@@ -20,7 +20,7 @@ internal class ObjectCollectionPrefetcher<E: NSManagedObject> {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	func acknowledgeNextAccess(at position: ObjectCollection<E>._IndexPath) {
+	func acknowledgeNextAccess(at position: (row: Int, section: Int)) {
 		_abstractMethod_subclassMustImplement()
 	}
 
@@ -28,7 +28,7 @@ internal class ObjectCollectionPrefetcher<E: NSManagedObject> {
 		_abstractMethod_subclassMustImplement()
 	}
 
-	func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<ObjectId>>], deleted deletedIds: [Box<Set<ObjectId>>]) {
+	func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<ObjectReference<E>>>], deleted deletedIds: [Box<Set<ObjectReference<E>>>]) {
 		_abstractMethod_subclassMustImplement()
 	}
 }
@@ -70,14 +70,14 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollect
 		prefetchedRange = 0 ..< 0
 	}
 
-	func flattenedIndex(at position: ObjectCollection<E>._IndexPath) -> Int? {
+	func flattenedIndex(at position: (row: Int, section: Int)) -> Int? {
 		guard position.section < objectSet.count else {
 			return nil
 		}
 
 		var flattenedIndex = 0
 		for index in 0 ..< position.section {
-			flattenedIndex += objectSet.sections[index].count
+			flattenedIndex += objectSet.sections[index].value.count
 		}
 		return flattenedIndex + position.row
 	}
@@ -90,7 +90,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollect
 		var remaining = flattenedPosition
 
 		for index in objectSet.sections.indices {
-			let count = objectSet.sections[index].count
+			let count = objectSet.sections[index].value.count
 
 			if count > 0 {
 				if remaining >= count {
@@ -111,14 +111,14 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollect
 
 		if forForwardPrefetching {
 			return (section: objectSet.sections.endIndex - 1,
-							row: objectSet.sections[objectSet.sections.endIndex - 1].endIndex - 1)
+							row: objectSet.sections[objectSet.sections.endIndex - 1].value.endIndex - 1)
 		} else {
 			return (section: 0, row: 0)
 		}
 	}
 
 	func obtainIDsForBatch(at flattenedPosition: Int, forward isForwardPrefetching: Bool) -> [NSManagedObjectID] {
-		var prefetchingIds = [ArraySlice<ObjectId>]()
+		var prefetchingIds = [RandomAccessSlice<Tree<ObjectNode<E>, (), ObjectComparer<E>>>]()
 
 		var (iteratingSectionIndex, iteratingPosition) = expandedIndicesWithCapping(at: flattenedPosition,
 		                                                                            forForwardPrefetching: isForwardPrefetching)
@@ -127,37 +127,39 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollect
 
 		while delta != 0 &&
 					sectionIndices.contains(iteratingSectionIndex) &&
-					iteratingPosition >= objectSet.sections[iteratingSectionIndex].startIndex {
+					iteratingPosition >= objectSet.sections[iteratingSectionIndex].value.startIndex {
 			if isForwardPrefetching {
-				let sectionEndIndex = objectSet.sections[iteratingSectionIndex].storage.endIndex
-				let endIndex = objectSet.sections[iteratingSectionIndex].index(iteratingPosition,
+				let sectionEndIndex = objectSet.sections[iteratingSectionIndex].value.endIndex
+				let endIndex = objectSet.sections[iteratingSectionIndex].value.index(iteratingPosition,
 				                                                               offsetBy: delta,
 				                                                               limitedBy: sectionEndIndex) ?? sectionEndIndex
 				delta = delta - (endIndex - iteratingPosition)
 
-				let range = iteratingPosition ..< endIndex
-				let slice = objectSet.sections[iteratingSectionIndex].storage[range]
+				let range = Range(iteratingPosition ..< endIndex)
+				let slice = objectSet.sections[iteratingSectionIndex].value[range]
 				prefetchingIds.append(slice)
 			} else {
-				let sectionStartIndex = objectSet.sections[iteratingSectionIndex].storage.startIndex
-				let startIndex = objectSet.sections[iteratingSectionIndex].index(iteratingPosition,
+				let sectionStartIndex = objectSet.sections[iteratingSectionIndex].value.startIndex
+				let startIndex = objectSet.sections[iteratingSectionIndex].value.index(iteratingPosition,
 				                                                                 offsetBy: -delta,
 				                                                                 limitedBy: sectionStartIndex) ?? sectionStartIndex
 				delta = delta - (iteratingPosition - startIndex)
 
-				let range = startIndex ..< iteratingPosition
-				let slice = objectSet.sections[iteratingSectionIndex].storage[range]
+				let range = Range(startIndex ..< iteratingPosition)
+				let slice = objectSet.sections[iteratingSectionIndex].value[range]
 				prefetchingIds.append(slice)
 			}
 
 			iteratingSectionIndex += isForwardPrefetching ? 1 : -1
 
 			if iteratingSectionIndex >= objectSet.sections.startIndex {
-				iteratingPosition = isForwardPrefetching ? 0 : objectSet.sections[iteratingSectionIndex].endIndex
+				iteratingPosition = isForwardPrefetching ? 0 : objectSet.sections[iteratingSectionIndex].value.endIndex
 			}
 		}
 
-		return prefetchingIds.flatMap { $0 }.flatMap { $0.wrapped.isTemporaryID ? nil : $0.wrapped }
+		return prefetchingIds
+			.flatMap { $0 }
+			.flatMap { $0.key.reference.wrapped.objectID.isTemporaryID ? nil : $0.key.reference.wrapped.objectID }
 	}
 
 	func prefetch(at flattenedPosition: Int, forward isForwardPrefetching: Bool) throws {
@@ -186,7 +188,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollect
 		}
 	}
 
-	override func acknowledgeNextAccess(at position: ObjectCollection<E>._IndexPath) {
+	override func acknowledgeNextAccess(at position: (row: Int, section: Int)) {
 		guard let currentPosition = flattenedIndex(at: position) else {
 			return
 		}
@@ -210,7 +212,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollect
 	}
 
 	override func acknowledgeFetchCompletion(_ objectCount: Int) {}
-	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<ObjectId>>], deleted deletedIds: [Box<Set<ObjectId>>]) {}
+	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<ObjectReference<E>>>], deleted deletedIds: [Box<Set<ObjectReference<E>>>]) {}
 }
 
 /// GreedyPrefetcher
@@ -224,14 +226,14 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefe
 	}
 
 	override func reset() {}
-	override func acknowledgeNextAccess(at position: ObjectCollection<E>._IndexPath) {}
+	override func acknowledgeNextAccess(at position: (row: Int, section: Int)) {}
 
 	override func acknowledgeFetchCompletion(_ objectCount: Int) {
 		var ids = [NSManagedObjectID]()
 		ids.reserveCapacity(objectCount)
 
 		for index in objectSet.sections.indices {
-			ids.append(contentsOf: objectSet.sections[index].storage.flatMap { $0.wrapped.isTemporaryID ? nil : $0.wrapped })
+			ids.append(contentsOf: objectSet.sections[index].value.flatMap { $0.key.reference.wrapped.objectID.isTemporaryID ? nil : $0.key.reference.wrapped.objectID })
 		}
 
 		let prefetchRequest = NSFetchRequest<NSManagedObject>()
@@ -248,14 +250,14 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefe
 		}
 	}
 
-	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<ObjectId>>], deleted deletedIds: [Box<Set<ObjectId>>]) {
+	override func acknowledgeChanges(inserted insertedIds: [SectionKey: Box<Set<ObjectReference<E>>>], deleted deletedIds: [Box<Set<ObjectReference<E>>>]) {
 		for ids in deletedIds {
 			for id in ids.value {
-				retainingPool.remove(objectSet.context.object(with: id.wrapped))
+				retainingPool.remove(id.wrapped)
 			}
 		}
 
-		let insertedIds = insertedIds.flatMap { $0.1.value }.flatMap { $0.wrapped.isTemporaryID ? nil : $0.wrapped }
+		let insertedIds = insertedIds.flatMap { $0.1.value }.flatMap { $0.wrapped.objectID.isTemporaryID ? nil : $0.wrapped }
 
 		if !insertedIds.isEmpty {
 			let prefetchRequest = NSFetchRequest<NSManagedObject>()

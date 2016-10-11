@@ -125,6 +125,65 @@
                BlueprintName = "MantleDataPerformanceTests-macOS"
                ReferencedContainer = "container:MantleData.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "ObjectCollectionTests/testFRCDeletionPerformance_10000_iteration()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testFRCDeletionPerformance_1000_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testFRCDeletionPerformance_100_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testFRCDeletionPerformance_10_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testFRCDeletionPerformance_2000_iteration()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testFRCInsertionPerformance_10000_iteration()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testFRCInsertionPerformance_1000_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testFRCInsertionPerformance_100_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testFRCInsertionPerformance_10_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testFRCInsertionPerformance_2000_iteration()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testOCDeletionPerformance_10000_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testOCDeletionPerformance_1000_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testOCDeletionPerformance_100_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testOCDeletionPerformance_10_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testOCDeletionPerformance_2000_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testOCInsertionPerformance_10000_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testOCInsertionPerformance_1000_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testOCInsertionPerformance_100_iterations()">
+               </Test>
+               <Test
+                  Identifier = "ObjectCollectionTests/testOCInsertionPerformance_2000_iterations()">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
       <MacroExpansion>
