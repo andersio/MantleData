@@ -1029,6 +1029,8 @@ internal protocol ObjectCollectionSectionProtocol: class {
 }
 
 internal final class ObjectCollectionSection: RandomAccessCollection, ObjectCollectionSectionProtocol {
+	typealias Indices = DefaultRandomAccessIndices<ObjectCollectionSection>
+
 	let name: String?
 	var storage: [ObjectId]
 
