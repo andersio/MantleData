@@ -64,10 +64,8 @@ public final class ObjectCollection<E: NSManagedObject> {
 	fileprivate let sectionComparer: SectionComparer<E>
 
 	private let sortKeys: [String]
-	private let _sortKeys: [NSCopying]
-	private let sortKeyComponents: [(String, [String])]
+	private let inSectionSortKeys: ArraySlice<String>
 	private let sortOrderAffectingRelationships: [String]
-	private let sortKeysInSections: [String]
 
 	/// Unordered snapshot references, amortized O(1) lookup.
 	fileprivate var objectCache: [ObjectReference<E>: ObjectSnapshot] = Dictionary()
@@ -102,26 +100,29 @@ public final class ObjectCollection<E: NSManagedObject> {
 			"ObjectCollection does not support sorting on to-one key paths deeper than 1 level."
 		)
 
+		predicate = fetchRequest.predicate ?? NSPredicate(value: true)
+		sortKeys = fetchRequest.sortDescriptors!.map { $0.key! }
+		sortOrderAffectingRelationships = sortKeys
+			.flatMap { key in
+				let components = key.components(separatedBy: ".")
+				return components.count >= 2 ? components[0] : nil
+			}
+			.uniquing()
+
 		if sectionNameKeyPath != nil {
 			precondition(fetchRequest.sortDescriptors!.count >= 2,
 			             "Unsufficient number of sort descriptors.")
 
 			self.objectComparer = ObjectComparer<E>(Array(fetchRequest.sortDescriptors!.dropFirst()))
 			self.sectionComparer = SectionComparer(ascending: fetchRequest.sortDescriptors!.first!.ascending)
+			self.inSectionSortKeys = sortKeys.dropFirst()
 		} else {
 			self.objectComparer = ObjectComparer<E>(fetchRequest.sortDescriptors ?? [])
-			self.sectionComparer = SectionComparer(ascending: fetchRequest.sortDescriptors!.first!.ascending)
+			self.sectionComparer = SectionComparer(ascending: true)
+			self.inSectionSortKeys = sortKeys[0 ..< sortKeys.endIndex]
 		}
 
 		sections = Tree(comparer: sectionComparer)
-
-		predicate = fetchRequest.predicate ?? NSPredicate(value: true)
-
-		sortKeys = fetchRequest.sortDescriptors!.map { $0.key! }
-		_sortKeys = sortKeys as [NSCopying]
-		sortKeysInSections = Array(sortKeys.dropFirst())
-		sortKeyComponents = sortKeys.map { ($0, $0.components(separatedBy: ".")) }
-		sortOrderAffectingRelationships = sortKeyComponents.flatMap { $0.1.count > 1 ? $0.1[0] : nil }.uniquing()
 
 		self.fetchRequest = fetchRequest.copy() as! NSFetchRequest<NSDictionary>
 		self.fetchRequest.resultType = .dictionaryResultType
@@ -265,11 +266,13 @@ public final class ObjectCollection<E: NSManagedObject> {
 					// 2. If the in-memory state fails the predicate, or it has been
 					//    deleted, the object is ignored.
 					if let registeredObject = context.registeredObject(for: objectId) as? E {
-						let changedKeys = registeredObject.changedValues().keys
-						let sortOrderIsAffected = sortKeyComponents.contains { changedKeys.contains($0.1[0]) }
-
 						guard predicate.evaluate(with: registeredObject) && !registeredObject.isDeleted else {
 							continue
+						}
+
+						let changedValues = registeredObject.changedValues()
+						let sortOrderIsAffected = sortOrderAffectingRelationships.contains { key in
+							return changedValues[key] != nil
 						}
 
 						if sortOrderIsAffected {
@@ -467,9 +470,9 @@ public final class ObjectCollection<E: NSManagedObject> {
 	}
 
 	private func sortOrderIsAffected(by object: E, comparingWith snapshot: ObjectSnapshot) -> Bool {
-		for (i, key) in sortKeysInSections.enumerated() {
-			let value = object.value(forKeyPath: key) as AnyObject
-			if !value.isEqual(snapshot.wrapped[1 + i]) {
+		for i in inSectionSortKeys.indices {
+			let value = object.value(forKeyPath: inSectionSortKeys[i]) as AnyObject
+			if !value.isEqual(snapshot.wrapped[i]) {
 				return true
 			}
 		}
