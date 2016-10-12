@@ -173,8 +173,6 @@ public final class ObjectCollection<E: NSManagedObject> {
 			return
 		}
 
-		hasFetched = true
-
 		func completion(_ results: [NSDictionary]) {
 			// Search inserted objects in the context.
 			let inMemoryResults = context.insertedObjects
@@ -186,6 +184,8 @@ public final class ObjectCollection<E: NSManagedObject> {
 			sectionize(using: results, inMemoryResults: inMemoryResults)
 			prefetcher?.acknowledgeFetchCompletion(results.count)
 			eventObserver.send(value: .reloaded)
+
+			hasFetched = true
 		}
 
 		do {
