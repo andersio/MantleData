@@ -971,7 +971,7 @@ extension ObjectCollection: SectionedCollection {
 			return count
 		}
 	}
-	
+
 	public subscript(position: IndexPath) -> E {
 		let id = sections[position.section][position.row]
 		prefetcher?.acknowledgeNextAccess(at: position)
@@ -981,6 +981,12 @@ extension ObjectCollection: SectionedCollection {
 		} else {
 			return context.object(with: id.wrapped) as! E
 		}
+	}
+
+	public subscript(row row: Int, section section: Int) -> E {
+		let id = sections[section][row]
+		prefetcher?.acknowledgeNextAccess(at: IndexPath(row: row, section: section))
+		return context.object(with: id.wrapped) as! E
 	}
 
 	public func sectionName(for section: Int) -> String? {

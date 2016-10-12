@@ -91,8 +91,8 @@ class ObjectCollectionTests: XCTestCase {
 			expect(collection.sectionCount) == 1
 			expect(collection.rowCount(for: 0)) == times
 
-			for indexPath in collection.indices {
-				expect(collection[indexPath].value) == Int64(indexPath.row)
+			for row in 0 ..< collection.rowCount(for: 0) {
+				XCTAssertTrue(collection[row: row, section: 0].value == Int64(row))
 			}
 		}
 
