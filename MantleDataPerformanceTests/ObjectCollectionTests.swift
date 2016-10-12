@@ -53,57 +53,70 @@ class ObjectCollectionTests: XCTestCase {
 		}
 	}
 
-	func testOCDeletionPerformance_10000_iterations() {
+	func testDeletion_10000_OC_iterations() {
 		measureOCDeletionPerformance(times: 10000)
 	}
 
-	func testOCDeletionPerformance_2000_iterations() {
+	func testDeletion_2000_OC_iterations() {
 		measureOCDeletionPerformance(times: 2000)
 	}
 
-	func testOCDeletionPerformance_1000_iterations() {
+	func testDeletion_1000_OC_iterations() {
 		measureOCDeletionPerformance(times: 1000)
 	}
 
-	func testOCDeletionPerformance_100_iterations() {
+	func testDeletion_100_OC_iterations() {
 		measureOCDeletionPerformance(times: 100)
 	}
 
-	func testOCDeletionPerformance_10_iterations() {
+	func testDeletion_10_OC_iterations() {
 		measureOCDeletionPerformance(times: 10)
 	}
 
-	func measureOCSectionInsertionPerformance(times: Int) {
-		let collection = Children.query(mainContext)
+	func measureOCReadPerformance(times: Int) {
+		for i in 0 ..< times {
+			let children = Children(context: mainContext)
+			children.value = Int64(i)
+		}
+
+		mainContext.processPendingChanges()
+
+		let collection = Children.query(self.mainContext)
 			.sort(by: .ascending("value"))
-			.group(by: .ascending("group"))
 			.makeCollection(prefetching: .none)
+		expect { try collection.fetch() }.toNot(throwError())
 
 		measure {
-			self.mainContext.reset()
-			expect { try collection.fetch() }.toNot(throwError())
-
-			for i in 0 ..< times {
-				let children = Children(context: self.mainContext)
-				children.group = String(format: "%010d", i)
-				children.value = Int64(i)
-			}
-
-			self.mainContext.processPendingChanges()
-
 			// verify results
-			expect(collection.sectionCount) == times
+			expect(collection.sectionCount) == 1
+			expect(collection.rowCount(for: 0)) == times
 
 			for indexPath in collection.indices {
-				expect(collection[indexPath].value) == Int64(indexPath.section)
+				expect(collection[indexPath].value) == Int64(indexPath.row)
 			}
 		}
 
 		self.mainContext.reset()
 	}
 
-	func testOCSectionInsertionPerformance_10000_iterations() {
-		measureOCSectionInsertionPerformance(times: 10000)
+	func testRead_10000_OC_iterations() {
+		measureOCReadPerformance(times: 10000)
+	}
+
+	func testRead_2000_OC_iterations() {
+		measureOCReadPerformance(times: 2000)
+	}
+
+	func testRead_1000_OC_iterations() {
+		measureOCReadPerformance(times: 1000)
+	}
+
+	func testRead_100_OC_iterations() {
+		measureOCReadPerformance(times: 100)
+	}
+
+	func testRead_10_OC_iterations() {
+		measureOCReadPerformance(times: 10)
 	}
 
 	func measureOCInsertionPerformance(times: Int) {
@@ -125,32 +138,28 @@ class ObjectCollectionTests: XCTestCase {
 			// verify results
 			expect(collection.sectionCount) == 1
 			expect(collection.rowCount(for: 0)) == times
-
-			for indexPath in collection.indices {
-				expect(collection[indexPath].value) == Int64(indexPath.row)
-			}
 		}
 
 		self.mainContext.reset()
 	}
 
-	func testOCInsertionPerformance_10000_iterations() {
+	func testInsertion_10000_OC_iterations() {
 		measureOCInsertionPerformance(times: 10000)
 	}
 
-	func testOCInsertionPerformance_2000_iterations() {
+	func testInsertion_2000_OC_iterations() {
 		measureOCInsertionPerformance(times: 2000)
 	}
 
-	func testOCInsertionPerformance_1000_iterations() {
+	func testInsertion_1000_OC_iterations() {
 		measureOCInsertionPerformance(times: 1000)
 	}
 
-	func testOCInsertionPerformance_100_iterations() {
+	func testInsertion_100_OC_iterations() {
 		measureOCInsertionPerformance(times: 100)
 	}
 
-	func testOCInsertionPerformance_10_iterations() {
+	func testInsertion_10_OC_iterations() {
 		measureOCInsertionPerformance(times: 10)
 	}
 
@@ -185,19 +194,23 @@ class ObjectCollectionTests: XCTestCase {
 		}
 	}
 
-	func testFRCDeletionPerformance_2000_iteration() {
+	func testDeletion_10000_FRC_iteration() {
+		measureFRCDeletionPerformance(times: 10000)
+	}
+
+	func testDeletion_2000_FRC_iteration() {
 		measureFRCDeletionPerformance(times: 2000)
 	}
 
-	func testFRCDeletionPerformance_1000_iterations() {
+	func testDeletion_1000_FRC_iterations() {
 		measureFRCDeletionPerformance(times: 1000)
 	}
 
-	func testFRCDeletionPerformance_100_iterations() {
+	func testDeletion_100_FRC_iterations() {
 		measureFRCDeletionPerformance(times: 100)
 	}
 
-	func testFRCDeletionPerformance_10_iterations() {
+	func testDeletion_10_FRC_iterations() {
 		measureFRCDeletionPerformance(times: 10)
 	}
 
@@ -223,34 +236,80 @@ class ObjectCollectionTests: XCTestCase {
 			// verify results
 			expect(controller.sections?.count) == 1
 			expect(controller.sections!.first!.numberOfObjects) == times
+		}
+
+		self.mainContext.reset()
+	}
+
+	func testInsertion_10000_FRC_iteration() {
+		measureFRCInsertionPerformance(times: 10000)
+	}
+
+	func testInsertion_2000_FRC_iteration() {
+		measureFRCInsertionPerformance(times: 2000)
+	}
+
+	func testInsertion_1000_FRC_iterations() {
+		measureFRCInsertionPerformance(times: 1000)
+	}
+
+	func testInsertion_100_FRC_iterations() {
+		measureFRCInsertionPerformance(times: 100)
+	}
+
+	func testInsertion_10_FRC_iterations() {
+		measureFRCInsertionPerformance(times: 10)
+	}
+
+
+	func measureFRCReadPerformance(times: Int) {
+		for i in 0 ..< times {
+			let children = Children(context: mainContext)
+			children.value = Int64(i)
+		}
+
+		mainContext.processPendingChanges()
+
+		let controller = Children.query(self.mainContext)
+			.sort(by: .ascending("value"))
+			.makeController()
+
+		let receiver = Receiver()
+		controller.delegate = receiver
+
+		expect { try controller.performFetch() }.toNot(throwError())
+
+		measure {
+			// verify results
+			expect(controller.sections?.count) == 1
+			expect(controller.sections!.first!.numberOfObjects) == times
 
 			for objectIndex in 0 ..< controller.sections!.first!.numberOfObjects {
-				let object = controller.object(at: IndexPath(row: objectIndex, section: 0))
-				expect(object.value) == Int64(objectIndex)
+				XCTAssertTrue(controller.object(at: IndexPath(row: objectIndex, section: 0)).value == Int64(objectIndex))
 			}
 		}
 
 		self.mainContext.reset()
 	}
 
-	func testFRCInsertionPerformance_10000_iteration() {
-		measureFRCInsertionPerformance(times: 10000)
+	func testRead_10000_FRC_iteration() {
+		measureFRCReadPerformance(times: 10000)
 	}
 
-	func testFRCInsertionPerformance_2000_iteration() {
-		measureFRCInsertionPerformance(times: 2000)
+	func testRead_2000_FRC_iteration() {
+		measureFRCReadPerformance(times: 2000)
 	}
 
-	func testFRCInsertionPerformance_1000_iterations() {
-		measureFRCInsertionPerformance(times: 1000)
+	func testRead_1000_FRC_iterations() {
+		measureFRCReadPerformance(times: 1000)
 	}
 
-	func testFRCInsertionPerformance_100_iterations() {
-		measureFRCInsertionPerformance(times: 100)
+	func testRead_100_FRC_iterations() {
+		measureFRCReadPerformance(times: 100)
 	}
 
-	func testFRCInsertionPerformance_10_iterations() {
-		measureFRCInsertionPerformance(times: 10)
+	func testRead_10_FRC_iterations() {
+		measureFRCReadPerformance(times: 10)
 	}
 
 	override func setUp() {
@@ -274,7 +333,7 @@ class ObjectCollectionTests: XCTestCase {
 		}
 
 		mainContext = NSManagedObjectContext(parent: .persistentStore(storeCoordinator),
-		                                         concurrencyType: .mainQueueConcurrencyType)
+		                                     concurrencyType: .mainQueueConcurrencyType)
 	}
 
 	override func tearDown() {
