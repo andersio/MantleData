@@ -170,7 +170,7 @@ internal final class LinearBatchingPrefetcher<E: NSManagedObject>: ObjectCollect
 		prefetchRequest.entity = E.entity(in: objectSet.context)
 		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
 		                                        argumentArray: [prefetchingIds as NSArray])
-		prefetchRequest.resultType = NSFetchRequestResultType()
+		prefetchRequest.resultType = []
 		prefetchRequest.returnsObjectsAsFaults = false
 
 		let prefetchedObjects = try objectSet.context.fetch(prefetchRequest)
@@ -242,7 +242,8 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefe
 		prefetchRequest.entity = E.entity(in: objectSet.context)
 		prefetchRequest.predicate = NSPredicate(format: "self IN %@",
 		                                        argumentArray: [allObjects as NSArray])
-		prefetchRequest.resultType = NSFetchRequestResultType()
+		prefetchRequest.resultType = []
+		prefetchRequest.returnsObjectsAsFaults = false
 
 		do {
 			let prefetchedObjects = try objectSet.context.fetch(prefetchRequest)
@@ -268,6 +269,7 @@ internal final class GreedyPrefetcher<E: NSManagedObject>: ObjectCollectionPrefe
 			prefetchRequest.entity = E.entity(in: objectSet.context)
 			prefetchRequest.predicate = NSPredicate(format: "self IN %@", inserted as NSArray)
 			prefetchRequest.resultType = []
+			prefetchRequest.returnsObjectsAsFaults = false
 
 			do {
 				let prefetchedObjects = try objectSet.context.fetch(prefetchRequest)
