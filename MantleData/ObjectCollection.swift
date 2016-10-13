@@ -64,6 +64,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 	private let sortKeyComponents: [(String, [String])]
 	private let sortOrderAffectingRelationships: [String]
 	private let sortKeysInSections: [String]
+	internal let prefetchingRelationships: [String]
 
 	fileprivate var objectCache: [ObjectReference<E>: ObjectSnapshot] = [:]
 
@@ -79,6 +80,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 							in context: NSManagedObjectContext,
 							prefetchingPolicy: ObjectCollectionPrefetchingPolicy,
 							sectionNameKeyPath: String? = nil,
+							prefetchingRelationships: [String] = [],
 							excludeUpdatedRowsInEvents: Bool = true) {
 		(events, eventObserver) = Signal.pipe()
 		lifetime = Lifetime(lifetimeToken)
@@ -115,6 +117,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 		sortKeysInSections = Array(sortKeys.dropFirst())
 		sortKeyComponents = sortKeys.map { ($0, $0.components(separatedBy: ".")) }
 		sortOrderAffectingRelationships = sortKeyComponents.flatMap { $0.1.count > 1 ? $0.1[0] : nil }.uniquing()
+		self.prefetchingRelationships = prefetchingRelationships
 
 		self.fetchRequest = fetchRequest.copy() as! NSFetchRequest<NSDictionary>
 		self.fetchRequest.resultType = .dictionaryResultType

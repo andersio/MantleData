@@ -157,13 +157,14 @@ public final class ObjectQuery<E: NSManagedObject> {
 
 	/// - MARK: Change Tracking Collections
 
-	public func makeCollection(prefetching policy: ObjectCollectionPrefetchingPolicy = .all) -> ObjectCollection<Entity> {
+	public func makeCollection(prefetching policy: ObjectCollectionPrefetchingPolicy = .all, prefetchingRelationships: [String] = []) -> ObjectCollection<Entity> {
 		let copy = self.fetchRequest.copy() as! NSFetchRequest<Entity>
 
 		return ObjectCollection(for: copy,
 		                        in: context,
 		                        prefetchingPolicy: policy,
-		                        sectionNameKeyPath: groupByKeyPath?.keyPath)
+		                        sectionNameKeyPath: groupByKeyPath?.keyPath,
+		                        prefetchingRelationships: prefetchingRelationships)
 	}
 
 	@available(macOS 10.12, *)
