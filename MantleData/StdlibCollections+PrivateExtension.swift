@@ -20,8 +20,8 @@ internal enum BinarySearchResult<Index> {
 	case notFound(next: Index)
 }
 
-extension Collection where Iterator.Element == ObjectId, Index == Int {
-	internal func bidirectionalSearch<E>(at center: Int, for element: ObjectId, with comparer: Comparer<E>) -> BinarySearchResult<Index> {
+extension Collection where Iterator.Element: ObjectReferenceProtocol, Index == Int {
+	internal func bidirectionalSearch(at center: Int, for element: Iterator.Element, with comparer: Comparer<Iterator.Element.Object>) -> BinarySearchResult<Index> {
 		var leftIndex = center - 1
 		while leftIndex >= startIndex && comparer.compare(self[leftIndex], to: element) == .orderedSame {
 			if self[leftIndex] == element {
@@ -41,7 +41,7 @@ extension Collection where Iterator.Element == ObjectId, Index == Int {
 		return .notFound(next: leftIndex + 1)
 	}
 
-	internal func index<E>(of element: ObjectId, with comparer: Comparer<E>) -> Index? {
+	internal func index(of element: Iterator.Element, with comparer: Comparer<Iterator.Element.Object>) -> Index? {
 		if case let .found(index) = binarySearch(of: element, with: comparer) {
 			return index
 		}
@@ -49,7 +49,7 @@ extension Collection where Iterator.Element == ObjectId, Index == Int {
 		return nil
 	}
 
-	internal func binarySearch<E>(of element: ObjectId, with comparer: Comparer<E>) -> BinarySearchResult<Index> {
+	internal func binarySearch(of element: Iterator.Element, with comparer: Comparer<Iterator.Element.Object>) -> BinarySearchResult<Index> {
 		var low = startIndex
 		var high = endIndex - 1
 
@@ -76,8 +76,8 @@ extension Collection where Iterator.Element == ObjectId, Index == Int {
 	}
 }
 
-extension RangeReplaceableCollection where Iterator.Element == ObjectId, Index == Int {
-	internal mutating func insert<E>(_ element: ObjectId, with comparer: Comparer<E>) {
+extension RangeReplaceableCollection where Iterator.Element: ObjectReferenceProtocol, Index == Int {
+	internal mutating func insert(_ element: Iterator.Element, with comparer: Comparer<Iterator.Element.Object>) {
 		switch binarySearch(of: element, with: comparer) {
 		case .found:
 			return
@@ -119,7 +119,7 @@ extension String {
 	}
 }
 
-extension Collection where Iterator.Element: ObjectCollectionSectionProtocol, Index == Int {
+extension Collection where Iterator.Element: SectionNameProviding, Index == Int {
 	fileprivate func binarySearch(name: String?, ascending: Bool) -> BinarySearchResult<Int> {
 		var low = startIndex
 		var high = endIndex - 1
@@ -160,7 +160,7 @@ extension Collection where Iterator.Element: ObjectCollectionSectionProtocol, In
 	}
 }
 
-extension RangeReplaceableCollection where Iterator.Element: ObjectCollectionSectionProtocol, Index == Int {
+extension RangeReplaceableCollection where Iterator.Element: SectionNameProviding, Index == Int {
 	internal mutating func insert(_ section: Iterator.Element, name: String?, ascending: Bool) -> Index {
 		if case let .notFound(next) = binarySearch(name: name, ascending: ascending) {
 			insert(section, at: next)
