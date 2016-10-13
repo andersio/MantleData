@@ -92,30 +92,17 @@ final public class UICollectionViewAdapter<ViewModel, Provider: UICollectionView
 					collectionView.reloadData()
 
 				case let .updated(changes):
-					func updater() {
-						if let indices = changes.deletedSections {
-							collectionView.deleteSections(indices)
-						}
+					func update() {
+						collectionView.deleteSections(changes.deletedSections)
+						collectionView.deleteItems(at: changes.deletedRows)
+						collectionView.insertSections(changes.insertedSections)
+						collectionView.insertItems(at: changes.insertedRows)
 
-						if let indexPaths = changes.deletedRows {
-							collectionView.deleteItems(at: indexPaths)
-						}
-
-						if let indices = changes.insertedSections {
-							collectionView.insertSections(indices)
-						}
-
-						if let indexPathPairs = changes.movedRows {
-							for (source, destination) in indexPathPairs {
-								collectionView.moveItem(at: source, to: destination)
-							}
-						}
-
-						if let indexPaths = changes.insertedRows {
-							collectionView.insertItems(at: indexPaths)
+						for (source, destination) in changes.movedRows {
+							collectionView.moveItem(at: source, to: destination)
 						}
 					}
-					collectionView.performBatchUpdates(updater, completion: nil)
+					collectionView.performBatchUpdates(update, completion: nil)
 				}
 			}
 

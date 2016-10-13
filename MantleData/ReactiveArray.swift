@@ -95,11 +95,11 @@ extension ReactiveArray: RangeReplaceableCollection {
 		let inserted = removed.upperBound ..< removed.upperBound + insertedCount
 
 		let changes = SectionedCollectionChanges(
-			deletedRows: !removed.isEmpty ? removed.map { IndexPath(row: $0, section: 0) } : nil,
-			insertedRows: !inserted.isEmpty ? inserted.map { IndexPath(row: $0, section: 0) } : nil,
-			movedRows: nil,
-			deletedSections: nil,
-			insertedSections: nil
+			deletedRows: removed.map { IndexPath(row: $0, section: 0) },
+			insertedRows: inserted.map { IndexPath(row: $0, section: 0) },
+			movedRows: [],
+			deletedSections: [],
+			insertedSections: []
 		)
 
 		eventObserver.send(value: .updated(changes))

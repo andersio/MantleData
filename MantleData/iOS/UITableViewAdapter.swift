@@ -78,26 +78,13 @@ final public class UITableViewAdapter<ViewModel, Provider: UITableViewAdapterPro
 				case let .updated(changes):
 					tableView.beginUpdates()
 
-					if let indices = changes.deletedSections {
-						tableView.deleteSections(indices, with: config.deletingAnimation)
-					}
+					tableView.deleteSections(changes.deletedSections, with: config.deletingAnimation)
+					tableView.deleteRows(at: changes.deletedRows, with: config.deletingAnimation)
+					tableView.insertSections(changes.insertedSections, with: config.insertingAnimation)
+					tableView.insertRows(at: changes.insertedRows, with: config.insertingAnimation)
 
-					if let indexPaths = changes.deletedRows {
-						tableView.deleteRows(at: indexPaths, with: config.deletingAnimation)
-					}
-
-					if let indices = changes.insertedSections {
-						tableView.insertSections(indices, with: config.insertingAnimation)
-					}
-
-					if let indexPathPairs = changes.movedRows {
-						for (source, destination) in indexPathPairs {
-							tableView.moveRow(at: source, to: destination)
-						}
-					}
-
-					if let indexPaths = changes.insertedRows {
-						tableView.insertRows(at: indexPaths, with: config.insertingAnimation)
+					for (source, destination) in changes.movedRows {
+						tableView.moveRow(at: source, to: destination)
 					}
 
 					tableView.endUpdates()

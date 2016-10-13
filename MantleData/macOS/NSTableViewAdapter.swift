@@ -115,31 +115,21 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 
 					tableView.beginUpdates()
 
-					if let indexSet = changes.deletedSections {
-						let flattenedSet = IndexSet(indexSet.map { previousRanges[$0].lowerBound })
-						tableView.removeRows(at: flattenedSet, withAnimation: config.rowAnimation)
-					}
+					let removed = IndexSet(changes.deletedSections.flatMap { CountableRange(previousRanges[$0]) })
+					tableView.removeRows(at: removed, withAnimation: config.rowAnimation)
 
-					if let indexPaths = changes.deletedRows {
-						let flattenedSet = IndexSet(indexPaths.map { adapter.flattenedIndex(fromSectioned: $0, for: previousRanges) })
-						tableView.removeRows(at: flattenedSet, withAnimation: config.rowAnimation)
-					}
+					let removed2 = IndexSet(changes.deletedRows.map { adapter.flattenedIndex(fromSectioned: $0, for: previousRanges) })
+					tableView.removeRows(at: removed2, withAnimation: config.rowAnimation)
 
-					if let indexSet = changes.insertedSections {
-						let flattenedSet = IndexSet(indexSet.map { adapter.flattenedRanges[$0].lowerBound })
-						tableView.insertRows(at: flattenedSet, withAnimation: config.rowAnimation)
-					}
+					let inserted = IndexSet(changes.insertedSections.flatMap { CountableRange(adapter.flattenedRanges[$0]) })
+					tableView.insertRows(at: inserted, withAnimation: config.rowAnimation)
 
-					if let indexPathPairs = changes.movedRows {
-						for (old, new) in indexPathPairs {
-							tableView.moveRow(at: adapter.flattenedIndex(fromSectioned: old),
-							                   to: adapter.flattenedIndex(fromSectioned: new))
-						}
-					}
+					let inserted2 = IndexSet(changes.insertedRows.map(adapter.flattenedIndex(fromSectioned:)))
+					tableView.insertRows(at: inserted2, withAnimation: config.rowAnimation)
 
-					if let indexPaths = changes.insertedRows {
-						let flattenedSet = IndexSet(indexPaths.map(adapter.flattenedIndex(fromSectioned:)))
-						tableView.insertRows(at: flattenedSet, withAnimation: config.rowAnimation)
+					for (old, new) in changes.movedRows {
+						tableView.moveRow(at: adapter.flattenedIndex(fromSectioned: old),
+						                  to: adapter.flattenedIndex(fromSectioned: new))
 					}
 
 					tableView.endUpdates()

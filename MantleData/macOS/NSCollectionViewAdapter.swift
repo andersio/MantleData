@@ -111,31 +111,18 @@ public final class NSCollectionViewAdapter<ViewModel, Provider: NSCollectionView
 					collectionView.reloadData()
 
 				case let .updated(changes):
-					let updater = {
-						if let indexSet = changes.deletedSections {
-							collectionView.deleteSections(indexSet)
-						}
+					func update() {
+						collectionView.deleteSections(changes.deletedSections)
+						collectionView.deleteItems(at: Set(changes.deletedRows))
+						collectionView.insertSections(changes.insertedSections)
+						collectionView.insertItems(at: Set(changes.insertedRows))
 
-						if let indexPaths = changes.deletedRows {
-							collectionView.deleteItems(at: Set(indexPaths))
-						}
-
-						if let indexSet = changes.insertedSections {
-							collectionView.insertSections(indexSet)
-						}
-
-						if let indexPathPairs = changes.movedRows {
-							for (origin, destination) in indexPathPairs {
-								collectionView.moveItem(at: origin, to: destination)
-							}
-						}
-
-						if let indexPaths = changes.insertedRows {
-							collectionView.insertItems(at: Set(indexPaths))
+						for (origin, destination) in changes.movedRows {
+							collectionView.moveItem(at: origin, to: destination)
 						}
 					}
 
-					collectionView.animator().performBatchUpdates(updater, completionHandler: nil)
+					collectionView.animator().performBatchUpdates(update, completionHandler: nil)
 				}
 			}
 

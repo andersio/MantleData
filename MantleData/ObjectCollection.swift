@@ -876,11 +876,11 @@ public final class ObjectCollection<E: NSManagedObject> {
 
 		let resultSetChanges: SectionedCollectionChanges
 		resultSetChanges = SectionedCollectionChanges(
-			deletedRows: indexPathsOfDeletedRows.isEmpty ? nil : indexPathsOfDeletedRows,
-			insertedRows: indexPathsOfInsertedRows.isEmpty ? nil : indexPathsOfInsertedRows,
-			movedRows: indexPathsOfMovedRows.isEmpty ? nil : indexPathsOfMovedRows,
-			deletedSections: indiceOfDeletedSections.isEmpty ? nil : indiceOfDeletedSections,
-			insertedSections: indiceOfInsertedSections.isEmpty ? nil : indiceOfInsertedSections
+			deletedRows: indexPathsOfDeletedRows,
+			insertedRows: indexPathsOfInsertedRows,
+			movedRows: indexPathsOfMovedRows,
+			deletedSections: indiceOfDeletedSections,
+			insertedSections: indiceOfInsertedSections
 		)
 
 		return resultSetChanges

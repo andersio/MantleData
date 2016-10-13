@@ -16,12 +16,12 @@ public enum SectionedCollectionEvent {
 
 /// Describes the changes in a `SectionedCollection` of a particular event.
 public struct SectionedCollectionChanges {
-	public var deletedRows: [IndexPath]?
-	public var insertedRows: [IndexPath]?
-	public var movedRows: [(from: IndexPath, to: IndexPath)]?
+	public var deletedRows: [IndexPath]
+	public var insertedRows: [IndexPath]
+	public var movedRows: [(from: IndexPath, to: IndexPath)]
 
-	public var deletedSections: IndexSet?
-	public var insertedSections: IndexSet?
+	public var deletedSections: IndexSet
+	public var insertedSections: IndexSet
 }
 
 extension SectionedCollectionEvent: CustomStringConvertible {
@@ -45,27 +45,13 @@ extension SectionedCollectionEvent: CustomDebugStringConvertible {
 extension SectionedCollectionChanges: CustomStringConvertible {
 	public var description: String {
 		var strings = [String]()
+
 		strings.append("SectionedReactiveCollectionChanges")
-
-		if let indexPaths = insertedRows {
-			strings.append("> \(indexPaths.count) row(s) inserted\n")
-		}
-
-		if let indexPaths = deletedRows {
-			strings.append( "> \(indexPaths.count) row(s) deleted\n")
-		}
-
-		if let indexPaths = movedRows {
-			strings.append( "> \(indexPaths.count) row(s) moved\n")
-		}
-
-		if let indices = insertedSections {
-			strings.append("> \(indices.count) section(s) inserted\n")
-		}
-
-		if let indices = deletedSections {
-			strings.append( "> \(indices.count) section(s) deleted\n")
-		}
+		strings.append("> \(insertedRows.count) row(s) inserted\n")
+		strings.append("> \(deletedRows.count) row(s) deleted\n")
+		strings.append("> \(movedRows.count) row(s) moved\n")
+		strings.append("> \(insertedSections.count) section(s) inserted\n")
+		strings.append("> \(deletedSections.count) section(s) deleted\n")
 
 		return strings.joined(separator: "\n")
 	}
