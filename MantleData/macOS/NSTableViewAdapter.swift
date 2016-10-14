@@ -12,7 +12,9 @@ import ReactiveCocoa
 
 public struct NSTableViewAdapterConfig {
 	public var hidesSectionHeader = false
-	public var rowAnimation: NSTableViewAnimationOptions = .slideUp
+
+	public var insertAnimation: NSTableViewAnimationOptions = .slideUp
+	public var removeAnimation: NSTableViewAnimationOptions = .slideUp
 
 	public init() {}
 }
@@ -21,10 +23,13 @@ public protocol NSTableViewAdapterProvider: class {
 }
 
 final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterProvider>: NSObject, NSTableViewDataSource {
+	weak var tableView: NSTableView!
 	private let set: ViewModelCollection<ViewModel>
 	private unowned let provider: Provider
 	private let config: NSTableViewAdapterConfig
 	private var flattenedRanges: [Range<Int>] = []
+
+	public private(set) var numberOfPrependedRows = 0
 
 	private var offset: Int {
 		return config.hidesSectionHeader ? 0 : 1
@@ -32,7 +37,8 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 
 	public let disposable: Disposable
 
-	private init(set: ViewModelCollection<ViewModel>, provider: Provider, config: NSTableViewAdapterConfig, disposable: Disposable) {
+	private init(set: ViewModelCollection<ViewModel>, provider: Provider, tableView: NSTableView, config: NSTableViewAdapterConfig, disposable: Disposable) {
+		self.tableView = tableView
 		self.set = set
 		self.provider = provider
 		self.config = config
@@ -40,6 +46,16 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 
 		super.init()
 		computeFlattenedRanges()
+	}
+
+	public func prependRow(animated: Bool = true) {
+		numberOfPrependedRows += 1
+		tableView.insertRows(at: IndexSet(integer: 0), withAnimation: animated ? config.insertAnimation : [])
+	}
+
+	public func removeFirstPrependedRow(animated: Bool = true) {
+		numberOfPrependedRows -= 1
+		tableView.removeRows(at: IndexSet(integer: 0), withAnimation: animated ? config.removeAnimation : [])
 	}
 
 	@discardableResult
@@ -57,6 +73,13 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 	}
 
 	public func indexPath(fromFlattened index: Int) -> IndexPath {
+		let index = index - numberOfPrependedRows
+
+		if index < 0 {
+			// Prepended rows
+			return IndexPath(row: numberOfPrependedRows - abs(index), section: -1)
+		}
+
 		for (sectionIndex, range) in flattenedRanges.enumerated() {
 			if !config.hidesSectionHeader && range.lowerBound == index {
 				return IndexPath(section: sectionIndex)
@@ -74,16 +97,18 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 	}
 
 	private func flattenedIndex(fromSectioned index: IndexPath, for ranges: [Range<Int>]) -> Int {
-		return ranges[index.section].lowerBound + index.row + offset
+		return ranges[index.section].lowerBound + index.row + offset + numberOfPrependedRows
 	}
 
 	public func hasGroupRow(at index: Int) -> Bool {
+		let index = index - numberOfPrependedRows
 		return !config.hidesSectionHeader && flattenedRanges.contains { $0.lowerBound == index }
 	}
 
 	public func numberOfRows(in tableView: NSTableView) -> Int {
 		return (config.hidesSectionHeader ? 0 : set.sectionCount)
 			+ (0 ..< set.sectionCount).reduce(0) { $0 + set.rowCount(for: $1) }
+		  + numberOfPrependedRows
 	}
 
 	public func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
@@ -98,7 +123,7 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 		config: NSTableViewAdapterConfig
 	) -> NSTableViewAdapter<ViewModel, Provider> {
 		let disposable = CompositeDisposable()
-		let adapter = NSTableViewAdapter(set: set, provider: provider, config: config, disposable: disposable)
+		let adapter = NSTableViewAdapter(set: set, provider: provider, tableView: tableView, config: config, disposable: disposable)
 		tableView.dataSource = adapter
 
 		disposable += set.events
@@ -115,17 +140,17 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 
 					tableView.beginUpdates()
 
-					let removed = IndexSet(changes.deletedSections.flatMap { CountableRange(previousRanges[$0]) })
-					tableView.removeRows(at: removed, withAnimation: config.rowAnimation)
+					let removed = IndexSet(changes.deletedSections.flatMap { CountableRange(previousRanges[$0]).map { $0 + adapter.numberOfPrependedRows } })
+					tableView.removeRows(at: removed, withAnimation: config.removeAnimation)
 
 					let removed2 = IndexSet(changes.deletedRows.map { adapter.flattenedIndex(fromSectioned: $0, for: previousRanges) })
-					tableView.removeRows(at: removed2, withAnimation: config.rowAnimation)
+					tableView.removeRows(at: removed2, withAnimation: config.removeAnimation)
 
-					let inserted = IndexSet(changes.insertedSections.flatMap { CountableRange(adapter.flattenedRanges[$0]) })
-					tableView.insertRows(at: inserted, withAnimation: config.rowAnimation)
+					let inserted = IndexSet(changes.insertedSections.flatMap { CountableRange(adapter.flattenedRanges[$0]).map { $0 + adapter.numberOfPrependedRows } })
+					tableView.insertRows(at: inserted, withAnimation: config.insertAnimation)
 
 					let inserted2 = IndexSet(changes.insertedRows.map(adapter.flattenedIndex(fromSectioned:)))
-					tableView.insertRows(at: inserted2, withAnimation: config.rowAnimation)
+					tableView.insertRows(at: inserted2, withAnimation: config.insertAnimation)
 
 					for (old, new) in changes.movedRows {
 						tableView.moveRow(at: adapter.flattenedIndex(fromSectioned: old),
