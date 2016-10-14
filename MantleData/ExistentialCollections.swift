@@ -52,8 +52,8 @@ public final class AnySectionedCollection<E>: SectionedCollection {
 		return set.rowCount(for: section)
 	}
 
-	public subscript(position: IndexPath) -> E {
-		return set[position]
+	public subscript(row row: Int, section section: Int) -> E {
+		return set[row: row, section: section]
 	}
 
 	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<AnySectionedCollection<E>> {

@@ -52,14 +52,10 @@ public final class ViewModelCollection<ViewModel>: SectionedCollection {
 		return set.rowCount(for: section)
 	}
 
-	public subscript(position: IndexPath) -> ViewModel {
-		return set[position]
+	public subscript(row row: Int, section section: Int) -> ViewModel {
+		return set[row: row, section: section]
 	}
 
-	public subscript(subRange: Range<IndexPath>) -> RandomAccessSlice<ViewModelCollection<ViewModel>> {
-		return RandomAccessSlice(base: self, bounds: subRange)
-	}
-	
 	public init<R: SectionedCollection>(_ set: R, factory: @escaping (R.Iterator.Element) -> ViewModel) {
 		self.set = _ViewModelCollectionBoxBase(set, factory: factory)
 	}

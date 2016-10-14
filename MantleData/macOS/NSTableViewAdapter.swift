@@ -101,9 +101,9 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 		let adapter = NSTableViewAdapter(set: set, provider: provider, config: config, disposable: disposable)
 		tableView.dataSource = adapter
 
-		disposable += set.eventsProducer
+		disposable += set.events
 			.take(during: tableView.reactive.lifetime)
-			.startWithValues { [adapter, weak tableView] event in
+			.observeValues { [adapter, weak tableView] event in
 				guard let tableView = tableView else { return }
 				switch event {
 				case .reloaded:

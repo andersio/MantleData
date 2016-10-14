@@ -42,8 +42,8 @@ internal class _ViewModelCollectionBoxBase<R: SectionedCollection, ViewModel>: _
 		return Index(set.index(before: R.Index(i)))
 	}
 
-	override subscript(indexPath: Index) -> ViewModel {
-		return factory(set[R.Index(indexPath)])
+	override subscript(row row: Int, section section: Int) -> ViewModel {
+		return factory(set[row: row, section: section])
 	}
 
 	override func sectionName(for section: Int) -> String? {
@@ -86,8 +86,8 @@ internal class _AnySectionedCollectionBoxBase<R: SectionedCollection>: _AnySecti
 		return Index(set.index(before: R.Index(i)))
 	}
 
-	override subscript(indexPath: Index) -> R.Iterator.Element {
-		return set[R.Index(indexPath)]
+	override subscript(row row: Int, section section: Int) -> R.Iterator.Element {
+		return set[row: row, section: section]
 	}
 
 	override func sectionName(for section: Int) -> String? {
@@ -110,7 +110,7 @@ internal class _AnySectionedCollectionBox<E> {
 	func index(after i: Index) -> Index { fatalError() }
 	func index(before i: Index) -> Index { fatalError() }
 
-	subscript(index: Index) -> E { fatalError() }
+	subscript(row row: Int, section section: Int) -> E { fatalError() }
 
 	func sectionName(for section: Int) -> String? { fatalError() }
 	func rowCount(for section: Int) -> Int { fatalError() }

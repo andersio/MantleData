@@ -57,13 +57,13 @@ extension ReactiveArray: SectionedCollection {
 		return IndexPath(row: i.row - 1, section: 0)
 	}
 
-	public subscript(position: IndexPath) -> E {
-		get {
-			return storage[position.row]
-		}
-		set(newValue) {
-			storage[position.row] = newValue
-		}
+	public subscript(row row: Int, section section: Int) -> E {
+		get { return storage[row] }
+	}
+
+	public subscript(index: IndexPath) -> E {
+		get { return storage[index.row] }
+		set(newValue) { storage[index.row] = newValue }
 	}
 
 	public subscript(subRange: Range<IndexPath>) -> MutableRandomAccessSlice<ReactiveArray<E>> {

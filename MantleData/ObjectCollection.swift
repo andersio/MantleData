@@ -1017,10 +1017,6 @@ extension ObjectCollection: SectionedCollection {
 		fatalError("Index out of bound.")
 	}
 
-	public subscript(position: IndexPath) -> E {
-		return self[row: position.row, section: position.section]
-	}
-
 	public subscript(row row: Int, section section: Int) -> E {
 		prefetcher?.acknowledgeNextAccess(at: row, in: section)
 		return sections[section][row].wrapped

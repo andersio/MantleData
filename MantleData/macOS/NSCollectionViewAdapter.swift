@@ -102,9 +102,9 @@ public final class NSCollectionViewAdapter<ViewModel, Provider: NSCollectionView
 		                                                   disposable: disposable)
 		collectionView.dataSource = adapter
 
-		disposable += set.eventsProducer
+		disposable += set.events
 			.take(during: collectionView.reactive.lifetime)
-			.startWithValues { [adapter, weak collectionView] event in
+			.observeValues { [adapter, weak collectionView] event in
 				guard let collectionView = collectionView else { return }
 				switch event {
 				case .reloaded:
