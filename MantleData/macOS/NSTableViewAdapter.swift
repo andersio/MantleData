@@ -152,6 +152,10 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 					let inserted2 = IndexSet(changes.insertedRows.map(adapter.flattenedIndex(fromSectioned:)))
 					tableView.insertRows(at: inserted2, withAnimation: config.insertAnimation)
 
+					let reloaded = IndexSet(changes.updatedRows.map(adapter.flattenedIndex(fromSectioned:)))
+					tableView.reloadData(forRowIndexes: reloaded,
+					                     columnIndexes: IndexSet(CountableRange(0 ..< tableView.numberOfColumns)))
+
 					for (old, new) in changes.movedRows {
 						tableView.moveRow(at: adapter.flattenedIndex(fromSectioned: old),
 						                  to: adapter.flattenedIndex(fromSectioned: new))

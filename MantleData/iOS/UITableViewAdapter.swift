@@ -68,8 +68,11 @@ final public class UITableViewAdapter<ViewModel, Provider: UITableViewAdapterPro
 
 		disposable += set.events
 			.take(during: tableView.reactive.lifetime)
-			.observeValues { [adapter, weak tableView] event in
-				guard let tableView = tableView else { return }
+			.observeValues { [weak tableView] event in
+				guard let tableView = tableView else {
+					_ = adapter
+					return
+				}
 
 				switch event {
 				case .reloaded:
@@ -82,6 +85,7 @@ final public class UITableViewAdapter<ViewModel, Provider: UITableViewAdapterPro
 					tableView.deleteRows(at: changes.deletedRows, with: config.deletingAnimation)
 					tableView.insertSections(changes.insertedSections, with: config.insertingAnimation)
 					tableView.insertRows(at: changes.insertedRows, with: config.insertingAnimation)
+					tableView.reloadRows(at: changes.updatedRows, with: config.updatingAnimation)
 
 					for (source, destination) in changes.movedRows {
 						tableView.moveRow(at: source, to: destination)

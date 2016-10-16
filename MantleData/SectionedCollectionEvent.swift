@@ -18,6 +18,7 @@ public enum SectionedCollectionEvent {
 public struct SectionedCollectionChanges {
 	public var deletedRows: [IndexPath]
 	public var insertedRows: [IndexPath]
+	public var updatedRows: [IndexPath]
 	public var movedRows: [(from: IndexPath, to: IndexPath)]
 
 	public var deletedSections: IndexSet

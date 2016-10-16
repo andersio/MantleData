@@ -116,6 +116,7 @@ public final class NSCollectionViewAdapter<ViewModel, Provider: NSCollectionView
 						collectionView.deleteItems(at: Set(changes.deletedRows))
 						collectionView.insertSections(changes.insertedSections)
 						collectionView.insertItems(at: Set(changes.insertedRows))
+						collectionView.reloadItems(at: Set(changes.updatedRows))
 
 						for (origin, destination) in changes.movedRows {
 							collectionView.moveItem(at: origin, to: destination)

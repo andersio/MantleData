@@ -97,6 +97,7 @@ final public class UICollectionViewAdapter<ViewModel, Provider: UICollectionView
 						collectionView.deleteItems(at: changes.deletedRows)
 						collectionView.insertSections(changes.insertedSections)
 						collectionView.insertItems(at: changes.insertedRows)
+						collectionView.reloadItems(at: changes.updatedRows)
 
 						for (source, destination) in changes.movedRows {
 							collectionView.moveItem(at: source, to: destination)

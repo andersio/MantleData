@@ -63,7 +63,20 @@ extension ReactiveArray: SectionedCollection {
 
 	public subscript(index: IndexPath) -> E {
 		get { return storage[index.row] }
-		set(newValue) { storage[index.row] = newValue }
+		set(newValue) {
+			storage[index.row] = newValue
+
+			let changes = SectionedCollectionChanges(
+				deletedRows: [],
+				insertedRows: [],
+				updatedRows: [index],
+				movedRows: [],
+				deletedSections: [],
+				insertedSections: []
+			)
+
+			eventObserver.send(value: .updated(changes))
+		}
 	}
 
 	public subscript(subRange: Range<IndexPath>) -> MutableRandomAccessSlice<ReactiveArray<E>> {
@@ -97,6 +110,7 @@ extension ReactiveArray: RangeReplaceableCollection {
 		let changes = SectionedCollectionChanges(
 			deletedRows: removed.map { IndexPath(row: $0, section: 0) },
 			insertedRows: inserted.map { IndexPath(row: $0, section: 0) },
+			updatedRows: [],
 			movedRows: [],
 			deletedSections: [],
 			insertedSections: []

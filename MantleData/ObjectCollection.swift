@@ -42,19 +42,21 @@ import enum Result.NoError
 ///            managed object context.
 public final class ObjectCollection<E: NSManagedObject> {
 	private let lifetimeToken = Lifetime.Token()
+
+	// Lifetime.
 	public let lifetime: Lifetime
 
-	public let fetchRequest: NSFetchRequest<NSDictionary>
-	public let entity: NSEntityDescription
-
-	public let shouldExcludeUpdatedRows: Bool
+	// Configurations.
+	public let ignoresUpdatedRows: Bool
+	public let refetchesAfterInvalidation: Bool
 	public let sectionNameKeyPath: String?
 
+	// Context.
 	private(set) public weak var context: NSManagedObjectContext!
 
-	internal var sections: [ObjectCollectionSection<E>] = []
-	internal var prefetcher: ObjectCollectionPrefetcher<E>?
-
+	// Fetch parameters.
+	private let fetchRequest: NSFetchRequest<NSDictionary>
+	private let entity: NSEntityDescription
 	private let predicate: NSPredicate
 
 	fileprivate let sortsAscendingSectionName: Bool
@@ -66,28 +68,33 @@ public final class ObjectCollection<E: NSManagedObject> {
 	private let sortKeysInSections: [String]
 	internal let prefetchingRelationships: [String]
 
+	// Mutable states.
+	internal var sections: [ObjectCollectionSection<E>] = []
+	internal var prefetcher: ObjectCollectionPrefetcher<E>?
 	fileprivate var objectCache: [ObjectReference<E>: ObjectSnapshot] = [:]
-
 	private var temporaryObjects = [ObjectIdentifier: ObjectReference<E>]()
 	private var isAwaitingContextSave = false
+	public private(set) var hasFetched: Bool = false
 
+	// Events.
 	public let events: Signal<SectionedCollectionEvent, NoError>
 	private var eventObserver: Observer<SectionedCollectionEvent, NoError>
 
-	public private(set) var hasFetched: Bool = false
 
 	public init(for fetchRequest: NSFetchRequest<E>,
 							in context: NSManagedObjectContext,
 							prefetchingPolicy: ObjectCollectionPrefetchingPolicy,
 							sectionNameKeyPath: String? = nil,
 							prefetchingRelationships: [String] = [],
-							excludeUpdatedRowsInEvents: Bool = true) {
+							ignoresUpdatedRows: Bool = true,
+							refetchesAfterInvalidation: Bool = true) {
 		(events, eventObserver) = Signal.pipe()
 		lifetime = Lifetime(lifetimeToken)
 
 		self.context = context
 		self.entity = fetchRequest.entity!
-		self.shouldExcludeUpdatedRows = excludeUpdatedRowsInEvents
+		self.ignoresUpdatedRows = ignoresUpdatedRows
+		self.refetchesAfterInvalidation = refetchesAfterInvalidation
 		self.sectionNameKeyPath = sectionNameKeyPath
 
 		precondition(fetchRequest.sortDescriptors != nil,
@@ -158,25 +165,135 @@ public final class ObjectCollection<E: NSManagedObject> {
 	/// returns right away after enqueuing the fetch. The result is ready at the
 	/// time a `reloaded` event is observed.
 	///
-	/// - note: If the collection has been fetched, calling `fetch(async:)` again
-	///         has no effects.
-	///
 	/// - parameters:
 	///   - async: Whether the fetch should be run asynchronously.
 	public func fetch(async: Bool = false) throws {
-		guard !hasFetched else {
-			return
-		}
-
 		func completion(_ results: [NSDictionary]) {
-			// Search inserted objects in the context.
-			let inMemoryResults = context.insertedObjects
-				.flatMap { object -> E? in
-					return qualifyingObject(object)
+			_reset()
+
+			var inMemoryChangedObjects = [SectionKey: Box<Set<ObjectReference<E>>>]()
+
+			func markAsChanged(object registeredObject: E) {
+				let reference = ObjectReference<E>(registeredObject)
+				updateCache(for: reference, with: registeredObject)
+
+				if let sectionNameKeyPath = sectionNameKeyPath {
+					let sectionName = converting(sectionName: registeredObject.value(forKeyPath: sectionNameKeyPath) as! NSObject?)
+					inMemoryChangedObjects.insert(reference, intoSetOf: SectionKey(sectionName))
+				} else {
+					inMemoryChangedObjects.insert(reference, intoSetOf: SectionKey(nil))
+				}
+			}
+
+			if !results.isEmpty {
+				var ranges: [(range: CountableRange<Int>, name: String?)] = []
+
+				// Objects are sorted wrt sections already.
+				for position in results.indices {
+					if let sectionNameKeyPath = sectionNameKeyPath {
+						let sectionName = converting(sectionName: results[position].object(forKey: sectionNameKeyPath))
+
+						if ranges.isEmpty || ranges.last?.name != sectionName {
+							ranges.append((range: position ..< position + 1, name: sectionName))
+						} else {
+							let range = ranges[ranges.endIndex - 1].range
+							ranges[ranges.endIndex - 1].range = range.lowerBound ..< range.upperBound + 1
+						}
+					} else {
+						if ranges.isEmpty {
+							ranges.append((range: position ..< position + 1, name: nil))
+						} else {
+							let range = ranges[0].range
+							ranges[0].range = range.lowerBound ..< range.upperBound + 1
+						}
+					}
 				}
 
-			prefetcher?.reset()
-			sectionize(using: results, inMemoryResults: inMemoryResults)
+				sections.reserveCapacity(ranges.count)
+
+				for (range, name) in ranges {
+					var references = [ObjectReference<E>]()
+					references.reserveCapacity(range.count)
+
+					for position in range {
+						let objectId = results[position]["objectID"] as! NSManagedObjectID
+						let object = context.object(with: objectId) as! E
+
+						// Deferred Insertion:
+						//
+						// An object may have indeterministic order with regard to a fetch
+						// request result due to in-memory changes. In these cases, the
+						// insertion would be deferred and handled with the changes merging
+						// routine.
+
+						// If the object is registered with the context, two special cases
+						// require special handling:
+						//
+						// 1. If it has in-memory changes in the key paths affecting the sort
+						//    order, the object cache is updated, but the insertion is
+						//    deferred.
+						//
+						// 2. If the in-memory state fails the predicate, or it has been
+						//    deleted, the object is ignored.
+						if object.hasPersistentChangedValues {
+							let changedKeys = object.changedValues().keys
+							let sortOrderIsAffected = sortKeyComponents.contains { changedKeys.contains($0.1[0]) }
+
+							guard predicate.evaluate(with: object) && !object.isDeleted else {
+								continue
+							}
+
+							if sortOrderIsAffected {
+								markAsChanged(object: object)
+								continue
+							}
+						}
+
+						// If the sort order affecting relationships of the object are
+						// registered with the context and has in-memory changes, the object
+						// is faulted in and the object cache is updated subsequently. But the
+						// insertion is deferred.
+						let hasUpdatedRelationships = sortOrderAffectingRelationships.contains { key in
+							if let relationshipID = results[position][key] as? NSManagedObjectID,
+							 let relatedObject = context.registeredObject(for: relationshipID),
+							 relatedObject.isUpdated {
+								return true
+							}
+							return false
+						}
+
+						if hasUpdatedRelationships {
+							markAsChanged(object: object)
+							continue
+						}
+
+						/// Use the results in the dictionary to update the cache.
+						let reference = ObjectReference<E>(object)
+						updateCache(for: reference, with: results[position])
+						references.append(reference)
+					}
+
+					let section = ObjectCollectionSection(name: name, array: references)
+					sections.append(section)
+				}
+			}
+
+			// Search inserted objects in the context.
+			context.insertedObjects
+				.flatMap(self.qualifyingObject)
+				.forEach { object in
+					markAsChanged(object: object)
+					registerTemporaryObject(object)
+				}
+
+			if !inMemoryChangedObjects.isEmpty {
+				_ = mergeChanges(inserted: inMemoryChangedObjects,
+				                 deleted: [],
+				                 updated: [],
+				                 sortOrderAffecting: [],
+				                 sectionChanged: [])
+			}
+
 			prefetcher?.acknowledgeFetchCompletion(results.count)
 			eventObserver.send(value: .reloaded)
 
@@ -190,135 +307,27 @@ public final class ObjectCollection<E: NSManagedObject> {
 				}
 				try context.execute(asyncFetch)
 			} else {
-				let results = try context.fetch(fetchRequest)
-				completion(results)
+				completion(try context.fetch(fetchRequest))
 			}
 		} catch let error {
 			fatalError("\(error)")
 		}
 	}
 
-	private func sectionize(using resultDictionaries: [NSDictionary], inMemoryResults: [E]) {
+	public func reset() {
+		_reset()
+		eventObserver.send(value: .reloaded)
+	}
+
+	private func _reset() {
+		prefetcher?.reset()
+
 		sections = []
-		var inMemoryChangedObjects = [SectionKey: Box<Set<ObjectReference<E>>>]()
 
-		func markAsChanged(object registeredObject: E) {
-			let reference = ObjectReference<E>(registeredObject)
-			updateCache(for: reference, with: registeredObject)
-
-			if let sectionNameKeyPath = sectionNameKeyPath {
-				let sectionName = converting(sectionName: registeredObject.value(forKeyPath: sectionNameKeyPath) as! NSObject?)
-				inMemoryChangedObjects.insert(reference, intoSetOf: SectionKey(sectionName))
-			} else {
-				inMemoryChangedObjects.insert(reference, intoSetOf: SectionKey(nil))
-			}
-		}
-
-		if !resultDictionaries.isEmpty {
-			var ranges: [(range: CountableRange<Int>, name: String?)] = []
-
-			// Objects are sorted wrt sections already.
-			for position in resultDictionaries.indices {
-				if let sectionNameKeyPath = sectionNameKeyPath {
-					let sectionName = converting(sectionName: resultDictionaries[position].object(forKey: sectionNameKeyPath as NSString) as! NSObject?)
-
-					if ranges.isEmpty || ranges.last?.name != sectionName {
-						ranges.append((range: position ..< position + 1, name: sectionName))
-					} else {
-						let range = ranges[ranges.endIndex - 1].range
-						ranges[ranges.endIndex - 1].range = range.lowerBound ..< range.upperBound + 1
-					}
-				} else {
-					if ranges.isEmpty {
-						ranges.append((range: position ..< position + 1, name: nil))
-					} else {
-						let range = ranges[0].range
-						ranges[0].range = range.lowerBound ..< range.upperBound + 1
-					}
-				}
-			}
-
-			sections.reserveCapacity(ranges.count)
-
-			for (range, name) in ranges {
-				var references = [ObjectReference<E>]()
-				references.reserveCapacity(range.count)
-
-				for position in range {
-					let objectId = resultDictionaries[position]["objectID"] as! NSManagedObjectID
-
-					// Deferred Insertion:
-					//
-					// An object may have indeterministic order with regard to a fetch
-					// request result due to in-memory changes. In these cases, the
-					// insertion would be deferred and handled with the changes merging
-					// routine.
-
-					// If the object is registered with the context, two special cases
-					// require special handling:
-					//
-					// 1. If it has in-memory changes in the key paths affecting the sort
-					//    order, the object cache is updated, but the insertion is
-					//    deferred.
-					//
-					// 2. If the in-memory state fails the predicate, or it has been
-					//    deleted, the object is ignored.
-					if let registeredObject = context.registeredObject(for: objectId) as? E {
-						let changedKeys = registeredObject.changedValues().keys
-						let sortOrderIsAffected = sortKeyComponents.contains { changedKeys.contains($0.1[0]) }
-
-						guard predicate.evaluate(with: registeredObject) && !registeredObject.isDeleted else {
-							continue
-						}
-
-						if sortOrderIsAffected {
-							markAsChanged(object: registeredObject)
-							continue
-						}
-					}
-
-					// If the sort order affecting relationships of the object are
-					// registered with the context and has in-memory changes, the object
-					// is faulted in and the object cache is updated subsequently. But the
-					// insertion is deferred.
-					let hasUpdatedRelationships = sortOrderAffectingRelationships.contains { key in
-						if let relationshipID = resultDictionaries[position][key] as? NSManagedObjectID,
-						   let relatedObject = context.registeredObject(for: relationshipID),
-						   relatedObject.isUpdated {
-							return true
-						}
-						return false
-					}
-
-					let object = context.object(with: objectId) as! E
-
-					if hasUpdatedRelationships {
-						markAsChanged(object: object)
-						continue
-					}
-
-					/// Use the results in the dictionary to update the cache.
-					let reference = ObjectReference<E>(object)
-					updateCache(for: reference, with: resultDictionaries[position])
-					references.append(reference)
-				}
-
-				let section = ObjectCollectionSection(name: name, array: references)
-				sections.append(section)
-			}
-		}
-
-		if !inMemoryResults.isEmpty || !inMemoryChangedObjects.isEmpty {
-			for result in inMemoryResults {
-				markAsChanged(object: result)
-				registerTemporaryObject(result)
-			}
-
-			_ = mergeChanges(inserted: inMemoryChangedObjects,
-			                 deleted: [],
-			                 updated: [],
-			                 sortOrderAffecting: [],
-			                 sectionChanged: [])
+		if hasFetched {
+			isAwaitingContextSave = false
+			temporaryObjects = [:]
+			releaseCache()
 		}
 	}
 
@@ -337,7 +346,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 	}
 
 	@objc private func handle(contextDidSaveNotification notification: Notification) {
-		guard let userInfo = (notification as NSNotification).userInfo else {
+		guard isAwaitingContextSave, let userInfo = (notification as NSNotification).userInfo else {
 			return
 		}
 
@@ -556,7 +565,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 						continue
 					}
 					
-					if !shouldExcludeUpdatedRows {
+					if !ignoresUpdatedRows {
 						updatedIds.insert(id, intoSetAt: currentSectionIndex)
 					}
 				} else {
@@ -582,8 +591,11 @@ public final class ObjectCollection<E: NSManagedObject> {
 
 		/// If all objects are invalidated. We perform a refetch instead.
 		guard !userInfo.keys.contains(NSInvalidatedAllObjectsKey) else {
-			releaseCache()
-			sections = []
+			if refetchesAfterInvalidation {
+				try! fetch(async: true)
+			} else {
+				reset()
+			}
 			return
 		}
 
@@ -836,7 +848,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 
 			for (r, reference) in section.storage.enumerated() {
 				// Emit index paths for updated rows, if enabled.
-				if !shouldExcludeUpdatedRows {
+				if !ignoresUpdatedRows {
 					if let prevS = prevS, updatedObjects[prevS].value.contains(reference) {
 						let indexPath = IndexPath(row: r, section: s)
 						indexPathsOfUpdatedRows.append(indexPath)
@@ -881,6 +893,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 		resultSetChanges = SectionedCollectionChanges(
 			deletedRows: indexPathsOfDeletedRows,
 			insertedRows: indexPathsOfInsertedRows,
+			updatedRows: indexPathsOfUpdatedRows,
 			movedRows: indexPathsOfMovedRows,
 			deletedSections: indiceOfDeletedSections,
 			insertedSections: indiceOfInsertedSections
