@@ -866,7 +866,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 				}
 
 				// Moved objects within the same section.
-				if let indexPath = originOfMovedObjects[reference] {
+				if let indexPath = originOfMovedObjects[reference], indexPath.row != r {
 					let from = indexPath
 					let to = IndexPath(row: r, section: s)
 					indexPathsOfMovedRows.append((from, to))
