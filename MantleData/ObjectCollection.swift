@@ -111,10 +111,12 @@ public final class ObjectCollection<E: NSManagedObject> {
 			             "Unsufficient number of sort descriptors.")
 
 			self.sortsAscendingSectionName = fetchRequest.sortDescriptors!.first!.ascending
-			self.objectComparer = Comparer<E>(Array(fetchRequest.sortDescriptors!.dropFirst()))
+			self.objectComparer = Comparer<E>(Array(fetchRequest.sortDescriptors!.dropFirst()),
+			                                  groupsBySection: true)
 		} else {
 			self.sortsAscendingSectionName = true
-			self.objectComparer = Comparer<E>(fetchRequest.sortDescriptors ?? [])
+			self.objectComparer = Comparer<E>(fetchRequest.sortDescriptors!,
+			                                  groupsBySection: false)
 		}
 
 		predicate = fetchRequest.predicate ?? NSPredicate(value: true)
@@ -1164,18 +1166,22 @@ internal struct ObjectSnapshot {
 }
 
 internal final class Comparer<E: NSManagedObject> {
-	let isAscending: [Bool]
+	let isAscending: [(Int, Bool)]
 	weak var collection: ObjectCollection<E>!
 
-	init(_ sortDescriptors: [NSSortDescriptor]) {
-		self.isAscending = sortDescriptors.map { $0.ascending }
+	init(_ sortDescriptors: [NSSortDescriptor], groupsBySection: Bool) {
+		var index = groupsBySection ? 1 : 0
+		self.isAscending = sortDescriptors.map {
+			defer { index += 1 }
+			return (index, $0.ascending)
+		}
 	}
 
 	func compare<R: ObjectReferenceProtocol>(_ left: R, to right: R) -> ComparisonResult where R.Object == E {
 		let left = collection.objectCache[left.reference]!
 		let right = collection.objectCache[right.reference]!
 
-		for (i, isAscending) in isAscending.enumerated() {
+		for (i, isAscending) in isAscending {
 			let order = left.wrapped[i].compare(right.wrapped[i])
 			if order != .orderedSame {
 				return isAscending ? order : (order == .orderedAscending ? .orderedDescending : .orderedAscending)
