@@ -40,11 +40,11 @@ extension NSManagedObjectContext {
 	}
 
 	@discardableResult
-	public func observeSavedChanges(from other: NSManagedObjectContext) -> Disposable {
+	public func observeSavedChanges(from other: NSManagedObjectContext) -> Disposable? {
 		return NotificationCenter.default.reactive
 			.notifications(forName: .NSManagedObjectContextDidSave, object: other)
 			.take(until: reactive.lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
-			.startWithValues(handleExternalChanges(_:))
+			.observeValues(handleExternalChanges(_:))
 	}
 
 	@discardableResult
@@ -55,12 +55,12 @@ extension NSManagedObjectContext {
 		disposable += defaultCenter.reactive
 			.notifications(forName: .didBatchUpdate, object: other)
 			.take(until: reactive.lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
-			.startWithValues(handleExternalBatchUpdate(_:))
+			.observeValues(handleExternalBatchUpdate(_:))
 
 		disposable += defaultCenter.reactive
 			.notifications(forName: .willBatchDelete, object: other)
 			.take(until: reactive.lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
-			.startWithValues(preprocessBatchDelete(_:))
+			.observeValues(preprocessBatchDelete(_:))
 
 		return disposable
 	}

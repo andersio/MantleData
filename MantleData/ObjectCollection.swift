@@ -153,7 +153,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 			.notifications(forName: .NSManagedObjectContextObjectsDidChange,
 			               object: context)
 			.take(until: context.reactive.lifetime.ended.zip(with: lifetime.ended).map { _ in })
-			.startWithValues(self.process(objectsDidChangeNotification:))
+			.observeValues(self.process(objectsDidChangeNotification:))
 
 		objectComparer.collection = self
 	}
@@ -341,7 +341,7 @@ public final class ObjectCollection<E: NSManagedObject> {
 				.reactive
 				.notifications(forName: NSNotification.Name.NSManagedObjectContextDidSave, object: context)
 				.take(first: 1)
-				.startWithValues(handle(contextDidSaveNotification:))
+				.observeValues(handle(contextDidSaveNotification:))
 
 			isAwaitingContextSave = true
 		}
