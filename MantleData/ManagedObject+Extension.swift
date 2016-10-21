@@ -28,7 +28,23 @@ extension NSManagedObject: ManagedObjectProtocol {
 	///
 	/// - parameters:
 	///   - keyPath: The key path to be observed.
+	public func producer<Value>(forKeyPath keyPath: String, type: Value?.Type? = nil) -> SignalProducer<Value?, NoError> {
+		return producer(forKeyPath: keyPath) { $0 as! Value? }
+	}
+
+	/// Return a producer which emits the current and subsequent values for the supplied key path.
+	/// A fault would be fired when the producer is started.
+	///
+	/// - important: You should avoid using it in any overrided methods of `Object`
+	///              if the producer might outlive the object.
+	///
+	/// - parameters:
+	///   - keyPath: The key path to be observed.
 	public func producer<Value>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> {
+		return producer(forKeyPath: keyPath) { $0 as! Value }
+	}
+
+	private func producer<Value>(forKeyPath keyPath: String, extract: @escaping (Any?) -> Value) -> SignalProducer<Value, NoError> {
 		return SignalProducer { [weak self] observer, disposable in
 			guard let strongSelf = self else {
 				observer.sendInterrupted()
@@ -43,11 +59,12 @@ extension NSManagedObject: ManagedObjectProtocol {
 				.values(forKeyPath: keyPath)
 				.startWithValues { [weak self] value in
 					if let strongSelf = self, strongSelf.faultingState == 0 && !strongSelf.isDeleted {
-						observer.send(value: value as! Value)
+						observer.send(value: extract(value))
 					}
-				}
+			}
 		}
 	}
+
 
 	public func property<Value>(forKeyPath keyPath: String, type: Value.Type? = nil) -> ObjectProperty<Value> {
 		return ObjectProperty(keyPath: keyPath, for: self)
