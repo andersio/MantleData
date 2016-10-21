@@ -279,8 +279,8 @@ public final class ObjectQuery<E: NSManagedObject> {
 	/// MARK: Batch Updating
 
 	@available(iOS 9.0, *)
-	public func unsafeUpdate<Value: CocoaBridgeable>(newValue value: Value, forKeyPath path: String) throws {
-		try unsafeUpdate(from: NSExpression(forConstantValue: value.cocoaValue), forKeyPath: path)
+	public func unsafeUpdate<Value>(newValue value: Value, forKeyPath path: String) throws {
+		try unsafeUpdate(from: NSExpression(forConstantValue: value), forKeyPath: path)
 	}
 
 	@available(iOS 9.0, *)
