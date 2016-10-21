@@ -24,7 +24,7 @@ public protocol NSTableViewAdapterProvider: class {
 
 final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterProvider>: NSObject, NSTableViewDataSource {
 	weak var tableView: NSTableView!
-	private let set: ViewModelCollection<ViewModel>
+	private let set: ViewModelMapper<ViewModel>
 	private unowned let provider: Provider
 	private let config: NSTableViewAdapterConfig
 	private var flattenedRanges: [Range<Int>] = []
@@ -37,7 +37,7 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 
 	public let disposable: Disposable
 
-	private init(set: ViewModelCollection<ViewModel>, provider: Provider, tableView: NSTableView, config: NSTableViewAdapterConfig, disposable: Disposable) {
+	private init(set: ViewModelMapper<ViewModel>, provider: Provider, tableView: NSTableView, config: NSTableViewAdapterConfig, disposable: Disposable) {
 		self.tableView = tableView
 		self.set = set
 		self.provider = provider
@@ -118,7 +118,7 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 	@discardableResult
 	public static func bind(
 		_ tableView: NSTableView,
-		with set: ViewModelCollection<ViewModel>,
+		with set: ViewModelMapper<ViewModel>,
 		provider: Provider,
 		config: NSTableViewAdapterConfig
 	) -> NSTableViewAdapter<ViewModel, Provider> {

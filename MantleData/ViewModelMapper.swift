@@ -1,5 +1,5 @@
 //
-//  ViewModelSet.swift
+//  ViewModelMapper.swift
 //  MantleData
 //
 //  Created by Ik ben anders on 7/9/2015.
@@ -9,15 +9,15 @@
 import ReactiveSwift
 import enum Result.NoError
 
-/// `ViewModelCollection` is a type-erased view to any `SectionedCollection`
-/// implementations. It maps view models of type `ViewModel` from the underlying set
-/// of `ViewModel.MappingObject` objects.
-public final class ViewModelCollection<ViewModel>: SectionedCollection {
+/// `ViewModelMapper` is a type-erased view to `SectionedCollection`. For every
+/// object, it returns an action that can be applied on any instance of
+/// `ViewModel`, which triggers the associated configurator of the mapper.
+public final class ViewModelMapper<ViewModel>: SectionedCollection {
 	public typealias Index = IndexPath
 
 	public var sectionNameTransform: ((String?) -> String?)? = nil
 
-  private let set: _AnySectionedCollectionBox<ViewModel>
+  private let set: _AnySectionedCollectionBox<(ViewModel) -> Void>
 
   public var events: Signal<SectionedCollectionEvent, NoError> {
 		return set.events
@@ -52,11 +52,11 @@ public final class ViewModelCollection<ViewModel>: SectionedCollection {
 		return set.rowCount(for: section)
 	}
 
-	public subscript(row row: Int, section section: Int) -> ViewModel {
+	public subscript(row row: Int, section section: Int) -> (ViewModel) -> Void {
 		return set[row: row, section: section]
 	}
 
-	public init<R: SectionedCollection>(_ set: R, factory: @escaping (R.Iterator.Element) -> ViewModel) {
-		self.set = _ViewModelCollectionBoxBase(set, factory: factory)
+	public init<R: SectionedCollection>(_ set: R, binder: @escaping (R.Iterator.Element, ViewModel) -> Void) {
+		self.set = _ViewModelCollectionBoxBase(set, binder: binder)
 	}
 }

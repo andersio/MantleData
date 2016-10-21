@@ -9,13 +9,13 @@
 import ReactiveSwift
 import enum Result.NoError
 
-internal class _ViewModelCollectionBoxBase<R: SectionedCollection, ViewModel>: _AnySectionedCollectionBox<ViewModel> {
+internal class _ViewModelCollectionBoxBase<R: SectionedCollection, ViewModel>: _AnySectionedCollectionBox<(ViewModel) -> Void> {
 	private let set: R
-	private let factory: (R.Iterator.Element) -> ViewModel
+	private let binder: (R.Iterator.Element, ViewModel) -> Void
 
-	init(_ set: R, factory: @escaping (R.Iterator.Element) -> ViewModel) {
+	init(_ set: R, binder: @escaping (R.Iterator.Element, ViewModel) -> Void) {
 		self.set = set
-		self.factory = factory
+		self.binder = binder
 	}
 
 	override var events: Signal<SectionedCollectionEvent, NoError> {
@@ -42,8 +42,9 @@ internal class _ViewModelCollectionBoxBase<R: SectionedCollection, ViewModel>: _
 		return Index(set.index(before: R.Index(i)))
 	}
 
-	override subscript(row row: Int, section section: Int) -> ViewModel {
-		return factory(set[row: row, section: section])
+	override subscript(row row: Int, section section: Int) -> (ViewModel) -> Void {
+		let object = set[row: row, section: section]
+		return { viewModel in self.binder(object, viewModel) }
 	}
 
 	override func sectionName(for section: Int) -> String? {

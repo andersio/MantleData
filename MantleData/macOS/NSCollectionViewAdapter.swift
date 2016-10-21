@@ -56,12 +56,12 @@ public protocol NSCollectionViewAdapterProvider: class {
 
 @available(macOS 10.11, *)
 public final class NSCollectionViewAdapter<ViewModel, Provider: NSCollectionViewAdapterProvider>: NSObject, NSCollectionViewDataSource {
-	private let set: ViewModelCollection<ViewModel>
+	private let set: ViewModelMapper<ViewModel>
 	private unowned let provider: Provider
 	private let config: NSCollectionViewAdapterConfig
 	public let disposable: Disposable
 
-	public init(set: ViewModelCollection<ViewModel>, provider: Provider, config: NSCollectionViewAdapterConfig, disposable: Disposable) {
+	public init(set: ViewModelMapper<ViewModel>, provider: Provider, config: NSCollectionViewAdapterConfig, disposable: Disposable) {
 		self.set = set
 		self.provider = provider
 		self.config = config
@@ -90,7 +90,7 @@ public final class NSCollectionViewAdapter<ViewModel, Provider: NSCollectionView
 	@discardableResult
 	public static func bind(
 		_ collectionView: NSCollectionView,
-		with set: ViewModelCollection<ViewModel>,
+		with set: ViewModelMapper<ViewModel>,
 		provider: Provider,
 		config: NSCollectionViewAdapterConfig
 	) -> NSCollectionViewAdapter<ViewModel, Provider> {

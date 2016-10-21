@@ -29,7 +29,7 @@
 		9A0D9A861C76ABD30013C976 /* ReactiveArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E31C510BAD00801A30 /* ReactiveArray.swift */; };
 		9A0D9A881C76ABD30013C976 /* SectionedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E51C510BAD00801A30 /* SectionedCollection.swift */; };
 		9A0D9A891C76ABD30013C976 /* ObjectCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6661BC958E100FC86E1 /* ObjectCollection.swift */; };
-		9A0D9A8B1C76ABD30013C976 /* ViewModelCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6591BC958E100FC86E1 /* ViewModelCollection.swift */; };
+		9A0D9A8B1C76ABD30013C976 /* ViewModelMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6591BC958E100FC86E1 /* ViewModelMapper.swift */; };
 		9A0D9A8C1C76ABD30013C976 /* StdlibCollections+PrivateExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997EB1C510BB700801A30 /* StdlibCollections+PrivateExtension.swift */; };
 		9A0D9A8E1C76ABD30013C976 /* ManagedObjectContext+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F01C510BD100801A30 /* ManagedObjectContext+Extension.swift */; };
 		9A0D9A8F1C76ABD30013C976 /* ObjectQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997F11C510BD100801A30 /* ObjectQuery.swift */; };
@@ -38,7 +38,7 @@
 		9A0D9A9A1C76ABD30013C976 /* NSManagedObjectContext+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m */; };
 		9A0D9A9B1C76ABE00013C976 /* NSManagedObjectContext+Additions.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A2997FD1C510BF100801A30 /* NSManagedObjectContext+Additions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9A0D9A9C1C76ADA90013C976 /* MantleData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9A39A6611BC958E100FC86E1 /* MantleData.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		9A141A3E1C495E500049BEC9 /* ViewModelCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6591BC958E100FC86E1 /* ViewModelCollection.swift */; };
+		9A141A3E1C495E500049BEC9 /* ViewModelMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A39A6591BC958E100FC86E1 /* ViewModelMapper.swift */; };
 		9A2997E71C510BAD00801A30 /* ExistentialCollections+Private.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E21C510BAD00801A30 /* ExistentialCollections+Private.swift */; };
 		9A2997E81C510BAD00801A30 /* ReactiveArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E31C510BAD00801A30 /* ReactiveArray.swift */; };
 		9A2997EA1C510BAD00801A30 /* SectionedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A2997E51C510BAD00801A30 /* SectionedCollection.swift */; };
@@ -151,7 +151,7 @@
 		9A2E427C1DAAB615006D909F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9A2E42861DAABD08006D909F /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		9A2E42871DAABD08006D909F /* ObjectCollectionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectCollectionTests.swift; sourceTree = "<group>"; };
-		9A39A6591BC958E100FC86E1 /* ViewModelCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelCollection.swift; path = MantleData/ViewModelCollection.swift; sourceTree = "<group>"; };
+		9A39A6591BC958E100FC86E1 /* ViewModelMapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewModelMapper.swift; path = MantleData/ViewModelMapper.swift; sourceTree = "<group>"; };
 		9A39A65E1BC958E100FC86E1 /* ManagedObject+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "ManagedObject+Extension.swift"; path = "MantleData/ManagedObject+Extension.swift"; sourceTree = "<group>"; };
 		9A39A6611BC958E100FC86E1 /* MantleData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MantleData.h; path = MantleData/MantleData.h; sourceTree = "<group>"; };
 		9A39A6661BC958E100FC86E1 /* ObjectCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ObjectCollection.swift; path = MantleData/ObjectCollection.swift; sourceTree = "<group>"; };
@@ -363,7 +363,7 @@
 				9A2997E31C510BAD00801A30 /* ReactiveArray.swift */,
 				9A39A6661BC958E100FC86E1 /* ObjectCollection.swift */,
 				9A511A3C1CDE47850098D30B /* ObjectCollectionPrefetcher.swift */,
-				9A39A6591BC958E100FC86E1 /* ViewModelCollection.swift */,
+				9A39A6591BC958E100FC86E1 /* ViewModelMapper.swift */,
 			);
 			name = "Reactive Collections";
 			sourceTree = "<group>";
@@ -696,7 +696,7 @@
 				9AD7A2291DA1626100EAA24A /* NSCollectionViewAdapter.swift in Sources */,
 				9A0D9A891C76ABD30013C976 /* ObjectCollection.swift in Sources */,
 				9A2D52C21D179CC900FEBC05 /* ManagedObjectID.swift in Sources */,
-				9A0D9A8B1C76ABD30013C976 /* ViewModelCollection.swift in Sources */,
+				9A0D9A8B1C76ABD30013C976 /* ViewModelMapper.swift in Sources */,
 				9A0D9A8C1C76ABD30013C976 /* StdlibCollections+PrivateExtension.swift in Sources */,
 				9A0D9A8E1C76ABD30013C976 /* ManagedObjectContext+Extension.swift in Sources */,
 				9A0D9A8F1C76ABD30013C976 /* ObjectQuery.swift in Sources */,
@@ -749,7 +749,7 @@
 				9ACB1FAC1CDC69720010555B /* SectionedCollectionEvent.swift in Sources */,
 				9A2997E81C510BAD00801A30 /* ReactiveArray.swift in Sources */,
 				9A2997F31C510BD100801A30 /* ManagedObjectContext+Extension.swift in Sources */,
-				9A141A3E1C495E500049BEC9 /* ViewModelCollection.swift in Sources */,
+				9A141A3E1C495E500049BEC9 /* ViewModelMapper.swift in Sources */,
 				9A39A6781BC958E100FC86E1 /* ObjectCollection.swift in Sources */,
 				9A511A3D1CDE47850098D30B /* ObjectCollectionPrefetcher.swift in Sources */,
 				9AD7A2241DA1625700EAA24A /* UIKit+Additions.swift in Sources */,
