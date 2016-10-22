@@ -11,15 +11,7 @@ import ReactiveSwift
 import ReactiveCocoa
 import enum Result.NoError
 
-public protocol ManagedObjectProtocol: class {}
-
-extension NSManagedObject: ManagedObjectProtocol {
-	public static func entity(in context: NSManagedObjectContext) -> NSEntityDescription {
-		let entity = NSEntityDescription.entity(forEntityName: String(describing: self),
-		                                        in: context)
-		return entity!
-	}
-
+extension Reactive where Base: NSManagedObject {
 	/// Return a producer which emits the current and subsequent values for the supplied key path.
 	/// A fault would be fired when the producer is started.
 	///
@@ -28,7 +20,7 @@ extension NSManagedObject: ManagedObjectProtocol {
 	///
 	/// - parameters:
 	///   - keyPath: The key path to be observed.
-	public func producer<Value>(forKeyPath keyPath: String, type: Value?.Type? = nil) -> SignalProducer<Value?, NoError> {
+	public func values<Value>(forKeyPath keyPath: String, type: Value?.Type? = nil) -> SignalProducer<Value?, NoError> {
 		return producer(forKeyPath: keyPath) { $0 as! Value? }
 	}
 
@@ -40,34 +32,42 @@ extension NSManagedObject: ManagedObjectProtocol {
 	///
 	/// - parameters:
 	///   - keyPath: The key path to be observed.
-	public func producer<Value>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> {
+	public func values<Value>(forKeyPath keyPath: String, type: Value.Type? = nil) -> SignalProducer<Value, NoError> {
 		return producer(forKeyPath: keyPath) { $0 as! Value }
 	}
 
 	private func producer<Value>(forKeyPath keyPath: String, extract: @escaping (Any?) -> Value) -> SignalProducer<Value, NoError> {
-		return SignalProducer { [weak self] observer, disposable in
-			guard let strongSelf = self else {
-				observer.sendInterrupted()
-				return
-			}
+		return SignalProducer { observer, disposable in
+			self.base.willAccessValue(forKey: nil)
+			defer { self.base.didAccessValue(forKey: nil) }
 
-			// Fire fault.
-			strongSelf.willAccessValue(forKey: nil)
-			defer { strongSelf.didAccessValue(forKey: nil) }
-
-			disposable += strongSelf.reactive
+			// Use the `Reactive<NSObject>` implementation of `values(forKeyPath:)`.
+			disposable += (self.base as NSObject).reactive
 				.values(forKeyPath: keyPath)
-				.startWithValues { [weak self] value in
-					if let strongSelf = self, strongSelf.faultingState == 0 && !strongSelf.isDeleted {
+				.startWithValues { [weak base = self.base] value in
+					if let base = base, base.faultingState == 0 && !base.isDeleted {
 						observer.send(value: extract(value))
 					}
-			}
+				}
 		}
 	}
 
-
 	public func property<Value>(forKeyPath keyPath: String, type: Value.Type? = nil) -> ObjectProperty<Value> {
-		return ObjectProperty(keyPath: keyPath, for: self)
+		return ObjectProperty(keyPath: keyPath, for: base)
+	}
+
+	public func property<Value>(forKeyPath keyPath: String, type: Value?.Type? = nil) -> ObjectProperty<Value?> {
+		return ObjectProperty(keyPath: keyPath, for: base)
+	}
+}
+
+public protocol ManagedObjectProtocol: class {}
+
+extension NSManagedObject: ManagedObjectProtocol {
+	public static func entity(in context: NSManagedObjectContext) -> NSEntityDescription {
+		let entity = NSEntityDescription.entity(forEntityName: String(describing: self),
+		                                        in: context)
+		return entity!
 	}
 }
 
@@ -136,7 +136,7 @@ public final class ObjectProperty<Value>: MutablePropertyProtocol {
 	}
 
 	public var producer: SignalProducer<Value, NoError> {
-		return object.producer(forKeyPath: keyPath)
+		return object.reactive.values(forKeyPath: keyPath)
 	}
 
 	public var signal: Signal<Value, NoError> {
