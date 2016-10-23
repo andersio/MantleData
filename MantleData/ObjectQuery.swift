@@ -293,13 +293,13 @@ public final class ObjectQuery<E: NSManagedObject> {
 		let updateRequest = NSBatchUpdateRequest(entity: Entity.entity(in: context))
 		updateRequest.propertiesToUpdate = dictionary
 		updateRequest.predicate = fetchRequest.predicate
-		try context.batchUpdate(updateRequest)
+		try context.reactive.batchUpdate(updateRequest)
 	}
 
 	@available(iOS 9.0, macOS 10.11, *)
 	public func unsafeBatchDelete() throws {
 		let fetchRequest = self.fetchRequest.copy() as! NSFetchRequest<NSFetchRequestResult>
 		let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-		try context.batchDelete(deleteRequest)
+		try context.reactive.batchDelete(deleteRequest)
 	}
 }

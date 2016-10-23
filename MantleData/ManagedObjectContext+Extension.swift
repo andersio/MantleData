@@ -11,6 +11,8 @@ import CoreData
 import ReactiveSwift
 import ReactiveCocoa
 
+@nonobjc let batchRequestResultIDArrayKey = Notification.Name(rawValue: "MDResultIDs")
+
 extension Notification.Name {
 	@nonobjc public static let objectContextWillMergeChanges = Notification.Name(rawValue: "MDContextWillMergeChangesNotification")
 
@@ -20,51 +22,6 @@ extension Notification.Name {
 }
 
 extension NSManagedObjectContext {
-	@nonobjc static let batchRequestResultIDArrayKey = Notification.Name(rawValue: "MDResultIDs")
-
-	public enum ContextParent {
-		case persistentStore(NSPersistentStoreCoordinator)
-		case context(NSManagedObjectContext)
-	}
-
-	public convenience init(parent: ContextParent, concurrencyType: NSManagedObjectContextConcurrencyType) {
-		self.init(concurrencyType: concurrencyType)
-
-		switch parent {
-		case let .persistentStore(persistentStoreCoordinator):
-			self.persistentStoreCoordinator = persistentStoreCoordinator
-
-		case let .context(context):
-			self.parent = context
-		}
-	}
-
-	@discardableResult
-	public func observeSavedChanges(from other: NSManagedObjectContext) -> Disposable? {
-		return NotificationCenter.default.reactive
-			.notifications(forName: .NSManagedObjectContextDidSave, object: other)
-			.take(until: reactive.lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
-			.observeValues(handleExternalChanges(_:))
-	}
-
-	@discardableResult
-	public func observeBatchChanges(from other: NSManagedObjectContext) -> Disposable {
-		let disposable = CompositeDisposable()
-		let defaultCenter = NotificationCenter.default
-
-		disposable += defaultCenter.reactive
-			.notifications(forName: .didBatchUpdate, object: other)
-			.take(until: reactive.lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
-			.observeValues(handleExternalBatchUpdate(_:))
-
-		disposable += defaultCenter.reactive
-			.notifications(forName: .willBatchDelete, object: other)
-			.take(until: reactive.lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
-			.observeValues(preprocessBatchDelete(_:))
-
-		return disposable
-	}
-
 	/// Enqueue a block to the context.
 	public func async(_ block: @escaping () -> Void) {
 		perform(block)
@@ -77,12 +34,49 @@ extension NSManagedObjectContext {
 		performBlockAndWaitNoEscape { returnResult = block() }
 		return returnResult
 	}
+}
+
+extension Reactive where Base: NSManagedObjectContext {
+	public func objects<E: NSManagedObject>(_ type: E.Type) -> ObjectQuery<E> {
+		return ObjectQuery(in: base)
+	}
+
+	public func fetch<E: NSManagedObject>(_ id: ManagedObjectID<E>, in context: NSManagedObjectContext) throws -> E {
+		return try context.existingObject(with: id.id) as! E
+	}
+
+	@discardableResult
+	public func observeSavedChanges(from other: NSManagedObjectContext) -> Disposable? {
+		return NotificationCenter.default.reactive
+			.notifications(forName: .NSManagedObjectContextDidSave, object: other)
+			.take(until: lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
+			.observeValues(handleExternalChanges(_:))
+	}
+
+	@discardableResult
+	public func observeBatchChanges(from other: NSManagedObjectContext) -> Disposable {
+		let disposable = CompositeDisposable()
+		let defaultCenter = NotificationCenter.default
+
+		disposable += defaultCenter.reactive
+			.notifications(forName: .didBatchUpdate, object: other)
+			.take(until: lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
+			.observeValues(handleExternalBatchUpdate(_:))
+
+		disposable += defaultCenter.reactive
+			.notifications(forName: .willBatchDelete, object: other)
+			.take(until: lifetime.ended.zip(with: other.reactive.lifetime.ended).map { _ in })
+			.observeValues(preprocessBatchDelete(_:))
+
+		return disposable
+	}
+
 
 	/// Batch update objects, and update other contexts asynchronously.
 	public func batchUpdate(_ request: NSBatchUpdateRequest) throws {
 		request.resultType = .updatedObjectIDsResultType
 
-		guard let requestResult = try self.execute(request) as? NSBatchUpdateResult else {
+		guard let requestResult = try base.execute(request) as? NSBatchUpdateResult else {
 			fatalError("StoreCoordinator.performBatchRequest: Cannot obtain the result object from the object context.")
 		}
 
@@ -94,8 +88,8 @@ extension NSManagedObjectContext {
 
 		NotificationCenter.default
 			.post(name: .didBatchUpdate,
-			      object: self,
-						userInfo: [NSManagedObjectContext.batchRequestResultIDArrayKey: objectIDs])
+			      object: base,
+						userInfo: [batchRequestResultIDArrayKey: objectIDs])
 	}
 
 	/// Batch delete objects, and update other contexts asynchronously.
@@ -106,7 +100,7 @@ extension NSManagedObjectContext {
 		IDRequest.includesPropertyValues = false
 		IDRequest.includesPendingChanges = false
 
-		guard let affectingObjectIDs = try? fetch(IDRequest) else {
+		guard let affectingObjectIDs = try? base.fetch(IDRequest) else {
 			fatalError("StoreCoordinator.performBatchRequest: Cannot obtain the affecting ID array for a batch delete request.")
 		}
 
@@ -114,12 +108,12 @@ extension NSManagedObjectContext {
 
 		NotificationCenter.default
 			.post(name: .willBatchDelete,
-			      object: self,
-			      userInfo: [NSManagedObjectContext.batchRequestResultIDArrayKey: affectingObjectIDs])
+			      object: base,
+			      userInfo: [batchRequestResultIDArrayKey: affectingObjectIDs])
 
 		request.resultType = .resultTypeCount
 
-		guard let requestResult = try self.execute(request) as? NSBatchDeleteResult else {
+		guard let requestResult = try base.execute(request) as? NSBatchDeleteResult else {
 			fatalError("StoreCoordinator.performBatchRequest: Cannot obtain the result object from the object context.")
 		}
 
@@ -131,55 +125,55 @@ extension NSManagedObjectContext {
 
 		NotificationCenter.default
 			.post(name: .didBatchDelete,
-			      object: self,
-			      userInfo: [NSManagedObjectContext.batchRequestResultIDArrayKey: affectingObjectIDs])
+			      object: base,
+			      userInfo: [batchRequestResultIDArrayKey: affectingObjectIDs])
 
 	}
 
 	private func deleteObjects(with resultIDs: [NSManagedObjectID]) {
 		for ID in resultIDs {
-			delete(object(with: ID))
+			base.delete(base.object(with: ID))
 		}
 
-		processPendingChanges()
+		base.processPendingChanges()
 	}
 
 	private func updateObjectsWith(_ resultIDs: [NSManagedObjectID]) {
 		// Force the context to discard the cached data.
 		// breaks infinite staleness guarantee??
-		let objects = resultIDs.flatMap { registeredObject(for: $0) }
+		let objects = resultIDs.flatMap { base.registeredObject(for: $0) }
 
 		NotificationCenter.default
 			.post(name: .objectContextWillMergeChanges,
-			                      object: self,
+			                      object: base,
 			                      userInfo: nil)
 
-		let previousInterval = stalenessInterval
-		stalenessInterval = 0
+		let previousInterval = base.stalenessInterval
+		base.stalenessInterval = 0
 
-		objects.forEach { refresh($0, mergeChanges: true) }
+		objects.forEach { base.refresh($0, mergeChanges: true) }
 
-		stalenessInterval = previousInterval
+		base.stalenessInterval = previousInterval
 	}
 
 	private func isSourcedFromIdenticalPersistentStoreCoordinator(as other: NSManagedObjectContext, localCoordinator: inout NSPersistentStoreCoordinator?) -> Bool {
-		guard other !== self else {
+		guard other !== base else {
 			return true
 		}
 
-		var _selfCoordinator = persistentStoreCoordinator
-		var iterator = Optional(self)
+		var _baseCoordinator = base.persistentStoreCoordinator
+		var iterator = Optional(base as NSManagedObjectContext)
 
-		while _selfCoordinator == nil && iterator?.parent != nil {
+		while _baseCoordinator == nil && iterator?.parent != nil {
 			iterator = iterator!.parent
-			_selfCoordinator = iterator?.persistentStoreCoordinator
+			_baseCoordinator = iterator?.persistentStoreCoordinator
 		}
 
-		guard let selfCoordinator = _selfCoordinator else {
+		guard let baseCoordinator = _baseCoordinator else {
 			preconditionFailure("The tree of contexts have no persistent store coordinator presented at the root.")
 		}
 
-		var _remoteCoordinator = persistentStoreCoordinator
+		var _remoteCoordinator = base.persistentStoreCoordinator
 		iterator = Optional(other)
 
 		while _remoteCoordinator == nil && iterator?.parent != nil {
@@ -191,25 +185,25 @@ extension NSManagedObjectContext {
 			preconditionFailure("The tree of contexts have no persistent store coordinator presented at the root.")
 		}
 
-		localCoordinator = selfCoordinator
-		return remoteCoordinator === selfCoordinator
+		localCoordinator = baseCoordinator
+		return remoteCoordinator === baseCoordinator
 	}
 
 	private func isSiblingOf(_ other: NSManagedObjectContext) -> Bool {
-		if other !== self {
+		if other !== base {
 			// Fast Paths
-			if let persistentStoreCoordinator = persistentStoreCoordinator, persistentStoreCoordinator == other.persistentStoreCoordinator {
+			if let persistentStoreCoordinator = base.persistentStoreCoordinator, persistentStoreCoordinator == other.persistentStoreCoordinator {
 				return true
 			}
 
-			if let parentContext = parent, parentContext == other.parent {
+			if let parentContext = base.parent, parentContext == other.parent {
 				return true
 			}
 
 			// Slow Path
-			var myPSC = persistentStoreCoordinator
+			var myPSC = base.persistentStoreCoordinator
 			var otherPSC = other.persistentStoreCoordinator
-			var myContext: NSManagedObjectContext = self
+			var myContext: NSManagedObjectContext = base
 			var otherContext: NSManagedObjectContext = other
 
 			while let parent = myContext.parent {
@@ -230,7 +224,7 @@ extension NSManagedObjectContext {
 		return false
 	}
 
-	@objc public func handleExternalChanges(_ notification: Notification) {
+	public func handleExternalChanges(_ notification: Notification) {
 		guard let userInfo = (notification as NSNotification).userInfo else {
 			return
 		}
@@ -240,38 +234,38 @@ extension NSManagedObjectContext {
 		let hasIdenticalSource = isSourcedFromIdenticalPersistentStoreCoordinator(as: context,
 		                                                                          localCoordinator: &localCoordinator)
 
-		sync {
+		base.sync {
 			NotificationCenter.default
 				.post(name: .objectContextWillMergeChanges,
-					object: self,
+					object: base,
 					userInfo: nil)
 
 			if #available(iOS 9.0, macOS 10.11, *), !hasIdenticalSource {
 				NSManagedObjectContext.mergeChanges(fromRemoteContextSave: userInfo,
-																						into: [self])
+																						into: [base])
 			} else {
-				mergeChanges(fromContextDidSave: notification)
+				base.mergeChanges(fromContextDidSave: notification)
 			}
 		}
 	}
 
-	@objc private func preprocessBatchDelete(_ notification: Notification) {
-		sync {
-			guard let resultIDs = (notification as NSNotification).userInfo?[NSManagedObjectContext.batchRequestResultIDArrayKey] as? [NSManagedObjectID] else {
+	private func preprocessBatchDelete(_ notification: Notification) {
+		base.sync {
+			guard let resultIDs = (notification as NSNotification).userInfo?[batchRequestResultIDArrayKey] as? [NSManagedObjectID] else {
 				return
 			}
 
-			self.deleteObjects(with: resultIDs)
+			deleteObjects(with: resultIDs)
 		}
 	}
 
-	@objc private func handleExternalBatchUpdate(_ notification: Notification) {
-		sync {
-			guard let resultIDs = (notification as NSNotification).userInfo?[NSManagedObjectContext.batchRequestResultIDArrayKey] as? [NSManagedObjectID] else {
+	private func handleExternalBatchUpdate(_ notification: Notification) {
+		base.sync {
+			guard let resultIDs = (notification as NSNotification).userInfo?[batchRequestResultIDArrayKey] as? [NSManagedObjectID] else {
 				return
 			}
 			
-			self.updateObjectsWith(resultIDs)
+			updateObjectsWith(resultIDs)
 		}
 	}
 }
