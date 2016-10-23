@@ -55,14 +55,14 @@ public protocol NSCollectionViewAdapterProvider: class {
 }
 
 @available(macOS 10.11, *)
-public final class NSCollectionViewAdapter<ViewModel, Provider: NSCollectionViewAdapterProvider>: NSObject, NSCollectionViewDataSource {
-	private let set: ViewModelMapper<ViewModel>
+public final class NSCollectionViewAdapter<S: SectionedCollection, Provider: NSCollectionViewAdapterProvider>: NSObject, NSCollectionViewDataSource {
+	private let collection: S
 	private unowned let provider: Provider
 	private let config: NSCollectionViewAdapterConfig
 	public let disposable: Disposable
 
-	public init(set: ViewModelMapper<ViewModel>, provider: Provider, config: NSCollectionViewAdapterConfig, disposable: Disposable) {
-		self.set = set
+	public init(collection: S, provider: Provider, config: NSCollectionViewAdapterConfig, disposable: Disposable) {
+		self.collection = collection
 		self.provider = provider
 		self.config = config
 		self.disposable = disposable
@@ -71,11 +71,11 @@ public final class NSCollectionViewAdapter<ViewModel, Provider: NSCollectionView
 	}
 
 	public func numberOfSections(in collectionView: NSCollectionView) -> Int {
-		return set.sectionCount
+		return collection.sectionCount
 	}
 
 	public func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int {
-		return set.rowCount(for: section)
+		return collection.rowCount(for: section)
 	}
 
 	public func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt indexPath: IndexPath) -> NSCollectionViewItem {
@@ -90,19 +90,19 @@ public final class NSCollectionViewAdapter<ViewModel, Provider: NSCollectionView
 	@discardableResult
 	public static func bind(
 		_ collectionView: NSCollectionView,
-		with set: ViewModelMapper<ViewModel>,
+		with collection: S,
 		provider: Provider,
 		config: NSCollectionViewAdapterConfig
-	) -> NSCollectionViewAdapter<ViewModel, Provider> {
+	) -> NSCollectionViewAdapter<S, Provider> {
 		let disposable = CompositeDisposable()
 
-		let adapter = NSCollectionViewAdapter<ViewModel, Provider>(set: set,
+		let adapter = NSCollectionViewAdapter<S, Provider>(collection: collection,
 		                                                   provider: provider,
 		                                                   config: config,
 		                                                   disposable: disposable)
 		collectionView.dataSource = adapter
 
-		disposable += set.events
+		disposable += collection.events
 			.take(during: collectionView.reactive.lifetime)
 			.observeValues { [adapter, weak collectionView] event in
 				guard let collectionView = collectionView else { return }

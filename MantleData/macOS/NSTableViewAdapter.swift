@@ -22,9 +22,9 @@ public struct NSTableViewAdapterConfig {
 public protocol NSTableViewAdapterProvider: class {
 }
 
-final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterProvider>: NSObject, NSTableViewDataSource {
+final public class NSTableViewAdapter<S: SectionedCollection, Provider: NSTableViewAdapterProvider>: NSObject, NSTableViewDataSource {
 	weak var tableView: NSTableView!
-	private let set: ViewModelMapper<ViewModel>
+	private let collection: S
 	private unowned let provider: Provider
 	private let config: NSTableViewAdapterConfig
 	private var flattenedRanges: [Range<Int>] = []
@@ -37,9 +37,9 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 
 	public let disposable: Disposable
 
-	private init(set: ViewModelMapper<ViewModel>, provider: Provider, tableView: NSTableView, config: NSTableViewAdapterConfig, disposable: Disposable) {
+	private init(collection: S, provider: Provider, tableView: NSTableView, config: NSTableViewAdapterConfig, disposable: Disposable) {
 		self.tableView = tableView
-		self.set = set
+		self.collection = collection
 		self.provider = provider
 		self.config = config
 		self.disposable = disposable
@@ -63,9 +63,9 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 		let old = flattenedRanges
 
 		flattenedRanges.removeAll(keepingCapacity: true)
-		for sectionIndex in 0 ..< set.sectionCount {
+		for sectionIndex in 0 ..< collection.sectionCount {
 			let startIndex = flattenedRanges.last?.upperBound ?? 0
-			let range = Range(startIndex ... startIndex + set.rowCount(for: sectionIndex) + (config.hidesSectionHeader ? -1 : 0))
+			let range = Range(startIndex ... startIndex + collection.rowCount(for: sectionIndex) + (config.hidesSectionHeader ? -1 : 0))
 			flattenedRanges.append(range)
 		}
 
@@ -106,8 +106,8 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 	}
 
 	public func numberOfRows(in tableView: NSTableView) -> Int {
-		return (config.hidesSectionHeader ? 0 : set.sectionCount)
-			+ (0 ..< set.sectionCount).reduce(0) { $0 + set.rowCount(for: $1) }
+		return (config.hidesSectionHeader ? 0 : collection.sectionCount)
+			+ (0 ..< collection.sectionCount).reduce(0) { $0 + collection.rowCount(for: $1) }
 		  + numberOfPrependedRows
 	}
 
@@ -118,15 +118,15 @@ final public class NSTableViewAdapter<ViewModel, Provider: NSTableViewAdapterPro
 	@discardableResult
 	public static func bind(
 		_ tableView: NSTableView,
-		with set: ViewModelMapper<ViewModel>,
+		with collection: S,
 		provider: Provider,
 		config: NSTableViewAdapterConfig
-	) -> NSTableViewAdapter<ViewModel, Provider> {
+	) -> NSTableViewAdapter<S, Provider> {
 		let disposable = CompositeDisposable()
-		let adapter = NSTableViewAdapter(set: set, provider: provider, tableView: tableView, config: config, disposable: disposable)
+		let adapter = NSTableViewAdapter(collection: collection, provider: provider, tableView: tableView, config: config, disposable: disposable)
 		tableView.dataSource = adapter
 
-		disposable += set.events
+		disposable += collection.events
 			.take(during: tableView.reactive.lifetime)
 			.observeValues { [adapter, weak tableView] event in
 				guard let tableView = tableView else { return }

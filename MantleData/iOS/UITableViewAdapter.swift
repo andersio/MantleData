@@ -22,14 +22,14 @@ public struct UITableViewAdapterConfig {
 	public init() {}
 }
 
-final public class UITableViewAdapter<ViewModel, Provider: UITableViewAdapterProvider>: NSObject, UITableViewDataSource {
-	private let set: ViewModelMapper<ViewModel>
+final public class UITableViewAdapter<S: SectionedCollection, Provider: UITableViewAdapterProvider>: NSObject, UITableViewDataSource {
+	private let collection: S
 	private let provider: Provider
 
 	public let disposable: Disposable
 
-	fileprivate init(set: ViewModelMapper<ViewModel>, provider: Provider, disposable: Disposable) {
-		self.set = set
+	fileprivate init(collection: S, provider: Provider, disposable: Disposable) {
+		self.collection = collection
 		self.provider = provider
 		self.disposable = disposable
 
@@ -37,11 +37,11 @@ final public class UITableViewAdapter<ViewModel, Provider: UITableViewAdapterPro
 	}
 
 	public func numberOfSections(in tableView: UITableView) -> Int {
-		return set.sectionCount
+		return collection.sectionCount
 	}
 
 	public func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-		return set.sectionName(for: section)
+		return collection.sectionName(for: section)
 	}
 
 	public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -49,24 +49,24 @@ final public class UITableViewAdapter<ViewModel, Provider: UITableViewAdapterPro
 	}
 
 	public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		return set.rowCount(for: section)
+		return collection.rowCount(for: section)
 	}
 
 	@discardableResult
 	public static func bind(
 		_ tableView: UITableView,
-		with set: ViewModelMapper<ViewModel>,
+		with collection: S,
 		provider: Provider,
 		config: UITableViewAdapterConfig
-	) -> UITableViewAdapter<ViewModel, Provider> {
+	) -> UITableViewAdapter<S, Provider> {
 		let disposable = CompositeDisposable()
 
-		let adapter = UITableViewAdapter(set: set,
+		let adapter = UITableViewAdapter(collection: collection,
 		                                 provider: provider,
 		                                 disposable: disposable)
 		tableView.dataSource = adapter
 
-		disposable += set.events
+		disposable += collection.events
 			.take(during: tableView.reactive.lifetime)
 			.observeValues { [weak tableView] event in
 				guard let tableView = tableView else {

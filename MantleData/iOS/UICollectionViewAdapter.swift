@@ -39,13 +39,13 @@ public protocol UICollectionViewAdapterProvider: class {
 	func supplementaryView(of category: UICollectionViewSupplementaryViewKind, at indexPath: IndexPath) -> UICollectionReusableView
 }
 
-final public class UICollectionViewAdapter<ViewModel, Provider: UICollectionViewAdapterProvider>: NSObject, UICollectionViewDataSource {
-	private let set: ViewModelMapper<ViewModel>
+final public class UICollectionViewAdapter<S: SectionedCollection, Provider: UICollectionViewAdapterProvider>: NSObject, UICollectionViewDataSource {
+	private let collection: S
 	private let provider: Provider
 	public let disposable: Disposable
 
-	public init(set: ViewModelMapper<ViewModel>, provider: Provider, disposable: Disposable) {
-		self.set = set
+	public init(collection: S, provider: Provider, disposable: Disposable) {
+		self.collection = collection
 		self.provider = provider
 		self.disposable = disposable
 
@@ -53,7 +53,7 @@ final public class UICollectionViewAdapter<ViewModel, Provider: UICollectionView
 	}
 
 	public func numberOfSections(in collectionView: UICollectionView) -> Int {
-		return set.sectionCount
+		return collection.sectionCount
 	}
 
 	public func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -66,23 +66,23 @@ final public class UICollectionViewAdapter<ViewModel, Provider: UICollectionView
 	}
 
 	public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-		return set.rowCount(for: section)
+		return collection.rowCount(for: section)
 	}
 
 	@discardableResult
 	public static func bind(
 		_ collectionView: UICollectionView,
-		with set: ViewModelMapper<ViewModel>,
+		with collection: S,
 		provider: Provider
-	) -> UICollectionViewAdapter<ViewModel, Provider> {
+	) -> UICollectionViewAdapter<S, Provider> {
 		let disposable = CompositeDisposable()
 
-		let adapter = UICollectionViewAdapter(set: set,
+		let adapter = UICollectionViewAdapter(collection: collection,
 		                                      provider: provider,
 		                                      disposable: disposable)
 		collectionView.dataSource = adapter
 
-		disposable += set.events
+		disposable += collection.events
 			.take(during: collectionView.reactive.lifetime)
 			.observeValues { [adapter, weak collectionView] event in
 				guard let collectionView = collectionView else { return }
