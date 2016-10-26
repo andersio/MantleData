@@ -26,7 +26,8 @@ class ObjectCollectionTests: XCTestCase {
 	var mainContext: NSManagedObjectContext!
 
 	func measureOCDeletionPerformance(times: Int) {
-		let collection = Children.query(mainContext)
+		let collection = mainContext.reactive
+			.objects(Children.self)
 			.sort(by: .ascending("value"))
 			.makeCollection(prefetching: .none)
 
@@ -81,7 +82,8 @@ class ObjectCollectionTests: XCTestCase {
 
 		mainContext.processPendingChanges()
 
-		let collection = Children.query(self.mainContext)
+		let collection = mainContext.reactive
+			.objects(Children.self)
 			.sort(by: .ascending("value"))
 			.makeCollection(prefetching: .none)
 		expect { try collection.fetch() }.toNot(throwError())
@@ -120,7 +122,8 @@ class ObjectCollectionTests: XCTestCase {
 	}
 
 	func measureOCInsertionPerformance(times: Int) {
-		let collection = Children.query(mainContext)
+		let collection = mainContext.reactive
+			.objects(Children.self)
 			.sort(by: .ascending("value"))
 			.makeCollection(prefetching: .none)
 
@@ -164,7 +167,8 @@ class ObjectCollectionTests: XCTestCase {
 	}
 
 	func measureFRCDeletionPerformance(times: Int) {
-		let controller = Children.query(mainContext)
+		let controller = mainContext.reactive
+			.objects(Children.self)
 			.sort(by: .ascending("value"))
 			.makeController()
 
@@ -215,7 +219,8 @@ class ObjectCollectionTests: XCTestCase {
 	}
 
 	func measureFRCInsertionPerformance(times: Int) {
-		let controller = Children.query(mainContext)
+		let controller = mainContext.reactive
+			.objects(Children.self)
 			.sort(by: .ascending("value"))
 			.makeController()
 
@@ -270,7 +275,8 @@ class ObjectCollectionTests: XCTestCase {
 
 		mainContext.processPendingChanges()
 
-		let controller = Children.query(self.mainContext)
+		let controller = mainContext.reactive
+			.objects(Children.self)
 			.sort(by: .ascending("value"))
 			.makeController()
 
@@ -332,8 +338,8 @@ class ObjectCollectionTests: XCTestCase {
 			expect(error).to(beNil())
 		}
 
-		mainContext = NSManagedObjectContext(parent: .persistentStore(storeCoordinator),
-		                                     concurrencyType: .mainQueueConcurrencyType)
+		mainContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+		mainContext.persistentStoreCoordinator = storeCoordinator
 	}
 
 	override func tearDown() {
