@@ -47,8 +47,10 @@ final public class ReactiveArray<E> {
 	public func batchUpdate(action: () -> Void) {
 		batchingState = BatchingState()
 		action()
-		apply(batchingState!)
-		batchingState = nil
+		if let state = batchingState {
+			apply(state)
+			batchingState = nil
+		}
 	}
 
 	private func apply(_ state: BatchingState<E>) {
@@ -104,6 +106,12 @@ final public class ReactiveArray<E> {
 		_insert(element, at: nil)
 	}
 
+	public func append<S: Sequence>(contentsOf elements: S) where S.Iterator.Element == E {
+		for element in elements {
+			_insert(element, at: nil)
+		}
+	}
+
 	public func insert(_ element: E, at index: Int) {
 		_insert(element, at: index)
 	}
@@ -133,6 +141,14 @@ final public class ReactiveArray<E> {
 			batchingState!.removals.append(index)
 			return storage[index]
 		}
+	}
+
+	public func removeAll() {
+		storage.removeAll()
+		batchingState = nil
+
+		let changes = SectionedCollectionChanges(deletedSections: [0])
+		eventObserver.send(value: .updated(changes))
 	}
 
 	public func move(elementAt index: Int, to newIndex: Int) {
