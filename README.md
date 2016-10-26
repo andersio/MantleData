@@ -1,3 +1,5 @@
+![Travis CI](https://img.shields.io/travis/andersio/MantleData.svg)
+
 ### Introduction
 MantleData complements Core Data with convienent tools for deploying MVVM patterns in Cocoa applications.
 
