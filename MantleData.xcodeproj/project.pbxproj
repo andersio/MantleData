@@ -88,6 +88,8 @@
 		9AD7A2261DA1625700EAA24A /* UITableViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD7A2221DA1625700EAA24A /* UITableViewAdapter.swift */; };
 		9AD7A2291DA1626100EAA24A /* NSCollectionViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD7A2271DA1626100EAA24A /* NSCollectionViewAdapter.swift */; };
 		9AD7A22A1DA1626100EAA24A /* NSTableViewAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AD7A2281DA1626100EAA24A /* NSTableViewAdapter.swift */; };
+		9ADFE5C21DC04381001E11F7 /* LazyMapSectionedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADFE5C11DC04381001E11F7 /* LazyMapSectionedCollection.swift */; };
+		9ADFE5C31DC04381001E11F7 /* LazyMapSectionedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADFE5C11DC04381001E11F7 /* LazyMapSectionedCollection.swift */; };
 		9AE44A211D7447620000CB17 /* ReactiveCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A201D7447620000CB17 /* ReactiveCocoa.framework */; };
 		9AE44A231D7447660000CB17 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A221D7447660000CB17 /* Result.framework */; };
 		9AE44A251D74476C0000CB17 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9AE44A241D74476C0000CB17 /* CoreData.framework */; };
@@ -184,6 +186,7 @@
 		9AD7A2271DA1626100EAA24A /* NSCollectionViewAdapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NSCollectionViewAdapter.swift; path = MantleData/macOS/NSCollectionViewAdapter.swift; sourceTree = SOURCE_ROOT; };
 		9AD7A2281DA1626100EAA24A /* NSTableViewAdapter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NSTableViewAdapter.swift; path = MantleData/macOS/NSTableViewAdapter.swift; sourceTree = SOURCE_ROOT; };
 		9AD7A22B1DA1627300EAA24A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = MantleData/Info.plist; sourceTree = "<group>"; };
+		9ADFE5C11DC04381001E11F7 /* LazyMapSectionedCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = LazyMapSectionedCollection.swift; path = MantleData/LazyMapSectionedCollection.swift; sourceTree = "<group>"; };
 		9AE44A201D7447620000CB17 /* ReactiveCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveCocoa.framework; path = Carthage/Checkouts/ReactiveCocoa/build/Debug/ReactiveCocoa.framework; sourceTree = "<group>"; };
 		9AE44A221D7447660000CB17 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = Carthage/Checkouts/Result/build/Debug/Result.framework; sourceTree = "<group>"; };
 		9AE44A241D74476C0000CB17 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
@@ -364,6 +367,7 @@
 				9A39A6661BC958E100FC86E1 /* ObjectCollection.swift */,
 				9A511A3C1CDE47850098D30B /* ObjectCollectionPrefetcher.swift */,
 				9A39A6591BC958E100FC86E1 /* ViewModelMapper.swift */,
+				9ADFE5C11DC04381001E11F7 /* LazyMapSectionedCollection.swift */,
 			);
 			name = "Reactive Collections";
 			sourceTree = "<group>";
@@ -686,6 +690,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9ADFE5C31DC04381001E11F7 /* LazyMapSectionedCollection.swift in Sources */,
 				9AD114841D1CF1210067F20C /* ExistentialCollections.swift in Sources */,
 				9ACB1FB51CDC69A20010555B /* SectionedCollectionEvent.swift in Sources */,
 				9A0D9A851C76ABD30013C976 /* ExistentialCollections+Private.swift in Sources */,
@@ -752,6 +757,7 @@
 				9A141A3E1C495E500049BEC9 /* ViewModelMapper.swift in Sources */,
 				9A39A6781BC958E100FC86E1 /* ObjectCollection.swift in Sources */,
 				9A511A3D1CDE47850098D30B /* ObjectCollectionPrefetcher.swift in Sources */,
+				9ADFE5C21DC04381001E11F7 /* LazyMapSectionedCollection.swift in Sources */,
 				9AD7A2241DA1625700EAA24A /* UIKit+Additions.swift in Sources */,
 				9A2997ED1C510BB700801A30 /* StdlibCollections+PrivateExtension.swift in Sources */,
 				9A2997EA1C510BAD00801A30 /* SectionedCollection.swift in Sources */,

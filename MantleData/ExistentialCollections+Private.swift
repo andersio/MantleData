@@ -9,6 +9,53 @@
 import ReactiveSwift
 import enum Result.NoError
 
+internal class _LazyMapSectionedCollectionBase<R: SectionedCollection, U>: _AnySectionedCollectionBox<U> {
+	private let set: R
+	private let transform: (R.Iterator.Element) -> U
+
+	init(_ set: R, transform: @escaping (R.Iterator.Element) -> U) {
+		self.set = set
+		self.transform = transform
+	}
+
+	override var events: Signal<SectionedCollectionEvent, NoError> {
+		return set.events
+	}
+
+	override var sectionCount: Int {
+		return set.sectionCount
+	}
+
+	override var startIndex: Index {
+		return IndexPath(set.startIndex)
+	}
+
+	override var endIndex: Index {
+		return IndexPath(set.endIndex)
+	}
+
+	override func index(after i: Index) -> Index {
+		return Index(set.index(after: R.Index(i)))
+	}
+
+	override func index(before i: Index) -> Index {
+		return Index(set.index(before: R.Index(i)))
+	}
+
+	override subscript(row row: Int, section section: Int) -> U {
+		let object = set[row: row, section: section]
+		return transform(object)
+	}
+
+	override func sectionName(for section: Int) -> String? {
+		return set.sectionName(for: section)
+	}
+
+	override func rowCount(for section: Int) -> Int {
+		return set.rowCount(for: section)
+	}
+}
+
 internal class _ViewModelCollectionBoxBase<R: SectionedCollection, ViewModel>: _AnySectionedCollectionBox<(ViewModel) -> Void> {
 	private let set: R
 	private let binder: (R.Iterator.Element, ViewModel) -> Void
