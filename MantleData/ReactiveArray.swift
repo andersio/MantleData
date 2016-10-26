@@ -10,7 +10,14 @@ import Foundation
 import ReactiveSwift
 import enum Result.NoError
 
-// Root
+private struct BatchingState<Element> {
+	var seq = 0
+
+	var removals: [Int] = []
+	var insertions: [(index: Int?, value: Element)] = []
+	var updates: Set<Int> = []
+}
+
 final public class ReactiveArray<E> {
 	public var name: String? = nil
 
@@ -18,6 +25,8 @@ final public class ReactiveArray<E> {
 	fileprivate let eventObserver: Observer<SectionedCollectionEvent, NoError>
 
 	fileprivate var storage: [E] = []
+
+	private var batchingState: BatchingState<E>?
 
 	public init<S: Sequence>(_ content: S) where S.Iterator.Element == E {
 		(events, eventObserver) = Signal.pipe()
@@ -28,8 +37,135 @@ final public class ReactiveArray<E> {
 		self.init([])
 	}
 
+	/// Batch mutations to the array for one collection changed event.
+	///
+	/// Removals respect the old indexes, while insertions and update respect
+	/// the order after the removals are applied.
+	///
+	/// - parameters:
+	///   - action: The action which mutates the array.
+	public func batchUpdate(action: () -> Void) {
+		batchingState = BatchingState()
+		action()
+		apply(batchingState!)
+		batchingState = nil
+	}
+
+	private func apply(_ state: BatchingState<E>) {
+		let removals = state.removals.sorted(by: >)
+		var updates = state.updates.sorted(by: >)
+
+		for index in removals {
+			storage.remove(at: index)
+
+			for i in updates.indices {
+				if updates[i] < index {
+					break
+				} else {
+					assert(updates[i] != index, "Attempt to update an element to be deleted.")
+					updates[i] -= 1
+				}
+			}
+		}
+
+		let insertions = state.insertions
+		var insertedRows = [Int]()
+		insertedRows.reserveCapacity(insertions.count)
+
+		for (index, value) in insertions {
+			let index = index ?? storage.endIndex
+			storage.insert(value, at: index)
+
+			for i in insertedRows.indices {
+				if insertedRows[i] >= index {
+					insertedRows[i] += 1
+				}
+			}
+
+			insertedRows.append(index)
+
+			for i in updates.indices.reversed() {
+				if updates[i] < index {
+					break
+				} else {
+					assert(updates[i] != index, "Attempt to update a element to be inserted.")
+					updates[i] += 1
+				}
+			}
+		}
+
+		let changes = SectionedCollectionChanges(deletedRows: removals.map { IndexPath(row: $0, section: 0) },
+		                                         insertedRows: insertedRows.map { IndexPath(row: $0, section: 0) },
+		                                         updatedRows: updates.map { IndexPath(row: $0, section: 0) })
+		eventObserver.send(value: .updated(changes))
+	}
+
+	public func append(_ element: E) {
+		_insert(element, at: nil)
+	}
+
+	public func insert(_ element: E, at index: Int) {
+		_insert(element, at: index)
+	}
+
+	private func _insert(_ element: E, at index: Int?) {
+		if batchingState == nil {
+			let index = index ?? storage.endIndex
+			storage.insert(element, at: index)
+
+			let changes = SectionedCollectionChanges(insertedRows: [IndexPath(row: index, section: 0)])
+			eventObserver.send(value: .updated(changes))
+		} else {
+			batchingState!.insertions.append((index, element))
+		}
+	}
+
+	@discardableResult
+	public func remove(at index: Int) -> E {
+		if batchingState == nil {
+			let value = storage.remove(at: index)
+
+			let changes = SectionedCollectionChanges(deletedRows: [IndexPath(row: index, section: 0)])
+			eventObserver.send(value: .updated(changes))
+
+			return value
+		} else {
+			batchingState!.removals.append(index)
+			return storage[index]
+		}
+	}
+
+	public func move(elementAt index: Int, to newIndex: Int) {
+		if batchingState == nil {
+			let value = storage.remove(at: index)
+			storage.insert(value, at: newIndex)
+
+			let changes = SectionedCollectionChanges(movedRows: [(from: IndexPath(row: index, section: 0),
+			                                                      to: IndexPath(row: newIndex, section: 0))])
+			eventObserver.send(value: .updated(changes))
+		} else {
+			batchingState!.removals.append(index)
+			batchingState!.insertions.append((newIndex, storage[index]))
+		}
+	}
+
+	public subscript(position: Int) -> E {
+		get {
+			return storage[position]
+		}
+		set {
+			storage[position] = newValue
+
+			if batchingState == nil {
+				let changes = SectionedCollectionChanges(updatedRows: [IndexPath(row: position, section: 0)])
+				eventObserver.send(value: .updated(changes))
+			} else {
+				batchingState!.updates.insert(position)
+			}
+		}
+	}
+
 	deinit {
-		replaceSubrange(startIndex ..< endIndex, with: [])
 		eventObserver.sendCompleted()
 	}
 }
@@ -58,30 +194,8 @@ extension ReactiveArray: SectionedCollection {
 	}
 
 	public subscript(row row: Int, section section: Int) -> E {
-		get { return storage[row] }
-	}
-
-	public subscript(index: IndexPath) -> E {
-		get { return storage[index.row] }
-		set(newValue) {
-			storage[index.row] = newValue
-
-			let changes = SectionedCollectionChanges(
-				deletedRows: [],
-				insertedRows: [],
-				updatedRows: [index],
-				movedRows: [],
-				deletedSections: [],
-				insertedSections: []
-			)
-
-			eventObserver.send(value: .updated(changes))
-		}
-	}
-
-	public subscript(subRange: Range<IndexPath>) -> MutableRandomAccessSlice<ReactiveArray<E>> {
-		get { return MutableRandomAccessSlice(base: self, bounds: subRange) }
-		set { replaceSubrange(subRange, with: newValue) }
+		assert(section == 0, "ReactiveArray supports only one section.")
+		return storage[row]
 	}
 
 	public func sectionName(for section: Int) -> String? {
@@ -92,31 +206,3 @@ extension ReactiveArray: SectionedCollection {
 		return section > 0 ? 0 : storage.count
 	}
 }
-
-extension ReactiveArray: MutableCollection { }
-
-extension ReactiveArray: RangeReplaceableCollection {
-	public func replaceSubrange<C>(_ subRange: Range<IndexPath>, with newElements: C) where C : Collection, C.Iterator.Element == E {
-		let subRange = subRange.lowerBound.row ..< subRange.upperBound.row
-		storage.replaceSubrange(subRange, with: newElements)
-
-		let newElementsCount = Int(newElements.count.toIntMax())
-		let removedCount = Swift.min(newElementsCount, subRange.count)
-		let insertedCount = Swift.max(0, newElementsCount - removedCount)
-
-		let removed = subRange.lowerBound ..< subRange.lowerBound + removedCount
-		let inserted = removed.upperBound ..< removed.upperBound + insertedCount
-
-		let changes = SectionedCollectionChanges(
-			deletedRows: removed.map { IndexPath(row: $0, section: 0) },
-			insertedRows: inserted.map { IndexPath(row: $0, section: 0) },
-			updatedRows: [],
-			movedRows: [],
-			deletedSections: [],
-			insertedSections: []
-		)
-
-		eventObserver.send(value: .updated(changes))
-	}
-}
-

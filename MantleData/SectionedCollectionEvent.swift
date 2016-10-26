@@ -23,6 +23,15 @@ public struct SectionedCollectionChanges {
 
 	public var deletedSections: IndexSet
 	public var insertedSections: IndexSet
+
+	public init(deletedRows: [IndexPath] = [], insertedRows: [IndexPath] = [], updatedRows: [IndexPath] = [], movedRows: [(from: IndexPath, to: IndexPath)] = [], deletedSections: IndexSet = [], insertedSections: IndexSet = []) {
+		self.deletedRows = deletedRows
+		self.insertedRows = insertedRows
+		self.updatedRows = updatedRows
+		self.movedRows = movedRows
+		self.deletedSections = deletedSections
+		self.insertedSections = insertedSections
+	}
 }
 
 extension SectionedCollectionEvent: CustomStringConvertible {

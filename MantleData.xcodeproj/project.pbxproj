@@ -69,6 +69,8 @@
 		9A5577A01C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 9A55779F1C1EBC7F00789E02 /* NSManagedObjectContext+Additions.m */; };
 		9A6717561D9DD4080026F2C1 /* ReactiveSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A6717551D9DD4080026F2C1 /* ReactiveSwift.framework */; };
 		9A6717581D9DD40E0026F2C1 /* ReactiveSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A6717571D9DD40E0026F2C1 /* ReactiveSwift.framework */; };
+		9A9AD2FF1DC115A900401293 /* ReactiveArraySpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A9AD2FE1DC115A900401293 /* ReactiveArraySpec.swift */; };
+		9A9AD3001DC115A900401293 /* ReactiveArraySpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A9AD2FE1DC115A900401293 /* ReactiveArraySpec.swift */; };
 		9AA6AD8E1DAC13F300E1F9B0 /* Children+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA6AD8A1DAC13F300E1F9B0 /* Children+CoreDataClass.swift */; };
 		9AA6AD8F1DAC13F300E1F9B0 /* Children+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA6AD8B1DAC13F300E1F9B0 /* Children+CoreDataProperties.swift */; };
 		9AA6AD901DAC13F300E1F9B0 /* Parent+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA6AD8C1DAC13F300E1F9B0 /* Parent+CoreDataClass.swift */; };
@@ -167,6 +169,7 @@
 		9A6717571D9DD40E0026F2C1 /* ReactiveSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReactiveSwift.framework; path = "Carthage/Checkouts/ReactiveSwift/build/Debug-iphoneos/ReactiveSwift.framework"; sourceTree = "<group>"; };
 		9A7A7B1F1CE381DB0030674B /* EditorPool.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = EditorPool.swift; path = MantleData/EditorPool.swift; sourceTree = "<group>"; };
 		9A999FD91CD64E3A009AA161 /* Editor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Editor.swift; path = MantleData/Editor.swift; sourceTree = "<group>"; };
+		9A9AD2FE1DC115A900401293 /* ReactiveArraySpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReactiveArraySpec.swift; sourceTree = "<group>"; };
 		9AA6AD8A1DAC13F300E1F9B0 /* Children+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Children+CoreDataClass.swift"; sourceTree = "<group>"; };
 		9AA6AD8B1DAC13F300E1F9B0 /* Children+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Children+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		9AA6AD8C1DAC13F300E1F9B0 /* Parent+CoreDataClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Parent+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -385,6 +388,7 @@
 			isa = PBXGroup;
 			children = (
 				9AD7A2151DA133D200EAA24A /* Info.plist */,
+				9A9AD2FE1DC115A900401293 /* ReactiveArraySpec.swift */,
 			);
 			name = Tests;
 			path = MantleDataTests;
@@ -588,13 +592,13 @@
 					9AD7A2011DA1338E00EAA24A = {
 						CreatedOnToolsVersion = 8.0;
 						DevelopmentTeam = 5FQJ4FWHM9;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0810;
 						ProvisioningStyle = Automatic;
 					};
 					9AD7A2101DA133D200EAA24A = {
 						CreatedOnToolsVersion = 8.0;
 						DevelopmentTeam = 5FQJ4FWHM9;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0810;
 						ProvisioningStyle = Automatic;
 					};
 					9AFFA50C1BC7CBEC00B63C58 = {
@@ -729,6 +733,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A9AD2FF1DC115A900401293 /* ReactiveArraySpec.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -736,6 +741,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9A9AD3001DC115A900401293 /* ReactiveArraySpec.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
