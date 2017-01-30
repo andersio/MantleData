@@ -1,6 +1,8 @@
 [![Travis CI](https://img.shields.io/travis/andersio/MantleData.svg)](https://travis-ci.org/andersio/MantleData/builds)
 
 ### Introduction
+_This repository has not been actively managed, and part of the effort would be redirected to [ReactiveCollections](https://github.com/RACCommunity/ReactiveCollections/)._
+
 MantleData complements Core Data with convienent tools for deploying MVVM patterns in Cocoa applications.
 
 ### Requirements
